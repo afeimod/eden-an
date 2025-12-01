@@ -286,7 +286,7 @@ void ArmDynarmic32::MakeJit(Common::PageTable* page_table) {
     // Curated optimizations
     case Settings::CpuAccuracy::Auto:
         config.unsafe_optimizations = true;
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__) || defined(__DragonFly__) || defined(__NetBSD__)
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__) || defined(__DragonFly__) || defined(__NetBSD__) || defined(__OPENORBIS__)
         config.fastmem_pointer = std::nullopt;
         config.fastmem_exclusive_access = false;
 #endif
