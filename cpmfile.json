@@ -17,7 +17,8 @@
         "version": "1.57",
         "find_args": "CONFIG OPTIONAL_COMPONENTS headers context system fiber filesystem",
         "patches": [
-            "0001-clang-cl.patch"
+            "0001-clang-cl.patch",
+            "0004-openorbis.patch"
         ]
     },
     "fmt": {
