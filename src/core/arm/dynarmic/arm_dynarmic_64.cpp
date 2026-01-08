@@ -254,7 +254,9 @@ void ArmDynarmic64::MakeJit(Common::PageTable* page_table, std::size_t address_s
     config.enable_cycle_counting = !m_uses_wall_clock;
 
     // Code cache size
-#if defined(ARCHITECTURE_arm64) || defined(__sun__) || defined(__NetBSD__) || defined(__DragonFly__) || defined(__OpenBSD__)
+#if defined(__OPENORBIS__)
+    config.code_cache_size = std::uint32_t(32_MiB);
+#elif defined(ARCHITECTURE_arm64) || defined(__sun__) || defined(__NetBSD__) || defined(__DragonFly__) || defined(__OpenBSD__)
     config.code_cache_size = std::uint32_t(128_MiB);
 #else
     config.code_cache_size = std::uint32_t(512_MiB);
@@ -355,6 +357,10 @@ void ArmDynarmic64::MakeJit(Common::PageTable* page_table, std::size_t address_s
     default:
         break;
     }
+#ifdef __OPENORBIS__
+    config.unsafe_optimizations = false;
+    config.optimizations = Dynarmic::no_optimizations;
+#endif
     m_jit.emplace(config);
 }
 
