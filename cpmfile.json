@@ -102,6 +102,15 @@
         "artifact": "android-binaries-%VERSION%.zip",
         "hash": "8812ae84cbe49e6a3418ade9c458d3be6d74a3dffd319d4502007b564d580998056e8190414368ec11b27bc83993c7a0dad713c31bcc3d9553b51243efee3753"
     },
+    "snapdragon_gsr": {
+        "repo": "SnapdragonStudios/snapdragon-gsr",
+        "package": "snapdragon_gsr",
+        "hash": "dsfsdfsd",
+        "sha": "d926f074bcb9d714e179f1ce0fcb9ee2eeb5074e",
+        "patches": [
+            "0001-glslang-fix.patch"
+        ]
+    },
     "quazip": {
         "package": "QuaZip-Qt6",
         "repo": "stachenov/quazip",

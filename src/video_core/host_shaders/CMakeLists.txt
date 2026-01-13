@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 set(FIDELITYFX_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/externals/FidelityFX-FSR/ffx-fsr)
+set(SNAPDRAGON_GSR_INCLUDE_DIR ${snapdragon_gsr_SOURCE_DIR}/sgsr/v1/include/glsl/)
 
 set(FIDELITYFX_FILES
     ${FIDELITYFX_INCLUDE_DIR}/ffx_a.h
@@ -76,6 +77,8 @@ set(SHADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_quad_indexed.comp
     ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_turbo_mode.comp
     ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_uint8.comp
+    ${SNAPDRAGON_GSR_INCLUDE_DIR}/sgsr1_shader_mobile.frag
+    ${SNAPDRAGON_GSR_INCLUDE_DIR}/sgsr1_shader_mobile_edge_direction.frag
 )
 
 if (PLATFORM_HAIKU)
@@ -148,13 +151,44 @@ foreach(SOURCE_FILE IN ITEMS ${SHADER_FILES})
             OUTPUT
                 ${SPIRV_HEADER_FILE}
             COMMAND
-                ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -I"${FIDELITYFX_INCLUDE_DIR}" ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE} --target-env ${SPIR_V_VERSION}
+                ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -DUseUniformBlock=1 ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE} --target-env ${SPIR_V_VERSION}
             MAIN_DEPENDENCY
                 ${SOURCE_FILE}
             DEPENDS
                 ${SHADER_DIR}
         )
         set(SHADER_HEADERS ${SHADER_HEADERS} ${SPIRV_HEADER_FILE})
+    else()
+        # Skip generating source headers on Vulkan exclusive files
+        if (NOT ${FILENAME} MATCHES "vulkan.*" AND NOT ${FILENAME} MATCHES "sgsr1.*")
+            set(SOURCE_HEADER_FILE ${SHADER_DIR}/${SHADER_NAME}.h)
+            add_custom_command(
+                OUTPUT
+                    ${SOURCE_HEADER_FILE}
+                COMMAND
+                    ${CMAKE_COMMAND} -P ${HEADER_GENERATOR} ${SOURCE_FILE} ${SOURCE_HEADER_FILE} ${INPUT_FILE}
+                MAIN_DEPENDENCY
+                    ${SOURCE_FILE}
+                DEPENDS
+                    ${INPUT_FILE}
+                    # HEADER_GENERATOR should be included here but msbuild seems to assume it's always modified
+            )
+            set(SHADER_HEADERS ${SHADER_HEADERS} ${SOURCE_HEADER_FILE})
+        endif()
+        # Skip compiling to SPIR-V OpenGL exclusive files
+        if (NOT ${FILENAME} MATCHES "opengl.*")
+            string(TOUPPER ${SHADER_NAME}_SPV SPIRV_VARIABLE_NAME)
+            set(SPIRV_HEADER_FILE ${SHADER_DIR}/${SHADER_NAME}_spv.h)
+            add_custom_command(
+                OUTPUT
+                    ${SPIRV_HEADER_FILE}
+                COMMAND
+                    ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -I"${FIDELITYFX_INCLUDE_DIR}" ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE} --target-env ${SPIR_V_VERSION}
+                MAIN_DEPENDENCY
+                    ${SOURCE_FILE}
+            )
+            set(SHADER_HEADERS ${SHADER_HEADERS} ${SPIRV_HEADER_FILE})
+        endif()
     endif()
 endforeach()
 
