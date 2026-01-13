@@ -83,6 +83,9 @@ private:
     u8* backing_base{};
     u8* virtual_base{};
     size_t virtual_base_offset{};
+#ifdef __OPENORBIS__
+    std::optional<Common::VirtualBuffer<u8>> fallback_buffer;
+#endif
 };
 
 } // namespace Common
