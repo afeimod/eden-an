@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 set(FIDELITYFX_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/externals/FidelityFX-FSR/ffx-fsr)
-set(SNAPDRAGON_GSR_INCLUDE_DIR ${snapdragon_gsr_SOURCE_DIR}/sgsr/v1/include/glsl/)
 
 set(FIDELITYFX_FILES
     ${FIDELITYFX_INCLUDE_DIR}/ffx_a.h
