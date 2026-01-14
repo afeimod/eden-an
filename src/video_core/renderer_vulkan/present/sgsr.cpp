@@ -109,6 +109,8 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
 
     const f32 input_image_width = f32(input_image_extent.width);
     const f32 input_image_height = f32(input_image_extent.height);
+    const f32 output_image_width = f32(extent.width);
+    const f32 output_image_height = f32(extent.height);
     const f32 viewport_x = crop_rect.left * input_image_width;
     const f32 viewport_y = crop_rect.top * input_image_height;
     const f32 viewport_width = (crop_rect.right - crop_rect.left) * input_image_width;
@@ -116,10 +118,10 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
 
     // highp vec4
     PushConstants viewport_con{};
-    viewport_con[0] = std::bit_cast<u32>(1.f / viewport_x);
-    viewport_con[1] = std::bit_cast<u32>(1.f / viewport_y);
-    viewport_con[2] = std::bit_cast<u32>(viewport_width);
-    viewport_con[3] = std::bit_cast<u32>(viewport_height);
+    viewport_con[2] = std::bit_cast<u32>(0.5f * viewport_width / output_image_width - 0.5f + viewport_x);
+    viewport_con[3] = std::bit_cast<u32>(0.5f * viewport_height / output_image_height - 0.5f + viewport_y);
+    viewport_con[0] = std::bit_cast<u32>(1.f / std::bit_cast<f32>(viewport_con[2]));
+    viewport_con[1] = std::bit_cast<u32>(1.f / std::bit_cast<f32>(viewport_con[3]));
 
     UploadImages(scheduler);
     UpdateDescriptorSets(source_image_view, image_index);
