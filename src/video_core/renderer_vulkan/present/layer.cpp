@@ -120,6 +120,9 @@ void Layer::ConfigureDraw(PresentPushConstants* out_push_constants,
     if (fsr) {
         source_image_view = fsr->Draw(scheduler, image_index, source_image, source_image_view, render_extent, crop_rect);
         crop_rect = {0, 0, 1, 1};
+    } else if (sgsr) {
+        source_image_view = sgsr->Draw(scheduler, image_index, source_image, source_image_view, render_extent, crop_rect);
+        crop_rect = {0, 0, 1, 1};
     }
 
     SetMatrixData(*out_push_constants, layout);

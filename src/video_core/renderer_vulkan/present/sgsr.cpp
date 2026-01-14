@@ -94,22 +94,25 @@ void SGSR::UploadImages(Scheduler& scheduler) {
 
 VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_image, VkImageView source_image_view, VkExtent2D input_image_extent, const Common::Rectangle<f32>& crop_rect) {
     Images& images = m_dynamic_images[image_index];
-    VkImage stage0_image = *images.images[0];
-    VkImage stage1_image = *images.images[1];
-    VkDescriptorSet stage0_descriptor_set = images.descriptor_sets[0];
-    VkDescriptorSet stage1_descriptor_set = images.descriptor_sets[1];
-    VkFramebuffer stage0_framebuffer = *images.framebuffers[0];
-    VkFramebuffer stage1_framebuffer = *images.framebuffers[1];
+    auto const stage0_image = *images.images[0];
+    auto const stage1_image = *images.images[1];
+    auto const stage0_descriptor_set = images.descriptor_sets[0];
+    auto const stage1_descriptor_set = images.descriptor_sets[1];
+    auto const stage0_framebuffer = *images.framebuffers[0];
+    auto const stage1_framebuffer = *images.framebuffers[1];
+    auto const stage0_pipeline = *m_stage_pipeline[0];
+    auto const stage1_pipeline = *m_stage_pipeline[1];
+
     VkPipelineLayout pipeline_layout = *m_pipeline_layout;
     VkRenderPass renderpass = *m_renderpass;
     VkExtent2D extent = m_extent;
 
     const f32 input_image_width = f32(input_image_extent.width);
     const f32 input_image_height = f32(input_image_extent.height);
-    const f32 viewport_width = (crop_rect.right - crop_rect.left) * input_image_width;
     const f32 viewport_x = crop_rect.left * input_image_width;
-    const f32 viewport_height = (crop_rect.bottom - crop_rect.top) * input_image_height;
     const f32 viewport_y = crop_rect.top * input_image_height;
+    const f32 viewport_width = (crop_rect.right - crop_rect.left) * input_image_width;
+    const f32 viewport_height = (crop_rect.bottom - crop_rect.top) * input_image_height;
 
     // highp vec4
     PushConstants viewport_con{};
@@ -122,20 +125,19 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
     UpdateDescriptorSets(source_image_view, image_index);
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([=, this](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([=](vk::CommandBuffer cmdbuf) {
         TransitionImageLayout(cmdbuf, source_image, VK_IMAGE_LAYOUT_GENERAL);
         TransitionImageLayout(cmdbuf, stage0_image, VK_IMAGE_LAYOUT_GENERAL);
         BeginRenderPass(cmdbuf, renderpass, stage0_framebuffer, extent);
-        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *m_stage_pipeline[0]);
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, stage0_pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, stage0_descriptor_set, {});
         cmdbuf.PushConstants(pipeline_layout, VK_SHADER_STAGE_FRAGMENT_BIT, viewport_con);
         cmdbuf.Draw(3, 1, 0, 0);
         cmdbuf.EndRenderPass();
-        //
         TransitionImageLayout(cmdbuf, stage0_image, VK_IMAGE_LAYOUT_GENERAL);
         TransitionImageLayout(cmdbuf, stage1_image, VK_IMAGE_LAYOUT_GENERAL);
         BeginRenderPass(cmdbuf, renderpass, stage1_framebuffer, extent);
-        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *m_stage_pipeline[1]);
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, stage1_pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, stage1_descriptor_set, {});
         cmdbuf.PushConstants(pipeline_layout, VK_SHADER_STAGE_FRAGMENT_BIT, viewport_con);
         cmdbuf.Draw(3, 1, 0, 0);
