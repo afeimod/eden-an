@@ -17,7 +17,7 @@
 
 namespace Vulkan {
 
-using PushConstants = std::array<u32, 4 * 4>;
+using PushConstants = std::array<u32, 4>;
 
 SGSR::SGSR(const Device& device, MemoryAllocator& memory_allocator, size_t image_count, VkExtent2D extent)
     : m_device{device}, m_memory_allocator{memory_allocator}
@@ -65,7 +65,6 @@ SGSR::SGSR(const Device& device, MemoryAllocator& memory_allocator, size_t image
         .pPushConstantRanges = &range,
     };
     m_pipeline_layout = m_device.GetLogical().CreatePipelineLayout(ci);
-
     m_stage_pipeline[0] = CreateWrappedPipeline(m_device, m_renderpass, m_pipeline_layout, std::tie(m_vert_shader, m_stage_shader[0]));
     m_stage_pipeline[1] = CreateWrappedPipeline(m_device, m_renderpass, m_pipeline_layout, std::tie(m_vert_shader, m_stage_shader[1]));
 }
