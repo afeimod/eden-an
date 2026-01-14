@@ -1,7 +1,7 @@
-diff --git a/d926/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag b/d926/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
+diff --git a/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag b/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
 index 69927af..c942bbc 100644
---- a/d926/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
-+++ b/d926/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
+--- a/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
++++ b/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
 @@ -34,11 +34,10 @@ precision highp int;
  ////////////////////////
  
@@ -45,10 +45,10 @@ index 69927af..c942bbc 100644
  
  			float mean = (left.y+left.z+right.x+right.w)*0.25;
  			left = left - vec4(mean);
-diff --git a/d926/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag b/d926/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
+diff --git a/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag b/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
 index 1f1daa6..128a348 100644
---- a/d926/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
-+++ b/d926/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
+--- a/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
++++ b/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
 @@ -40,13 +40,12 @@ precision highp int;
  ////////////////////////
  

@@ -116,10 +116,10 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
 
     // highp vec4
     PushConstants viewport_con{};
-    *reinterpret_cast<f32*>(viewport_con.data() + 0) = viewport_x;
-    *reinterpret_cast<f32*>(viewport_con.data() + 1) = viewport_y;
-    *reinterpret_cast<f32*>(viewport_con.data() + 2) = viewport_width;
-    *reinterpret_cast<f32*>(viewport_con.data() + 3) = viewport_height;
+    viewport_con[0] = std::bit_cast<u32>(viewport_x);
+    viewport_con[1] = std::bit_cast<u32>(viewport_y);
+    viewport_con[2] = std::bit_cast<u32>(viewport_width);
+    viewport_con[3] = std::bit_cast<u32>(viewport_height);
 
     UploadImages(scheduler);
     UpdateDescriptorSets(source_image_view, image_index);
@@ -135,17 +135,17 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
         cmdbuf.Draw(3, 1, 0, 0);
         cmdbuf.EndRenderPass();
         TransitionImageLayout(cmdbuf, stage0_image, VK_IMAGE_LAYOUT_GENERAL);
-        TransitionImageLayout(cmdbuf, stage1_image, VK_IMAGE_LAYOUT_GENERAL);
-        BeginRenderPass(cmdbuf, renderpass, stage1_framebuffer, extent);
-        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, stage1_pipeline);
-        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, stage1_descriptor_set, {});
-        cmdbuf.PushConstants(pipeline_layout, VK_SHADER_STAGE_FRAGMENT_BIT, viewport_con);
-        cmdbuf.Draw(3, 1, 0, 0);
-        cmdbuf.EndRenderPass();
-        TransitionImageLayout(cmdbuf, stage1_image, VK_IMAGE_LAYOUT_GENERAL);
+        // TransitionImageLayout(cmdbuf, stage1_image, VK_IMAGE_LAYOUT_GENERAL);
+        // BeginRenderPass(cmdbuf, renderpass, stage1_framebuffer, extent);
+        // cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, stage1_pipeline);
+        // cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, stage1_descriptor_set, {});
+        // cmdbuf.PushConstants(pipeline_layout, VK_SHADER_STAGE_FRAGMENT_BIT, viewport_con);
+        // cmdbuf.Draw(3, 1, 0, 0);
+        // cmdbuf.EndRenderPass();
+        // TransitionImageLayout(cmdbuf, stage1_image, VK_IMAGE_LAYOUT_GENERAL);
     });
-
-    return *images.image_views[1];
+    //return *images.image_views[1];
+    return *images.image_views[0];
 }
 
 } // namespace Vulkan
