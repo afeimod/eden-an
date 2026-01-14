@@ -116,8 +116,8 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
 
     // highp vec4
     PushConstants viewport_con{};
-    viewport_con[0] = std::bit_cast<u32>(viewport_x);
-    viewport_con[1] = std::bit_cast<u32>(viewport_y);
+    viewport_con[0] = std::bit_cast<u32>(1.f / viewport_x);
+    viewport_con[1] = std::bit_cast<u32>(1.f / viewport_y);
     viewport_con[2] = std::bit_cast<u32>(viewport_width);
     viewport_con[3] = std::bit_cast<u32>(viewport_height);
 
