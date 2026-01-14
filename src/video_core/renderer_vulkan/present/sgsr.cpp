@@ -5,18 +5,17 @@
 #include "common/div_ceil.h"
 #include "common/settings.h"
 
-#include "video_core/fsr.h"
+//#include "video_core/sgsr.h"
 #include "video_core/host_shaders/sgsr1_shader_mobile_frag_spv.h"
 #include "video_core/host_shaders/sgsr1_shader_mobile_edge_direction_frag_spv.h"
 #include "video_core/host_shaders/sgsr1_shader_vert_spv.h"
-#include "video_core/renderer_vulkan/present/fsr.h"
+#include "video_core/renderer_vulkan/present/sgsr.h"
 #include "video_core/renderer_vulkan/present/util.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_shader_util.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 
 namespace Vulkan {
-using namespace SGSR;
 
 using PushConstants = std::array<u32, 4 * 4>;
 
@@ -46,7 +45,7 @@ SGSR::SGSR(const Device& device, MemoryAllocator& memory_allocator, size_t image
     m_descriptor_pool = CreateWrappedDescriptorPool(m_device, 2 * m_image_count, 2 * m_image_count);
     m_descriptor_set_layout = CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
 
-    std::vector<VkDescriptorSetLayout> layouts(MaxSgsrStage, *m_descriptor_set_layout);
+    std::vector<VkDescriptorSetLayout> layouts(SGSR_STAGE_COUNT, *m_descriptor_set_layout);
     for (auto& images : m_dynamic_images)
         images.descriptor_sets = CreateWrappedDescriptorSets(m_descriptor_pool, layouts);
 
@@ -123,11 +122,11 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
     UpdateDescriptorSets(source_image_view, image_index);
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([=](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([=, this](vk::CommandBuffer cmdbuf) {
         TransitionImageLayout(cmdbuf, source_image, VK_IMAGE_LAYOUT_GENERAL);
         TransitionImageLayout(cmdbuf, stage0_image, VK_IMAGE_LAYOUT_GENERAL);
         BeginRenderPass(cmdbuf, renderpass, stage0_framebuffer, extent);
-        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_stage_pipeline[0]);
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *m_stage_pipeline[0]);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, stage0_descriptor_set, {});
         cmdbuf.PushConstants(pipeline_layout, VK_SHADER_STAGE_FRAGMENT_BIT, viewport_con);
         cmdbuf.Draw(3, 1, 0, 0);
@@ -136,7 +135,7 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
         TransitionImageLayout(cmdbuf, stage0_image, VK_IMAGE_LAYOUT_GENERAL);
         TransitionImageLayout(cmdbuf, stage1_image, VK_IMAGE_LAYOUT_GENERAL);
         BeginRenderPass(cmdbuf, renderpass, stage1_framebuffer, extent);
-        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_stage_pipeline[1]);
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *m_stage_pipeline[1]);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, stage1_descriptor_set, {});
         cmdbuf.PushConstants(pipeline_layout, VK_SHADER_STAGE_FRAGMENT_BIT, viewport_con);
         cmdbuf.Draw(3, 1, 0, 0);

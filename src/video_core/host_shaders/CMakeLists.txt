@@ -76,8 +76,11 @@ set(SHADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_quad_indexed.comp
     ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_turbo_mode.comp
     ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_uint8.comp
-    ${SNAPDRAGON_GSR_INCLUDE_DIR}/sgsr1_shader_mobile.frag
-    ${SNAPDRAGON_GSR_INCLUDE_DIR}/sgsr1_shader_mobile_edge_direction.frag
+
+    # Snapdragon Game Super Resolution
+    ${CMAKE_CURRENT_SOURCE_DIR}/sgsr1_shader.vert
+    ${snapdragon_gsr_SOURCE_DIR}/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
+    ${snapdragon_gsr_SOURCE_DIR}/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
 )
 
 if (PLATFORM_HAIKU)
