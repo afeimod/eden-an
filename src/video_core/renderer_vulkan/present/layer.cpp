@@ -64,6 +64,8 @@ Layer::Layer(const Device& device_, MemoryAllocator& memory_allocator_, Schedule
     CreateDescriptorSets(layout);
     if (filters.get_scaling_filter() == Settings::ScalingFilter::Fsr) {
         fsr.emplace(device, memory_allocator, image_count, output_size);
+    } else if (filters.get_scaling_filter() == Settings::ScalingFilter::Sgsr) {
+        sgsr.emplace(device, memory_allocator, image_count, output_size);
     }
 }
 

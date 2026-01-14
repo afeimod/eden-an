@@ -505,6 +505,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent) {
                               PAIR(ScalingFilter, BSpline, tr("B-Spline")),
                               PAIR(ScalingFilter, Mitchell, tr("Mitchell")),
                               PAIR(ScalingFilter, Spline1, tr("Spline-1")),
+                              PAIR(ScalingFilter, Sgsr, tr("Snapdragon Game Super Resolution")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::AntiAliasing>::Index(),
                           {

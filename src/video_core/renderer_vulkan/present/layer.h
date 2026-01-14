@@ -96,6 +96,7 @@ private:
     Settings::AntiAliasing anti_alias_setting{};
     std::variant<std::monostate, FXAA, SMAA> anti_alias{};
     std::optional<FSR> fsr{};
+    std::unique_ptr<SGSR> sgsr{};
     std::vector<u64> resource_ticks{};
 };
 
