@@ -1,0 +1,99 @@
+diff --git a/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag b/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
+index 7074999..2d322fb 100644
+--- a/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
++++ b/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
+@@ -1,4 +1,5 @@
+-#version 300 es
++#version 310 es
++#extension GL_EXT_spec_constant_composites:require
+ 
+ //============================================================================================================
+ //
+@@ -34,11 +35,10 @@ precision highp int;
+ ////////////////////////
+ 
+ #if defined(UseUniformBlock)
+-layout (set=0, binding = 0) uniform UniformBlock
+-{
+-	highp vec4 ViewportInfo[1];
++layout( push_constant ) uniform constants {
++    highp vec4 ViewportInfo[1];
+ };
+-layout(set = 0, binding = 1) uniform mediump sampler2D ps0;
++layout(set = 0, binding = 0) uniform mediump sampler2D ps0;
+ #else
+ uniform highp vec4 ViewportInfo[1];
+ uniform mediump sampler2D ps0;
+@@ -63,9 +63,9 @@ vec2 weightY(float dx, float dy,float c, float std)
+ 
+ void main()
+ {
+-	int mode = OperationMode;
+-	float edgeThreshold = EdgeThreshold;
+-	float edgeSharpness = EdgeSharpness;
++	const int mode = OperationMode;
++	const float edgeThreshold = EdgeThreshold;
++	const float edgeSharpness = EdgeSharpness;
+ 
+ 	vec4 color;
+ 	if(mode == 1)
+@@ -93,10 +93,13 @@ void main()
+ 		{
+ 			coord.x += ViewportInfo[0].x;
+ 
+-			vec4 right = textureGather(ps0,coord + highp vec2(ViewportInfo[0].x, 0.0), mode);
++			highp vec2 IR_highp_vec2_0 = vec2(ViewportInfo[0].x, 0.0);
++			vec4 right = textureGather(ps0,coord + IR_highp_vec2_0, mode);
+ 			vec4 upDown;
+-			upDown.xy = textureGather(ps0,coord + highp vec2(0.0, -ViewportInfo[0].y),mode).wz;
+-			upDown.zw  = textureGather(ps0,coord+ highp vec2(0.0, ViewportInfo[0].y), mode).yx;
++			highp vec2 IR_highp_vec2_1 = vec2(0.0, -ViewportInfo[0].y);
++			upDown.xy = textureGather(ps0,coord + IR_highp_vec2_1,mode).wz;
++			highp vec2 IR_highp_vec2_2 = vec2(0.0, ViewportInfo[0].y);
++			upDown.zw  = textureGather(ps0,coord+ IR_highp_vec2_2, mode).yx;
+ 
+ 			float mean = (left.y+left.z+right.x+right.w)*0.25;
+ 			left = left - vec4(mean);
+diff --git a/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag b/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
+index d2df646..875cdbf 100644
+--- a/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
++++ b/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
+@@ -1,4 +1,5 @@
+-#version 300 es
++#version 310 es
++#extension GL_EXT_spec_constant_composites:require
+ 
+ //============================================================================================================
+ //
+@@ -40,11 +41,10 @@ precision highp int;
+ ////////////////////////
+ 
+ #if defined(UseUniformBlock)
+-layout (set=0, binding = 0) uniform UniformBlock
+-{
+-	highp vec4 ViewportInfo[1];
++layout( push_constant ) uniform constants {
++    highp vec4 ViewportInfo[1];
+ };
+-layout(set = 0, binding = 1) uniform mediump sampler2D ps0;
++layout(set = 0, binding = 0) uniform mediump sampler2D ps0;
+ #else
+ uniform highp vec4 ViewportInfo[1];
+ uniform mediump sampler2D ps0;
+@@ -124,10 +124,13 @@ void main()
+ 		{
+ 			coord.x += ViewportInfo[0].x;
+ 
+-			vec4 right = textureGather(ps0,coord + highp vec2(ViewportInfo[0].x, 0.0), OperationMode);
++			highp vec2 IR_highp_vec2_0 = vec2(ViewportInfo[0].x, 0.0);
++			vec4 right = textureGather(ps0,coord + IR_highp_vec2_0, OperationMode);
+ 			vec4 upDown;
+-			upDown.xy = textureGather(ps0,coord + highp vec2(0.0, -ViewportInfo[0].y),OperationMode).wz;
+-			upDown.zw  = textureGather(ps0,coord+ highp vec2(0.0, ViewportInfo[0].y), OperationMode).yx;
++			highp vec2 IR_highp_vec2_1 = vec2(0.0, -ViewportInfo[0].y);
++			upDown.xy = textureGather(ps0,coord + IR_highp_vec2_1,OperationMode).wz;
++			highp vec2 IR_highp_vec2_2 = vec2(0.0, ViewportInfo[0].y);
++			upDown.zw  = textureGather(ps0,coord+ IR_highp_vec2_2, OperationMode).yx;
+ 
+ 			float mean = (left.y+left.z+right.x+right.w)*0.25;
+ 			left = left - vec4(mean);

@@ -153,7 +153,7 @@ foreach(SOURCE_FILE IN ITEMS ${SHADER_FILES})
             OUTPUT
                 ${SPIRV_HEADER_FILE}
             COMMAND
-                ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -DUseUniformBlock=1 ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE} --target-env ${SPIR_V_VERSION}
+                ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -DUseUniformBlock=1 ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE} --target-env ${SPIR_V_VERSION} --relaxed-errors
             MAIN_DEPENDENCY
                 ${SOURCE_FILE}
             DEPENDS
@@ -220,7 +220,6 @@ list(APPEND SHADER_SOURCES ${GLSL_INCLUDES})
 add_custom_target(host_shaders
     DEPENDS
         ${SHADER_HEADERS}
-        snapdragon_gsr
     SOURCES
         ${SHADER_SOURCES}
 )
