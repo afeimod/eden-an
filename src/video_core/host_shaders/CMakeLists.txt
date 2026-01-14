@@ -220,6 +220,7 @@ list(APPEND SHADER_SOURCES ${GLSL_INCLUDES})
 add_custom_target(host_shaders
     DEPENDS
         ${SHADER_HEADERS}
+        snapdragon_gsr
     SOURCES
         ${SHADER_SOURCES}
 )
