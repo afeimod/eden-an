@@ -1,5 +1,5 @@
 diff --git a/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag b/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
-index 7074999..4f76e1a 100644
+index 7074999..cb1eea3 100644
 --- a/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
 +++ b/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
 @@ -1,4 +1,4 @@
@@ -19,7 +19,7 @@ index 7074999..4f76e1a 100644
 +    highp vec4 ViewportInfo[1];
  };
 -layout(set = 0, binding = 1) uniform mediump sampler2D ps0;
-+layout(set = 0, binding = 0) uniform sampler2D ps0;
++layout(set = 0, binding = 0) uniform mediump sampler2D ps0;
  #else
  uniform highp vec4 ViewportInfo[1];
  uniform mediump sampler2D ps0;
@@ -54,7 +54,7 @@ index 7074999..4f76e1a 100644
  			float mean = (left.y+left.z+right.x+right.w)*0.25;
  			left = left - vec4(mean);
 diff --git a/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag b/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
-index d2df646..116c572 100644
+index d2df646..95d09cf 100644
 --- a/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
 +++ b/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
 @@ -1,4 +1,4 @@
@@ -74,7 +74,7 @@ index d2df646..116c572 100644
 +    highp vec4 ViewportInfo[1];
  };
 -layout(set = 0, binding = 1) uniform mediump sampler2D ps0;
-+layout(set = 0, binding = 0) uniform sampler2D ps0;
++layout(set = 0, binding = 0) uniform mediump sampler2D ps0;
  #else
  uniform highp vec4 ViewportInfo[1];
  uniform mediump sampler2D ps0;
