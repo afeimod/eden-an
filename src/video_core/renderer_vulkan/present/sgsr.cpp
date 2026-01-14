@@ -95,13 +95,13 @@ void SGSR::UploadImages(Scheduler& scheduler) {
 VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_image, VkImageView source_image_view, VkExtent2D input_image_extent, const Common::Rectangle<f32>& crop_rect) {
     Images& images = m_dynamic_images[image_index];
     auto const stage0_image = *images.images[0];
-    auto const stage1_image = *images.images[1];
+    //auto const stage1_image = *images.images[1];
     auto const stage0_descriptor_set = images.descriptor_sets[0];
-    auto const stage1_descriptor_set = images.descriptor_sets[1];
+    //auto const stage1_descriptor_set = images.descriptor_sets[1];
     auto const stage0_framebuffer = *images.framebuffers[0];
-    auto const stage1_framebuffer = *images.framebuffers[1];
+    //auto const stage1_framebuffer = *images.framebuffers[1];
     auto const stage0_pipeline = *m_stage_pipeline[0];
-    auto const stage1_pipeline = *m_stage_pipeline[1];
+    //auto const stage1_pipeline = *m_stage_pipeline[1];
 
     VkPipelineLayout pipeline_layout = *m_pipeline_layout;
     VkRenderPass renderpass = *m_renderpass;
