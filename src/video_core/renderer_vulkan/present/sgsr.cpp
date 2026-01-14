@@ -24,10 +24,6 @@ SGSR::SGSR(const Device& device, MemoryAllocator& memory_allocator, size_t image
     , m_image_count{image_count}, m_extent{extent}
 {
     // Not finished yet initializing at ctor time?
-    Initialize();
-}
-
-void SGSR::Initialize() {
     m_dynamic_images.resize(m_image_count);
     for (auto& images : m_dynamic_images) {
         images.images[0] = CreateWrappedImage(m_memory_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
