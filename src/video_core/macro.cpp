@@ -22,6 +22,14 @@
 #pragma clang diagnostic ignored "-Wshadow"
 #endif
 #include <xbyak/xbyak.h>
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+
 #endif
 
 #include "common/assert.h"
