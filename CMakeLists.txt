@@ -233,7 +233,7 @@ endif()
 
 option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL build" ${DEFAULT_YUZU_USE_BUNDLED_OPENSSL})
 
-AddJsonPackage(snapdragon_gsr)
+AddJsonPackage(sgsr)
 
 # TODO(crueter): CPM this
 if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)

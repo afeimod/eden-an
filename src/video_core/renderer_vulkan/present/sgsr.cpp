@@ -116,11 +116,13 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
     const f32 viewport_width = (crop_rect.right - crop_rect.left) * input_image_width;
     const f32 viewport_height = (crop_rect.bottom - crop_rect.top) * input_image_height;
 
+    // p = (tex * viewport) / input = [0,n] (normalized texcoords)
+    // p * input = [0,1024], [0,768]
     PushConstants viewport_con{};
-    viewport_con[0] = std::bit_cast<u32>(1.f / output_image_width);
-    viewport_con[1] = std::bit_cast<u32>(1.f / output_image_height);
-    viewport_con[2] = std::bit_cast<u32>(output_image_width);
-    viewport_con[3] = std::bit_cast<u32>(output_image_height);
+    viewport_con[0] = std::bit_cast<u32>(1.f / viewport_width);
+    viewport_con[1] = std::bit_cast<u32>(1.f / viewport_height);
+    viewport_con[2] = std::bit_cast<u32>(viewport_width);
+    viewport_con[3] = std::bit_cast<u32>(viewport_height);
 
     UploadImages(scheduler);
     UpdateDescriptorSets(source_image_view, image_index);

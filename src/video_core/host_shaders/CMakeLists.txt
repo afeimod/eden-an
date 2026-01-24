@@ -79,8 +79,8 @@ set(SHADER_FILES
 
     # Snapdragon Game Super Resolution
     ${CMAKE_CURRENT_SOURCE_DIR}/sgsr1_shader.vert
-    ${snapdragon_gsr_SOURCE_DIR}/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
-    ${snapdragon_gsr_SOURCE_DIR}/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
+    ${sgsr_SOURCE_DIR}/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
+    ${sgsr_SOURCE_DIR}/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
 )
 
 if (PLATFORM_HAIKU)
@@ -223,4 +223,4 @@ add_custom_target(host_shaders
     SOURCES
         ${SHADER_SOURCES}
 )
-#add_dependencies(host_shaders snapdragon_gsr::snapdragon_gsr)
+#add_dependencies(host_shaders sgsr::sgsr)
