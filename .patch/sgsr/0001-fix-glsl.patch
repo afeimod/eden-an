@@ -1,5 +1,5 @@
 diff --git a/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag b/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
-index 7074999..9e2122e 100644
+index 7074999..c23aae4 100644
 --- a/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
 +++ b/sgsr/v1/include/glsl/sgsr1_shader_mobile.frag
 @@ -1,4 +1,4 @@
@@ -8,7 +8,7 @@ index 7074999..9e2122e 100644
  
  //============================================================================================================
  //
-@@ -34,17 +34,16 @@ precision highp int;
+@@ -34,17 +34,17 @@ precision highp int;
  ////////////////////////
  
  #if defined(UseUniformBlock)
@@ -17,6 +17,7 @@ index 7074999..9e2122e 100644
 -	highp vec4 ViewportInfo[1];
 +layout( push_constant ) uniform constants {
 +    highp vec4 ViewportInfo[1];
++	highp vec2 ResizeFactor;
  };
 -layout(set = 0, binding = 1) uniform mediump sampler2D ps0;
 +layout(set = 0, binding = 0) uniform mediump sampler2D ps0;
@@ -30,7 +31,7 @@ index 7074999..9e2122e 100644
  layout(location=0) out vec4 out_Target0;
  
  float fastLanczos2(float x)
-@@ -63,15 +62,19 @@ vec2 weightY(float dx, float dy,float c, float std)
+@@ -63,15 +63,15 @@ vec2 weightY(float dx, float dy,float c, float std)
  
  void main()
  {
@@ -40,22 +41,18 @@ index 7074999..9e2122e 100644
 +	const int mode = OperationMode;
 +	const float edgeThreshold = EdgeThreshold;
 +	const float edgeSharpness = EdgeSharpness;
-+
-+	vec2 full_texsize = textureSize(ps0, 0);
-+	vec2 recp_texsize = 1.0 / full_texsize;
-+	vec2 resize_factor = ViewportInfo[0].zw / full_texsize;
  
  	vec4 color;
  	if(mode == 1)
 -		color.xyz = textureLod(ps0,in_TEXCOORD0.xy,0.0).xyz;
-+		color.xyz = textureLod(ps0, in_TEXCOORD0.xy * resize_factor, 0.0).xyz;
++		color.xyz = textureLod(ps0, in_TEXCOORD0.xy, 0.0).xyz;
  	else
 -		color.xyzw = textureLod(ps0,in_TEXCOORD0.xy,0.0).xyzw;
-+		color.xyzw = textureLod(ps0, in_TEXCOORD0.xy * resize_factor, 0.0).xyzw;
++		color.xyzw = textureLod(ps0, in_TEXCOORD0.xy, 0.0).xyzw;
  
  	highp float xCenter;
  	xCenter = abs(in_TEXCOORD0.x+-0.5);
-@@ -82,21 +85,24 @@ void main()
+@@ -82,21 +82,24 @@ void main()
  	//if ( mode!=4 && xCenter*xCenter+yCenter*yCenter<=0.4 * 0.4)
  	if ( mode!=4)
  	{
@@ -67,7 +64,7 @@ index 7074999..9e2122e 100644
 -		vec4  left = textureGather(ps0,coord, mode);
 +		highp vec2 coord = imgCoordPixel * ViewportInfo[0].xy;
 +		vec2 pl = imgCoord - imgCoordPixel;
-+		vec4 left = textureGather(ps0, coord * resize_factor, mode);
++		vec4 left = textureGather(ps0, coord, mode);
  
  		float edgeVote = abs(left.z - left.y) + abs(color[mode] - left.y)  + abs(color[mode] - left.z) ;
  		if(edgeVote > edgeThreshold)
@@ -76,19 +73,19 @@ index 7074999..9e2122e 100644
  
 -			vec4 right = textureGather(ps0,coord + highp vec2(ViewportInfo[0].x, 0.0), mode);
 +			highp vec2 IR_highp_vec2_0 = coord + vec2(ViewportInfo[0].x, 0.0);
-+			vec4 right = textureGather(ps0, IR_highp_vec2_0 * resize_factor, mode);
++			vec4 right = textureGather(ps0, IR_highp_vec2_0, mode);
  			vec4 upDown;
 -			upDown.xy = textureGather(ps0,coord + highp vec2(0.0, -ViewportInfo[0].y),mode).wz;
 -			upDown.zw  = textureGather(ps0,coord+ highp vec2(0.0, ViewportInfo[0].y), mode).yx;
 +			highp vec2 IR_highp_vec2_1 = coord + vec2(0.0, -ViewportInfo[0].y);
-+			upDown.xy = textureGather(ps0, IR_highp_vec2_1 * resize_factor, mode).wz;
++			upDown.xy = textureGather(ps0, IR_highp_vec2_1, mode).wz;
 +			highp vec2 IR_highp_vec2_2 = coord + vec2(0.0, ViewportInfo[0].y);
-+			upDown.zw  = textureGather(ps0, IR_highp_vec2_2 * resize_factor, mode).yx;
++			upDown.zw  = textureGather(ps0, IR_highp_vec2_2, mode).yx;
  
  			float mean = (left.y+left.z+right.x+right.w)*0.25;
  			left = left - vec4(mean);
 diff --git a/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag b/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
-index d2df646..3e4f5cd 100644
+index d2df646..8b64497 100644
 --- a/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
 +++ b/sgsr/v1/include/glsl/sgsr1_shader_mobile_edge_direction.frag
 @@ -1,4 +1,4 @@
@@ -97,7 +94,7 @@ index d2df646..3e4f5cd 100644
  
  //============================================================================================================
  //
-@@ -40,17 +40,16 @@ precision highp int;
+@@ -40,17 +40,17 @@ precision highp int;
  ////////////////////////
  
  #if defined(UseUniformBlock)
@@ -106,6 +103,7 @@ index d2df646..3e4f5cd 100644
 -	highp vec4 ViewportInfo[1];
 +layout( push_constant ) uniform constants {
 +    highp vec4 ViewportInfo[1];
++	highp vec2 ResizeFactor;
  };
 -layout(set = 0, binding = 1) uniform mediump sampler2D ps0;
 +layout(set = 0, binding = 0) uniform mediump sampler2D ps0;
@@ -119,32 +117,14 @@ index d2df646..3e4f5cd 100644
  layout(location=0) out vec4 out_Target0;
  
  float fastLanczos2(float x)
-@@ -98,11 +97,15 @@ vec2 edgeDirection(vec4 left, vec4 right)
- 
- void main()
- {
-+	vec2 full_texsize = textureSize(ps0, 0);
-+	vec2 recp_texsize = 1.0 / full_texsize;
-+	vec2 resize_factor = ViewportInfo[0].zw / full_texsize;
-+
- 	vec4 color;
- 	if(OperationMode == 1)
--		color.xyz = textureLod(ps0,in_TEXCOORD0.xy,0.0).xyz;
-+		color.xyz = textureLod(ps0,in_TEXCOORD0.xy * resize_factor,0.0).xyz;
- 	else
--		color.xyzw = textureLod(ps0,in_TEXCOORD0.xy,0.0).xyzw;
-+		color.xyzw = textureLod(ps0,in_TEXCOORD0.xy * resize_factor,0.0).xyzw;
- 
- 	highp float xCenter;
- 	xCenter = abs(in_TEXCOORD0.x+-0.5);
-@@ -116,18 +119,21 @@ void main()
+@@ -116,18 +116,21 @@ void main()
  		highp vec2 imgCoord = ((in_TEXCOORD0.xy*ViewportInfo[0].zw)+vec2(-0.5,0.5));
  		highp vec2 imgCoordPixel = floor(imgCoord);
  		highp vec2 coord = (imgCoordPixel*ViewportInfo[0].xy);
 -		vec2 pl = (imgCoord+(-imgCoordPixel));
 -		vec4  left = textureGather(ps0,coord, OperationMode);
 +		vec2 pl = imgCoord - imgCoordPixel;
-+		vec4  left = textureGather(ps0, coord * resize_factor, OperationMode);
++		vec4  left = textureGather(ps0, coord, OperationMode);
  
  		float edgeVote = abs(left.z - left.y) + abs(color[OperationMode] - left.y)  + abs(color[OperationMode] - left.z) ;
  		if(edgeVote > EdgeThreshold)
@@ -153,14 +133,14 @@ index d2df646..3e4f5cd 100644
  
 -			vec4 right = textureGather(ps0,coord + highp vec2(ViewportInfo[0].x, 0.0), OperationMode);
 +			highp vec2 IR_highp_vec2_0 = coord + vec2(ViewportInfo[0].x, 0.0);
-+			vec4 right = textureGather(ps0, IR_highp_vec2_0 * resize_factor, OperationMode);
++			vec4 right = textureGather(ps0, IR_highp_vec2_0, OperationMode);
  			vec4 upDown;
 -			upDown.xy = textureGather(ps0,coord + highp vec2(0.0, -ViewportInfo[0].y),OperationMode).wz;
 -			upDown.zw  = textureGather(ps0,coord+ highp vec2(0.0, ViewportInfo[0].y), OperationMode).yx;
 +			highp vec2 IR_highp_vec2_1 = coord + vec2(0.0, -ViewportInfo[0].y);
-+			upDown.xy = textureGather(ps0, IR_highp_vec2_1 * resize_factor, OperationMode).wz;
++			upDown.xy = textureGather(ps0, IR_highp_vec2_1, OperationMode).wz;
 +			highp vec2 IR_highp_vec2_2 = coord + vec2(0.0, ViewportInfo[0].y);
-+			upDown.zw  = textureGather(ps0, IR_highp_vec2_2 * resize_factor, OperationMode).yx;
++			upDown.zw  = textureGather(ps0, IR_highp_vec2_2, OperationMode).yx;
  
  			float mean = (left.y+left.z+right.x+right.w)*0.25;
  			left = left - vec4(mean);

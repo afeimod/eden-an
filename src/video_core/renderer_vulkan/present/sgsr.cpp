@@ -17,7 +17,7 @@
 
 namespace Vulkan {
 
-using PushConstants = std::array<u32, 4>;
+using PushConstants = std::array<u32, 4 + 2>;
 
 SGSR::SGSR(const Device& device, MemoryAllocator& memory_allocator, size_t image_count, VkExtent2D extent, bool edge_dir)
     : m_device{device}, m_memory_allocator{memory_allocator}
@@ -110,6 +110,8 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
     viewport_con[1] = std::bit_cast<u32>(1.f / viewport_height);
     viewport_con[2] = std::bit_cast<u32>(viewport_width);
     viewport_con[3] = std::bit_cast<u32>(viewport_height);
+    viewport_con[4] = std::bit_cast<u32>(viewport_width / input_image_width);
+    viewport_con[5] = std::bit_cast<u32>(viewport_height / input_image_height);
 
     UploadImages(scheduler);
     UpdateDescriptorSets(source_image_view, image_index);
