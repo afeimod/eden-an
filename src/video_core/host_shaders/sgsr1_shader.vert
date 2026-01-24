@@ -6,6 +6,7 @@
 layout( push_constant ) uniform constants {
     highp vec4 ViewportInfo[1];
     highp vec2 ResizeFactor;
+    highp float EdgeSharpness;
 };
 layout(location = 0) out highp vec2 texcoord;
 

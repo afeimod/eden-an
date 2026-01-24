@@ -17,7 +17,7 @@
 
 namespace Vulkan {
 
-using PushConstants = std::array<u32, 4 + 2>;
+using PushConstants = std::array<u32, 4 + 2 + 1>;
 
 SGSR::SGSR(const Device& device, MemoryAllocator& memory_allocator, size_t image_count, VkExtent2D extent, bool edge_dir)
     : m_device{device}, m_memory_allocator{memory_allocator}
@@ -102,9 +102,16 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
     const f32 input_image_height = f32(input_image_extent.height);
     const f32 viewport_width = (crop_rect.right - crop_rect.left) * input_image_width;
     const f32 viewport_height = (crop_rect.bottom - crop_rect.top) * input_image_height;
+    // expected [0, 2]
+    const f32 sharpening = f32(Settings::values.fsr_sharpening_slider.GetValue()) / 100.0f;
 
     // p = (tex * viewport) / input = [0,n] (normalized texcoords)
     // p * input = [0,1024], [0,768]
+    // layout( push_constant ) uniform constants {
+    //     highp vec4 ViewportInfo[1];
+    //     highp vec2 ResizeFactor;
+    //     highp float EdgeSharpness;
+    // };
     PushConstants viewport_con{};
     viewport_con[0] = std::bit_cast<u32>(1.f / viewport_width);
     viewport_con[1] = std::bit_cast<u32>(1.f / viewport_height);
@@ -112,6 +119,7 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
     viewport_con[3] = std::bit_cast<u32>(viewport_height);
     viewport_con[4] = std::bit_cast<u32>(viewport_width / input_image_width);
     viewport_con[5] = std::bit_cast<u32>(viewport_height / input_image_height);
+    viewport_con[6] = std::bit_cast<u32>(sharpening);
 
     UploadImages(scheduler);
     UpdateDescriptorSets(source_image_view, image_index);
