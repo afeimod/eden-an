@@ -190,6 +190,14 @@
         "bundled": true,
         "skip_updates": "true"
     },
+    "sdl2_ps4": {
+        "package": "SDL2",
+        "repo": "xinitrcn1/SDL",
+        "sha": "f577141fc4",
+        "key": "ps4",
+        "bundled": true,
+        "skip_updates": true
+    },
     "moltenvk": {
         "repo": "V380-Ori/Ryujinx.MoltenVK",
         "tag": "v%VERSION%-ryujinx",
