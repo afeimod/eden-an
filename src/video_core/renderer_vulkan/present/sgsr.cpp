@@ -100,10 +100,6 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
 
     const f32 input_image_width = f32(input_image_extent.width);
     const f32 input_image_height = f32(input_image_extent.height);
-    //const f32 output_image_width = f32(extent.width);
-    //const f32 output_image_height = f32(extent.height);
-    //const f32 viewport_x = crop_rect.left * input_image_width;
-    //const f32 viewport_y = crop_rect.top * input_image_height;
     const f32 viewport_width = (crop_rect.right - crop_rect.left) * input_image_width;
     const f32 viewport_height = (crop_rect.bottom - crop_rect.top) * input_image_height;
 
