@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,14 +10,7 @@
 
 #include <array>
 #include <functional>
-
-#include <SDL.h>
-#if SDL_VERSION_ATLEAST(2, 26, 4)
-#   include <SDL_hidapi.h>
-#else
-struct SDL_hid_device;
-struct SDL_hid_device_info;
-#endif
+#include <SDL_hidapi.h>
 
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
