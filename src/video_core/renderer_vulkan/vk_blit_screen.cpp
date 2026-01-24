@@ -74,6 +74,7 @@ void BlitScreen::SetWindowAdaptPass() {
         break;
     case Settings::ScalingFilter::Fsr:
     case Settings::ScalingFilter::Sgsr:
+    case Settings::ScalingFilter::SgsrEdge:
     case Settings::ScalingFilter::Bilinear:
     default:
         window_adapt = MakeBilinear(device, swapchain_view_format);

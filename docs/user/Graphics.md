@@ -47,6 +47,7 @@ Various graphical filters exist - each of them aimed at a specific target/image 
 - **SGSR**: Uses Snapdragon Studios Game Super Resolution to enhance image quality (similar to FSR, but for Adreno devices).
   - **Pros**: Optimized for Adreno devices.
   - **Cons**: Doesn't play nicely with non-Adreno devices.
+- **SGSR Edge**: Almost the same pipeline as SGSR, but with improved edge detection.
 
 ### Anisotropy values
 

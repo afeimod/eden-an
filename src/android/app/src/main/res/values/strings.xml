@@ -1081,7 +1081,8 @@
     <string name="scaling_filter_bspline" translatable="false">B-Spline</string>
     <string name="scaling_filter_mitchell" translatable="false">Mitchell</string>
     <string name="scaling_filter_mmpx" translatable="false">MMPX</string>
-    <string name="scaling_filter_sgsr" translatable="false">Snapdragon Game Super Resolution</string>
+    <string name="scaling_filter_sgsr" translatable="false">Snapdragon GSR</string>
+    <string name="scaling_filter_sgsr_edge" translatable="false">Snapdragon GSR EdgeDir</string>
 
     <!-- Anti-Aliasing -->
     <string name="anti_aliasing_none">None</string>

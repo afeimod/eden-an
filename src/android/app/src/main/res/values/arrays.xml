@@ -256,6 +256,7 @@
         <item>@string/scaling_filter_mitchell</item>
         <item>@string/scaling_filter_spline1</item>
         <item>@string/scaling_filter_sgsr</item>
+        <item>@string/scaling_filter_sgsr_edge</item>
     </string-array>
 
     <integer-array name="rendererScalingFilterValues">

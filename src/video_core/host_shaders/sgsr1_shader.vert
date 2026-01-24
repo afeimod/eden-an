@@ -3,11 +3,11 @@
 
 #version 450
 
-layout(location = 0) out highp vec4 texcoord;
+layout(location = 0) out highp vec2 texcoord;
 
 void main() {
     float x = float((gl_VertexIndex & 1) << 2);
     float y = float((gl_VertexIndex & 2) << 1);
     gl_Position = vec4(x - 1.0f, y - 1.0f, 0.0, 1.0f);
-    texcoord = vec4(x, y, 0.f, 0.f) / 2.0;
+    texcoord = vec2(x, y) / 2.0;
 }
