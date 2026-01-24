@@ -41,7 +41,7 @@ SGSR::SGSR(const Device& device, MemoryAllocator& memory_allocator, size_t image
         ? BuildShader(m_device, SGSR1_SHADER_MOBILE_EDGE_DIRECTION_FRAG_SPV)
         : BuildShader(m_device, SGSR1_SHADER_MOBILE_FRAG_SPV);
     // 2 descriptors, 2 descriptor sets per invocation
-    m_descriptor_pool = CreateWrappedDescriptorPool(m_device, 2 * m_image_count, 2 * m_image_count);
+    m_descriptor_pool = CreateWrappedDescriptorPool(m_device, SGSR_STAGE_COUNT * m_image_count, SGSR_STAGE_COUNT * m_image_count);
     m_descriptor_set_layout = CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
 
     std::vector<VkDescriptorSetLayout> layouts(SGSR_STAGE_COUNT, *m_descriptor_set_layout);
@@ -72,7 +72,6 @@ void SGSR::UpdateDescriptorSets(VkImageView image_view, size_t image_index) {
     std::vector<VkWriteDescriptorSet> updates;
     image_infos.reserve(1);
     updates.push_back(CreateWriteDescriptorSet(image_infos, *m_sampler, image_view, images.descriptor_sets[0], 0));
-    updates.push_back(CreateWriteDescriptorSet(image_infos, *m_sampler, *images.image_views[0], images.descriptor_sets[1], 0));
     m_device.GetLogical().UpdateDescriptorSets(updates, {});
 }
 
