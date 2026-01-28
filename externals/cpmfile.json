@@ -192,11 +192,14 @@
     },
     "sdl2_ps4": {
         "package": "SDL2",
-        "repo": "xinitrcn1/SDL",
-        "sha": "f577141fc4",
+        "repo": "libsdl-org/SDL",
+        "sha": "0c7042477a",
         "key": "ps4",
         "bundled": true,
-        "skip_updates": true
+        "skip_updates": true,
+        "patches": [
+            "0001-ps4.patch"
+        ]
     },
     "moltenvk": {
         "repo": "V380-Ori/Ryujinx.MoltenVK",
