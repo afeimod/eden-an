@@ -114,7 +114,7 @@
         ],
         "patches": [
             "0001-netbsd-fix.patch",
-            "0002-allow-static-only.patch"
+            "0002-allow-static-only.patch",
             "0003-openorbis.patch"
         ]
     },
