@@ -194,6 +194,7 @@
         "package": "SDL2",
         "repo": "libsdl-org/SDL",
         "sha": "0c7042477a",
+        "hash": "91d897257fe1134e65234618a96bc8f4f9b61dd3ba42241a65c293cd406139e308a6c79eadfa7c3969271c88d73149e75c4310fff37c79387c80d9c982c1f322",
         "key": "ps4",
         "bundled": true,
         "skip_updates": true,
