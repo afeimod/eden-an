@@ -357,10 +357,6 @@ void ArmDynarmic64::MakeJit(Common::PageTable* page_table, std::size_t address_s
     default:
         break;
     }
-#ifdef __OPENORBIS__
-    config.unsafe_optimizations = false;
-    config.optimizations = Dynarmic::no_optimizations;
-#endif
     m_jit.emplace(config);
 }
 
