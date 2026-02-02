@@ -499,9 +499,7 @@ class HostMemory::Impl {
 public:
     explicit Impl(size_t backing_size_, size_t virtual_size_)
         : backing_size{backing_size_}, virtual_size{virtual_size_} {
-#ifdef __OPENORBIS__
-
-#else
+#if !defined(__OPENORBIS__) && !defined(__APPLE__)
         long page_size = sysconf(_SC_PAGESIZE);
         ASSERT_MSG(page_size == 0x1000, "page size {:#x} is incompatible with 4K paging", page_size);
 #endif
