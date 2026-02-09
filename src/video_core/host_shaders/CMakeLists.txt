@@ -95,7 +95,7 @@ if ("${GLSLANGVALIDATOR}" STREQUAL "GLSLANGVALIDATOR-NOTFOUND")
     message(FATAL_ERROR "Required program `glslangValidator` not found.")
 endif()
 
-set(GLSL_FLAGS "")
+set(GLSL_FLAGS "-DUseUniformBlock=1")
 set(SPIR_V_VERSION "spirv1.3")
 set(QUIET_FLAG "--quiet")
 
