@@ -131,7 +131,9 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
         BeginRenderPass(cmdbuf, renderpass, stage0_framebuffer, extent);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, stage0_pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, stage0_descriptor_set, {});
-        cmdbuf.PushConstants(pipeline_layout, VK_SHADER_STAGE_FRAGMENT_BIT, viewport_con);
+        cmdbuf.PushConstants(pipeline_layout,
+                     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                     viewport_con);
         cmdbuf.Draw(3, 1, 0, 0);
         cmdbuf.EndRenderPass();
         TransitionImageLayout(cmdbuf, stage0_image, VK_IMAGE_LAYOUT_GENERAL);
