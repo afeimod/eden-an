@@ -115,7 +115,7 @@ for file in $FILES; do
 		*.cmake|*.sh|*CMakeLists.txt)
 			begin="#"
 			;;
-		*.kt*|*.cpp|*.h|*.qml)
+		*.kt*|*.cpp|*.h|*.qml|*.swift|*.mm)
 			begin="//"
 			;;
 		*)
