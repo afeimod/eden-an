@@ -4,6 +4,7 @@
 - [Arch Linux](#arch-linux)
 - [Gentoo Linux](#gentoo-linux)
 - [macOS](#macos)
+- [iOS](#ios)
 - [Solaris](#solaris)
 - [HaikuOS](#haikuos)
 - [OpenBSD](#openbsd)
@@ -30,6 +31,16 @@ If you're having issues with building, always consult that ebuild.
 ## macOS
 
 macOS is largely untested. Expect crashes, significant Vulkan issues, and other fun stuff.
+
+## iOS
+
+iOS has a dedicated build script, we **highly** recommend using that instead of doing anything else, we don't support any other configuration than the one present in said build script.
+
+To build, it's simply as easy as doing
+```sh
+chmod +x .ci/ios/build.sh
+.ci/ios/build.sh
+```
 
 ## Solaris
 

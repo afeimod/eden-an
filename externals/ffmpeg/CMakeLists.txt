@@ -203,15 +203,16 @@ else()
         )
     elseif(IOS)
         execute_process(COMMAND xcrun --sdk iphoneos --show-sdk-path OUTPUT_VARIABLE SYSROOT)
+        # Lovely extra newline apple adds that **we** must remove... thank you apple!
+        string(STRIP "${SYSROOT}" SYSROOT)
         set(FFmpeg_CC xcrun --sdk iphoneos clang -arch arm64)
         set(FFmpeg_CXX xcrun --sdk iphoneos clang++ -arch arm64)
         list(APPEND FFmpeg_CROSS_COMPILE_FLAGS
             --arch=arm64
             --enable-cross-compile
-            --sysroot=${SYSROOT}
-            --target-os=darwin
+            --sysroot="${SYSROOT}"
             --extra-ldflags="-miphoneos-version-min=16.0"
-            --install-name-dir="@rpath"
+            --install-name-dir='@rpath'
             --disable-audiotoolbox
         )
     endif()

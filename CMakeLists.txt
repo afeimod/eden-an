@@ -283,7 +283,7 @@ if (YUZU_ROOM)
     add_compile_definitions(YUZU_ROOM)
 endif()
 
-if ((ANDROID OR APPLE OR UNIX) AND (NOT PLATFORM_LINUX OR ANDROID) AND NOT WIN32)
+if ((ANDROID OR APPLE OR UNIX OR IOS) AND (NOT PLATFORM_LINUX OR ANDROID) AND NOT WIN32)
     if(CXX_APPLE OR CXX_CLANG)
         # libc++ has stop_token and jthread as experimental
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexperimental-library")
