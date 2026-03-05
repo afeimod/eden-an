@@ -107,7 +107,8 @@
         "hash": "3940df715189813ffeffa540f48673e999754d53a1dcadc16aab846ef03d57e395e2c8d8e89772bc162835e1686ff6bdb8cae108c1f84404e9e66d993107b76e",
         "sha": "d926f074bcb9d714e179f1ce0fcb9ee2eeb5074e",
         "patches": [
-            "0001-fix-glsl.patch"
+            "0001-fix-glsl.patch",
+            "0002-remove-highp.patch"
         ]
     },
     "quazip": {
