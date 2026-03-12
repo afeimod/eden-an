@@ -184,8 +184,7 @@ if(ARCHITECTURE_x86_64)
         x64/native_clock.h
         x64/rdtsc.cpp
         x64/rdtsc.h
-        x64/xbyak_abi.h
-        x64/xbyak_util.h)
+        x64/xbyak.h)
     target_link_libraries(common PRIVATE xbyak::xbyak)
 endif()
 
