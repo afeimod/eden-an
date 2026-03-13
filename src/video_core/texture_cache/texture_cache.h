@@ -133,6 +133,9 @@ void TextureCache<P>::RunGarbageCollector() {
         if (True(image.flags & ImageFlagBits::IsDecoding)) {
             return false;
         }
+        if (!high_priority_mode && True(image.flags & ImageFlagBits::CostlyLoad)) {
+            return false;
+        }
         if (image.IsSafeDownload() && False(image.flags & ImageFlagBits::BadOverlap)) {
             auto map = runtime.DownloadStagingBuffer(image.unswizzled_size_bytes);
             const auto copies = FixSmallVectorADL(FullDownloadCopies(image.info));
