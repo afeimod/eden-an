@@ -133,11 +133,7 @@ void TextureCache<P>::RunGarbageCollector() {
         if (True(image.flags & ImageFlagBits::IsDecoding)) {
             return false;
         }
-        const bool must_download = image.IsSafeDownload() && False(image.flags & ImageFlagBits::BadOverlap);
-        if (!high_priority_mode && must_download) {
-            return false;
-        }
-        if (must_download) {
+        if (image.IsSafeDownload() && False(image.flags & ImageFlagBits::BadOverlap)) {
             auto map = runtime.DownloadStagingBuffer(image.unswizzled_size_bytes);
             const auto copies = FixSmallVectorADL(FullDownloadCopies(image.info));
             image.DownloadMemory(map, copies);
@@ -148,7 +144,7 @@ void TextureCache<P>::RunGarbageCollector() {
             UntrackImage(image, image_id);
         }
         UnregisterImage(image_id);
-        DeleteImage(image_id, image.scale_tick > frame_tick + 5);
+        DeleteImage(image_id, image.scale_tick > frame_tick + 5 || aggressive_mode);
         if (aggressive_mode && total_used_memory < critical_memory) {
             num_iterations >>= 2;
             aggressive_mode = false;
