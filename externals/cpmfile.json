@@ -36,7 +36,7 @@
             "0002-fix-zstd.patch"
         ],
         "options": [
-            "HTTPLIB_REQUIRE_OPENSSL ON"
+            "HTTPLIB_REQUIRE_OPENSSL OFF"
         ]
     },
     "cpp-jwt": {
