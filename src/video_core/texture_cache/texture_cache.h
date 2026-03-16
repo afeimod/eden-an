@@ -137,7 +137,7 @@ void TextureCache<P>::RunGarbageCollector() {
             return false;
         }
         --num_iterations;
-        if (must_download && !image.info.is_sparse) {
+        if (must_download) {
             auto map = runtime.DownloadStagingBuffer(image.unswizzled_size_bytes);
             const auto copies = FixSmallVectorADL(FullDownloadCopies(image.info));
             image.DownloadMemory(map, copies);
