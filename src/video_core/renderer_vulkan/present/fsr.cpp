@@ -190,7 +190,7 @@ VkImageView FSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_i
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, easu_pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0,
                                   easu_descriptor_set, {});
-        cmdbuf.FsrPushConstants(pipeline_layout, VK_SHADER_STAGE_FRAGMENT_BIT, easu_con);
+        cmdbuf.PushConstants(pipeline_layout, VK_SHADER_STAGE_FRAGMENT_BIT, easu_con);
         cmdbuf.Draw(3, 1, 0, 0);
         cmdbuf.EndRenderPass();
 
@@ -200,7 +200,7 @@ VkImageView FSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_i
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, rcas_pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0,
                                   rcas_descriptor_set, {});
-        cmdbuf.FsrPushConstants(pipeline_layout, VK_SHADER_STAGE_FRAGMENT_BIT, rcas_con);
+        cmdbuf.PushConstants(pipeline_layout, VK_SHADER_STAGE_FRAGMENT_BIT, rcas_con);
         cmdbuf.Draw(3, 1, 0, 0);
         cmdbuf.EndRenderPass();
 

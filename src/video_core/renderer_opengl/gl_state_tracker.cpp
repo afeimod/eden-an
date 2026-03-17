@@ -241,3 +241,6 @@ void StateTracker::InvalidateState() {
 StateTracker::StateTracker() : flags{&default_flags} {}
 
 } // namespace OpenGL
+
+#undef OFF
+#undef NUM
