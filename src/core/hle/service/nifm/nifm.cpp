@@ -212,6 +212,7 @@ struct NifmNetworkProfileData {
 };
 static_assert(sizeof(NifmNetworkProfileData) == 0x18E,
               "NifmNetworkProfileData has incorrect size.");
+#pragma pack(pop)
 
 struct PendingProfile {
     std::array<char, 0x21> ssid{};

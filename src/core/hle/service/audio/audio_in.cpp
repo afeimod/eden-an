@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,13 +9,12 @@
 #include "core/hle/service/ipc_helpers.h"
 
 namespace Service::Audio {
-using namespace AudioCore::AudioIn;
 
-IAudioIn::IAudioIn(Core::System& system_, Manager& manager, size_t session_id,
-                   const std::string& device_name, const AudioInParameter& in_params,
+IAudioIn::IAudioIn(Core::System& system_, AudioCore::AudioIn::Manager& manager, size_t session_id,
+                   const std::string& device_name, const AudioCore::AudioIn::AudioInParameter& in_params,
                    Kernel::KProcess* handle, u64 applet_resource_user_id)
     : ServiceFramework{system_, "IAudioIn"}, process{handle}, service_context{system_, "IAudioIn"},
-      event{service_context.CreateEvent("AudioInEvent")}, impl{std::make_shared<In>(system_,
+      event{service_context.CreateEvent("AudioInEvent")}, impl{std::make_shared<AudioCore::AudioIn::In>(system_,
                                                                                     manager, event,
                                                                                     session_id)} {
     // clang-format off
@@ -68,12 +70,12 @@ Result IAudioIn::Stop() {
     R_RETURN(impl->StopSystem());
 }
 
-Result IAudioIn::AppendAudioInBuffer(InArray<AudioInBuffer, BufferAttr_HipcMapAlias> buffer,
+Result IAudioIn::AppendAudioInBuffer(InArray<AudioCore::AudioIn::AudioInBuffer, BufferAttr_HipcMapAlias> buffer,
                                      u64 buffer_client_ptr) {
     R_RETURN(this->AppendAudioInBufferAuto(buffer, buffer_client_ptr));
 }
 
-Result IAudioIn::AppendAudioInBufferAuto(InArray<AudioInBuffer, BufferAttr_HipcAutoSelect> buffer,
+Result IAudioIn::AppendAudioInBufferAuto(InArray<AudioCore::AudioIn::AudioInBuffer, BufferAttr_HipcAutoSelect> buffer,
                                          u64 buffer_client_ptr) {
     if (buffer.empty()) {
         LOG_ERROR(Service_Audio, "Input buffer is too small for an AudioInBuffer!");

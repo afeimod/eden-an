@@ -22,10 +22,6 @@ namespace AudioCore::ADSP::OpusDecoder {
 namespace {
 constexpr size_t OpusStreamCountMax = 255;
 
-bool IsValidChannelCount(u32 channel_count) {
-    return channel_count == 1 || channel_count == 2;
-}
-
 bool IsValidMultiStreamChannelCount(u32 channel_count) {
     return channel_count <= OpusStreamCountMax;
 }
@@ -90,7 +86,7 @@ void OpusDecoder::Main(std::stop_token stop_token) {
         case GetWorkBufferSize: {
             auto channel_count = static_cast<s32>(shared_memory->host_send_data[0]);
 
-            ASSERT(IsValidChannelCount(channel_count));
+            ASSERT(channel_count == 1 || channel_count == 2);
 
             shared_memory->dsp_return_data[0] = OpusDecodeObject::GetWorkBufferSize(channel_count);
             Send(Direction::Host, Message::GetWorkBufferSizeOK);
@@ -103,7 +99,7 @@ void OpusDecoder::Main(std::stop_token stop_token) {
             auto channel_count = static_cast<s32>(shared_memory->host_send_data[3]);
 
             ASSERT(sample_rate >= 0);
-            ASSERT(IsValidChannelCount(channel_count));
+            ASSERT(channel_count == 1 || channel_count == 2);
             ASSERT(buffer_size >= OpusDecodeObject::GetWorkBufferSize(channel_count));
 
             auto& decoder_object = OpusDecodeObject::Initialize(buffer, buffer);
