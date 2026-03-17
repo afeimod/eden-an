@@ -77,7 +77,7 @@ CPUCaps::Manufacturer CPUCaps::ParseManufacturer(std::string_view brand_string) 
 }
 
 // Detects the various CPU features
-static CPUCaps Detect() {
+static CPUCaps DetectCPUCapabilities() {
     CPUCaps caps = {};
 
     // Assumes the CPU supports the CPUID instruction. Those that don't would likely not support
@@ -208,7 +208,7 @@ static CPUCaps Detect() {
 }
 
 const CPUCaps& GetCPUCaps() {
-    static CPUCaps caps = Detect();
+    static CPUCaps caps = DetectCPUCapabilities();
     return caps;
 }
 
