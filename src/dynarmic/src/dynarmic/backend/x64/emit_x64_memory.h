@@ -6,6 +6,8 @@
  * SPDX-License-Identifier: 0BSD
  */
 
+#pragma once
+
 #include <bit>
 #include "dynarmic/backend/x64/xbyak.h"
 

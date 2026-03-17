@@ -137,7 +137,7 @@ u128 StickyLogicalShiftRight(u128 operand, int amount) {
     }
 
     if (operand.lower != 0 || operand.upper != 0) {
-        return u128(1);
+        return u128(1, 0);
     }
     return {};
 }
