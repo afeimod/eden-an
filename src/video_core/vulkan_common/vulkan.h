@@ -22,12 +22,18 @@
 
 #include <vulkan/vulkan.h>
 
-/* X11 defines */
+// X11 defines
 #ifdef Success
 #   undef Success
 #endif
 #ifdef BadValue
 #   undef BadValue
+#endif
+#ifdef GrayScale
+#   undef GrayScale
+#endif
+#ifdef KeyPress
+#   undef KeyPress
 #endif
 
 // Define maintenance 7-9 extension names (not yet in official Vulkan headers)
