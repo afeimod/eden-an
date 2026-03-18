@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -11,11 +11,11 @@
 namespace Kernel::Svc {
 namespace {
 
-constexpr bool IsValidAddressRange(u64 address, u64 size) {
+[[nodiscard]] inline constexpr bool IsValidAddressRange(u64 address, u64 size) {
     return address + size > address;
 }
 
-constexpr bool IsValidProcessMemoryPermission(Svc::MemoryPermission perm) {
+[[nodiscard]] inline constexpr bool IsValidProcessMemoryPermission(Svc::MemoryPermission perm) {
     switch (perm) {
     case Svc::MemoryPermission::None:
     case Svc::MemoryPermission::Read:
