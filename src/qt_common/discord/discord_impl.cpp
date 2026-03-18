@@ -10,6 +10,7 @@
 #include <QEventLoop>
 #include <boost/algorithm/string/replace.hpp>
 #include <httplib.h>
+#undef INVALID_SOCKET
 
 #include <discord_rpc.h>
 #include <fmt/format.h>

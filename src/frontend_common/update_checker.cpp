@@ -14,6 +14,7 @@
 #include "update_checker.h"
 
 #include <httplib.h>
+#undef INVALID_SOCKET
 
 #ifdef YUZU_BUNDLED_OPENSSL
 #include <openssl/cert.h>

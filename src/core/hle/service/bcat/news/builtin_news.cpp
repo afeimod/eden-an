@@ -17,6 +17,7 @@
 
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
 #include <httplib.h>
+#undef INVALID_SOCKET
 #endif
 
 #include <chrono>

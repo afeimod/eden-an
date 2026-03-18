@@ -17,6 +17,7 @@
 #endif
 #endif
 #include <httplib.h>
+#undef INVALID_SOCKET
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
