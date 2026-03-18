@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -18,27 +18,6 @@
 
 namespace Vulkan {
 namespace {
-constexpr size_t POINT = 0;
-constexpr size_t LINE = 1;
-constexpr size_t POLYGON = 2;
-constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
-    POINT,   // Points
-    LINE,    // Lines
-    LINE,    // LineLoop
-    LINE,    // LineStrip
-    POLYGON, // Triangles
-    POLYGON, // TriangleStrip
-    POLYGON, // TriangleFan
-    POLYGON, // Quads
-    POLYGON, // QuadStrip
-    POLYGON, // Polygon
-    LINE,    // LinesAdjacency
-    LINE,    // LineStripAdjacency
-    POLYGON, // TrianglesAdjacency
-    POLYGON, // TriangleStripAdjacency
-    POLYGON, // Patches
-};
-
 void RefreshXfbState(VideoCommon::TransformFeedbackState& state, const Maxwell& regs) {
     std::ranges::transform(regs.transform_feedback.controls, state.layouts.begin(),
                            [](const auto& layout) {
@@ -270,6 +249,27 @@ void FixedPipelineState::DynamicState::Refresh2(const Maxwell& regs,
 
     rasterize_enable.Assign(regs.rasterize_enable != 0 ? 1 : 0);
     primitive_restart_enable.Assign(regs.primitive_restart.enabled != 0 ? 1 : 0);
+
+    constexpr size_t ENABLE_POINT = 0;
+    constexpr size_t ENABLE_LINE = 1;
+    constexpr size_t ENABLE_POLYGON = 2;
+    constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
+        ENABLE_POINT,   // Points
+        ENABLE_LINE,    // Lines
+        ENABLE_LINE,    // LineLoop
+        ENABLE_LINE,    // LineStrip
+        ENABLE_POLYGON, // Triangles
+        ENABLE_POLYGON, // TriangleStrip
+        ENABLE_POLYGON, // TriangleFan
+        ENABLE_POLYGON, // Quads
+        ENABLE_POLYGON, // QuadStrip
+        ENABLE_POLYGON, // Polygon
+        ENABLE_LINE,    // LinesAdjacency
+        ENABLE_LINE,    // LineStripAdjacency
+        ENABLE_POLYGON, // TrianglesAdjacency
+        ENABLE_POLYGON, // TriangleStripAdjacency
+        ENABLE_POLYGON, // Patches
+    };
     depth_bias_enable.Assign(enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]] != 0 ? 1 : 0);
 }
 
