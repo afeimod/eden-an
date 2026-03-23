@@ -484,7 +484,6 @@ endfunction()
 # Platform-specific library requirements
 # Put these BEFORE EXTERNALS or Boost WILL die
 # =============================================
-
 if (APPLE)
     set(_libs Carbon Metal Cocoa IOKit CoreVideo CoreMedia)
     if (IOS)
