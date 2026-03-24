@@ -37,7 +37,7 @@
 namespace Service::News {
 namespace {
 
-constexpr const char* GitHubAPI_EdenReleases = "/repos/eden-emulator/Releases/releases";
+[[maybe_unused]] constexpr const char* GitHubAPI_EdenReleases = "/repos/eden-emulator/Releases/releases";
 
 // Cached logo data
 std::vector<u8> default_logo_small;

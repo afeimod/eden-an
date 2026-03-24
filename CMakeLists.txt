@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-# SPDX-License-Identifier: GPL-3.0-or-later
-
 cmake_minimum_required(VERSION 3.22)
 
 project(yuzu)
@@ -359,7 +356,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-find_package(RenderDoc MODULE)
+find_package(RenderDoc MODULE QUIET)
+if (NOT RenderDoc_FOUND)
+    message(WARNING "RenderDoc not found. Some debugging features may be disabled.")
+endif()
 
 # openssl funniness
 if (YUZU_USE_BUNDLED_OPENSSL)
@@ -370,7 +370,35 @@ if (YUZU_USE_BUNDLED_OPENSSL)
     endif()
 endif()
 
-find_package(OpenSSL 3 REQUIRED)
+if (IOS)
+    # TODO: this is horrific wtf
+    # Modify OpenSSL configuration to dynamically locate OpenSSL
+    if (NOT OPENSSL_ROOT_DIR)
+        find_program(HOMEBREW_EXECUTABLE brew)
+        if (HOMEBREW_EXECUTABLE)
+            execute_process(
+                COMMAND ${HOMEBREW_EXECUTABLE} --prefix openssl
+                OUTPUT_VARIABLE HOMEBREW_OPENSSL_PREFIX
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+            set(OPENSSL_ROOT_DIR "${HOMEBREW_OPENSSL_PREFIX}")
+        endif()
+    endif()
+    # Adjust OpenSSL find_package to fallback to default paths
+    find_package(OpenSSL 3 QUIET PATHS ${OPENSSL_ROOT_DIR} PATHS /usr/local/opt/openssl /opt/homebrew/opt/openssl NO_DEFAULT_PATH)
+    if (NOT OpenSSL_FOUND)
+        find_package(OpenSSL 3 QUIET)
+        if (NOT OpenSSL_FOUND)
+            message(WARNING "OpenSSL not found. Some features may be disabled.")
+        endif()
+    endif()
+    # Ensure OpenSSL version 3 is correctly located
+    set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl@3")
+    set(OPENSSL_LIBRARIES "/opt/homebrew/opt/openssl@3/lib")
+    set(OPENSSL_INCLUDE_DIR "/opt/homebrew/opt/openssl@3/include")
+else()
+    find_package(OpenSSL 3 REQUIRED)
+endif()
 
 message(STATUS "Fetching needed dependencies with CPM")
 
