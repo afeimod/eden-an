@@ -145,7 +145,8 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
         {"ro",         &RO::LoopProcess},
         {"spl",        &SPL::LoopProcess},
         {"ssl",        &SSL::LoopProcess},
-        {"usb",        &USB::LoopProcess}
+        {"usb",        &USB::LoopProcess},
+        {"ulsf",       &ULSF::LoopProcess},
     })
         kernel.RunOnGuestCoreProcess(std::string(e.first), [&system, f = e.second] { f(system); });
 }
