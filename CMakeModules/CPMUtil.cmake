@@ -3,7 +3,7 @@
 
 set(CPM_SOURCE_CACHE "${PROJECT_SOURCE_DIR}/.cache/cpm" CACHE STRING "" FORCE)
 
-if(MSVC OR ANDROID)
+if(MSVC OR ANDROID OR IOS)
     set(BUNDLED_DEFAULT ON)
 else()
     set(BUNDLED_DEFAULT OFF)
@@ -692,7 +692,7 @@ function(AddCIPackage)
         set(pkgname linux-aarch64)
     elseif(APPLE AND NOT IOS)
         set(pkgname macos-universal)
-    elseif(APPLE AND IOS AND ARCHITECTURE_arm64)
+    elseif(IOS AND ARCHITECTURE_arm64)
         set(pkgname ios-aarch64)
     endif()
 

@@ -42,7 +42,7 @@ if (PLATFORM_NETBSD)
     set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH}:${CMAKE_SYSROOT}/usr/pkg/lib/ffmpeg7/pkgconfig")
 endif()
 
-cmake_dependent_option(YUZU_STATIC_ROOM "Build a static room executable only (CI only)" OFF "PLATFORM_LINUX" OFF)
+cmake_dependent_option(YUZU_STATIC_ROOM "Build a static room executable only (CI only)" OFF "PLATFORM_LINUX OR WIN32 OR (APPLE AND NOT IOS)" OFF)
 if (YUZU_STATIC_ROOM)
     set(YUZU_ROOM ON)
     set(YUZU_ROOM_STANDALONE ON)
@@ -69,7 +69,7 @@ endif()
 # qt stuff
 option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
-option(ENABLE_UPDATE_CHECKER "Enable update checker (for Qt and Android)" OFF)
+cmake_dependent_option(ENABLE_UPDATE_CHECKER "Enable update checker (for Qt and Android)" OFF "ENABLE_QT OR ANDROID" OFF)
 cmake_dependent_option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera"  OFF "NOT YUZU_USE_BUNDLED_QT" OFF)
 cmake_dependent_option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF "NOT YUZU_USE_BUNDLED_QT" OFF)
 set(YUZU_QT_MIRROR "" CACHE STRING "What mirror to use for downloading the bundled Qt libraries")
@@ -177,7 +177,7 @@ cmake_dependent_option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MS
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
 set(EXT_DEFAULT OFF)
-if (MSVC OR ANDROID)
+if (MSVC OR ANDROID OR IOS)
     set(EXT_DEFAULT ON)
 endif()
 
@@ -187,7 +187,7 @@ cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from external sour
 
 # sirit
 set(BUNDLED_SIRIT_DEFAULT OFF)
-if (((MSVC AND NOT (CMAKE_BUILD_TYPE MATCHES "Deb")) OR ANDROID) AND NOT IOS)
+if ((MSVC AND NOT (CMAKE_BUILD_TYPE MATCHES "Deb")) OR ANDROID)
     set(BUNDLED_SIRIT_DEFAULT ON)
 endif()
 
@@ -215,7 +215,7 @@ option(NIGHTLY_BUILD "Use Nightly qualifiers in the update checker and build met
 cmake_dependent_option(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID AND NOT IOS" OFF)
 cmake_dependent_option(YUZU_ROOM_STANDALONE "Enable standalone room executable" ON "YUZU_ROOM" OFF)
 
-cmake_dependent_option(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID" OFF)
+cmake_dependent_option(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID AND NOT IOS" OFF)
 
 cmake_dependent_option(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR PLATFORM_LINUX" OFF)
 
@@ -373,35 +373,7 @@ if (YUZU_USE_BUNDLED_OPENSSL)
     endif()
 endif()
 
-if (IOS)
-    # TODO: this is horrific wtf
-    # Modify OpenSSL configuration to dynamically locate OpenSSL
-    if (NOT OPENSSL_ROOT_DIR)
-        find_program(HOMEBREW_EXECUTABLE brew)
-        if (HOMEBREW_EXECUTABLE)
-            execute_process(
-                COMMAND ${HOMEBREW_EXECUTABLE} --prefix openssl
-                OUTPUT_VARIABLE HOMEBREW_OPENSSL_PREFIX
-                OUTPUT_STRIP_TRAILING_WHITESPACE
-            )
-            set(OPENSSL_ROOT_DIR "${HOMEBREW_OPENSSL_PREFIX}")
-        endif()
-    endif()
-    # Adjust OpenSSL find_package to fallback to default paths
-    find_package(OpenSSL 3 QUIET PATHS ${OPENSSL_ROOT_DIR} PATHS /usr/local/opt/openssl /opt/homebrew/opt/openssl NO_DEFAULT_PATH)
-    if (NOT OpenSSL_FOUND)
-        find_package(OpenSSL 3 QUIET)
-        if (NOT OpenSSL_FOUND)
-            message(WARNING "OpenSSL not found. Some features may be disabled.")
-        endif()
-    endif()
-    # Ensure OpenSSL version 3 is correctly located
-    set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl@3")
-    set(OPENSSL_LIBRARIES "/opt/homebrew/opt/openssl@3/lib")
-    set(OPENSSL_INCLUDE_DIR "/opt/homebrew/opt/openssl@3/include")
-else()
-    find_package(OpenSSL 3 REQUIRED)
-endif()
+find_package(OpenSSL 3 REQUIRED)
 
 message(STATUS "Fetching needed dependencies with CPM")
 
