@@ -170,16 +170,16 @@ if (MSVC AND NOT CXX_CLANG)
     set(CMAKE_CXX_FLAGS_INIT "${CMAKE_CXX_FLAGS_INIT} /W3 /WX-")
 endif()
 
-# TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
-cmake_dependent_option(YUZU_USE_EXTERNAL_SDL2 "Build SDL2 from external source" OFF "NOT MSVC;NOT ANDROID" OFF)
-cmake_dependent_option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${MSVC}" "NOT ANDROID" OFF)
-
-option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
-
 set(EXT_DEFAULT OFF)
 if (MSVC OR ANDROID OR IOS)
     set(EXT_DEFAULT ON)
 endif()
+
+# TODO(crueter): Cleanup, each dep that has a bundled option should allow to choose between bundled, external, system
+cmake_dependent_option(YUZU_USE_EXTERNAL_SDL2 "Build SDL2 from external source" OFF "NOT MSVC;NOT ANDROID" OFF)
+cmake_dependent_option(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 build" "${EXT_DEFAULT}" "NOT ANDROID" OFF)
+
+option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
 # ffmpeg
 option(YUZU_USE_BUNDLED_FFMPEG "Download bundled FFmpeg" ${EXT_DEFAULT})
@@ -187,7 +187,7 @@ cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from external sour
 
 # sirit
 set(BUNDLED_SIRIT_DEFAULT OFF)
-if ((MSVC AND NOT (CMAKE_BUILD_TYPE MATCHES "Deb")) OR ANDROID)
+if ((MSVC AND NOT (CMAKE_BUILD_TYPE MATCHES "Deb")) OR ANDROID OR IOS)
     set(BUNDLED_SIRIT_DEFAULT ON)
 endif()
 
