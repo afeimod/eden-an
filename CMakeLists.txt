@@ -488,9 +488,11 @@ endfunction()
 # Put these BEFORE EXTERNALS or Boost WILL die
 # =============================================
 if (APPLE)
-    set(_libs Carbon Metal Cocoa IOKit CoreVideo CoreMedia)
+    set(_libs Metal IOKit CoreVideo CoreMedia)
     if (IOS)
         list(APPEND _libs objc)
+    else()
+        list(APPEND _libs Carbon Cocoa)
     endif()
 
     foreach(fw ${_libs})
