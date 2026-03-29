@@ -11,7 +11,7 @@
 #include "dynarmic/frontend/A64/a64_location_descriptor.h"
 #include "dynarmic/frontend/A64/translate/a64_translate.h"
 #include "dynarmic/interface/A64/config.h"
-#include "dynarmic/backend/ppc64/a64_core.h"
+#include "dynarmic/backend/riscv64/a32_core.h"
 #include "dynarmic/common/atomic.h"
 #include "dynarmic/ir/opt_passes.h"
 #include "dynarmic/interface/A64/a64.h"
