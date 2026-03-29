@@ -8,6 +8,7 @@
 
 #include <cstring>
 #include <functional>
+#include <algorithm>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>

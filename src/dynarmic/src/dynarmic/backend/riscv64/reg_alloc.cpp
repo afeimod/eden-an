@@ -161,7 +161,7 @@ u32 RegAlloc::GenerateImmediate(const IR::Value& value) {
 
         return new_location_index;
     } else if constexpr (kind == HostLoc::Kind::Fpr) {
-        UNIMPLEMENTED();
+        ASSERT(false && "Unimplemented instruction");
     } else {
         UNREACHABLE();
     }

@@ -42,7 +42,7 @@ struct Jit::Impl final {
     HaltReason Step() {
         ASSERT(!jit_interface->is_executing);
         jit_interface->is_executing = true;
-        UNIMPLEMENTED();
+        ASSERT(false && "Unimplemented instruction");
         RequestCacheInvalidation();
         jit_interface->is_executing = false;
         return HaltReason{};
