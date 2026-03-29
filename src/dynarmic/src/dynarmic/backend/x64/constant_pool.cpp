@@ -10,7 +10,7 @@
 
 #include <cstring>
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 
 #include "dynarmic/backend/x64/block_of_code.h"
 

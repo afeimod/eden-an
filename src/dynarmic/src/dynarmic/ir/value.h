@@ -11,7 +11,7 @@
 #include <array>
 #include <type_traits>
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/ir/type.h"

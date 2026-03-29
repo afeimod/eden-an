@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <array>
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/common/common_types.h"
 
 #include "dynarmic/common/always_false.h"

@@ -13,7 +13,7 @@
 #include <type_traits>
 
 #include "dynarmic/common/common_types.h"
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include <oaknut/oaknut.hpp>
 
 #include "dynarmic/common/always_false.h"

@@ -11,7 +11,7 @@
 #include <optional>
 
 #include "dynarmic/common/common_types.h"
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 
 #include "dynarmic/frontend/A64/a64_location_descriptor.h"
 #include "dynarmic/frontend/A64/a64_types.h"

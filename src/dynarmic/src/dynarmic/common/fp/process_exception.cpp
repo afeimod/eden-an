@@ -8,7 +8,7 @@
 
 #include "dynarmic/common/fp/process_exception.h"
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"

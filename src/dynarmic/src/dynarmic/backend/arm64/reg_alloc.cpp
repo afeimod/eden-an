@@ -12,7 +12,7 @@
 #include <array>
 #include <iterator>
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
 #include <bit>
 #include "dynarmic/common/common_types.h"

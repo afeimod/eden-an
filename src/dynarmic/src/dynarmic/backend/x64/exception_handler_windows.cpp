@@ -12,7 +12,7 @@
 #include <cstring>
 #include <vector>
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include <bit>
 #include "dynarmic/common/common_types.h"
 

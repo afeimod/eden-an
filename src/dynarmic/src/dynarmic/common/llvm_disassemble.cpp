@@ -15,7 +15,7 @@
 #    include <llvm-c/Target.h>
 #endif
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include <bit>
 #include "dynarmic/common/common_types.h"
 

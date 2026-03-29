@@ -8,7 +8,7 @@
 
 #include "dynarmic/frontend/A32/a32_ir_emitter.h"
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 
 #include "dynarmic/frontend/A32/a32_types.h"
 #include "dynarmic/interface/A32/arch_version.h"

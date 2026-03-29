@@ -10,7 +10,7 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 #include "dynarmic/common/common_types.h"
 #include "dynarmic/mcl/integer_of_size.hpp"
 #include <boost/container/static_vector.hpp>

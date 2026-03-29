@@ -10,7 +10,7 @@
 
 #include <functional>
 
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 
 namespace Dynarmic::Decoder {
 
