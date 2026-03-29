@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "dynarmic/mcl/bit.hpp"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include <oaknut/oaknut.hpp>
 
 namespace Dynarmic::Backend::Arm64 {

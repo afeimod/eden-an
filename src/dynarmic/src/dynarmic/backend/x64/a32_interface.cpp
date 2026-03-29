@@ -14,7 +14,7 @@
 #include <fmt/format.h>
 #include "common/assert.h"
 #include <bit>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include "dynarmic/common/llvm_disassemble.h"
 
 #include "dynarmic/backend/x64/a32_emit_x64.h"

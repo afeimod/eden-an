@@ -11,7 +11,7 @@
 #include <map>
 #include <optional>
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include <oaknut/code_block.hpp>
 #include <oaknut/oaknut.hpp>
 #include <ankerl/unordered_dense.h>

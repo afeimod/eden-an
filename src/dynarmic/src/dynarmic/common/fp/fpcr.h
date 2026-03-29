@@ -12,7 +12,7 @@
 
 #include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/common/fp/rounding_mode.h"
 

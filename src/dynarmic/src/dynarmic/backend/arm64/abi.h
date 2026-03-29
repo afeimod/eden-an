@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include "common/assert.h"
 #include <oaknut/oaknut.hpp>
 

@@ -14,7 +14,7 @@
 
 #include "common/assert.h"
 #include <bit>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/backend/x64/block_of_code.h"

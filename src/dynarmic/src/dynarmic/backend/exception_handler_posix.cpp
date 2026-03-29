@@ -19,7 +19,7 @@
 #include "dynarmic/backend/exception_handler.h"
 #include "common/assert.h"
 #include "dynarmic/common/context.h"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #if defined(ARCHITECTURE_x86_64)
 #    include "dynarmic/backend/x64/block_of_code.h"
 #elif defined(ARCHITECTURE_arm64)

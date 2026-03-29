@@ -10,7 +10,7 @@
 
 #include <array>
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/frontend/A32/a32_location_descriptor.h"
 #include "dynarmic/ir/location_descriptor.h"

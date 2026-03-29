@@ -12,7 +12,7 @@
 #include <array>
 
 #include "common/assert.h"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/common/always_false.h"
 

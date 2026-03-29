@@ -10,7 +10,7 @@
 
 #include <array>
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/backend/x64/stack_layout.h"
 

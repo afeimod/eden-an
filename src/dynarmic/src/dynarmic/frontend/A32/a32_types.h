@@ -11,7 +11,7 @@
 #include <string>
 #include <fmt/format.h>
 #include "common/assert.h"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include "dynarmic/interface/A32/coprocessor_util.h"
 #include "dynarmic/ir/cond.h"
 

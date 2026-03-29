@@ -15,7 +15,7 @@
 #include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
 #include <bit>
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/backend/arm64/abi.h"
 #include "dynarmic/backend/arm64/emit_context.h"

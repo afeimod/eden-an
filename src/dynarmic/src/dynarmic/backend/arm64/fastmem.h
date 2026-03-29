@@ -13,7 +13,7 @@
 #include <ankerl/unordered_dense.h>
 
 #include "dynarmic/mcl/bit.hpp"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/ir/location_descriptor.h"
 

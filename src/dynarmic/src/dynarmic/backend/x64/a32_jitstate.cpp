@@ -10,7 +10,7 @@
 
 #include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/backend/x64/block_of_code.h"
 #include "dynarmic/backend/x64/nzcv_util.h"

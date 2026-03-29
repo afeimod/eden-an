@@ -11,7 +11,7 @@
 #include <algorithm>
 
 #include "common/assert.h"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #include "dynarmic/frontend/A32/a32_ir_emitter.h"
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"

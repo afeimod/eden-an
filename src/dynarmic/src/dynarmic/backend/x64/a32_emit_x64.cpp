@@ -16,7 +16,7 @@
 #include <fmt/ostream.h>
 #include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 #include <boost/container/static_vector.hpp>
 
 #include "dynarmic/backend/x64/a32_jitstate.h"

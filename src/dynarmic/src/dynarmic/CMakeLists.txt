@@ -13,7 +13,6 @@ add_library(dynarmic STATIC
     backend/block_range_information.h
     backend/exception_handler.h
     common/always_false.h
-    common/assert.cpp
     common/cast_util.h
     common/crypto/aes.cpp
     common/crypto/aes.h

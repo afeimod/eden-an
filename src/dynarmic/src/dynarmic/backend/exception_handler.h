@@ -12,7 +12,7 @@
 #include <memory>
 #include <optional>
 
-#include "dynarmic/common/common_types.h"
+#include "common/common_types.h"
 
 #if defined(ARCHITECTURE_x86_64)
 namespace Dynarmic::Backend::X64 {
