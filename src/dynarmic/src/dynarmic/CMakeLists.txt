@@ -258,7 +258,7 @@ if ("arm64" IN_LIST ARCHITECTURE)
     )
 endif()
 
-if ("riscv" IN_LIST ARCHITECTURE)
+if ("riscv64" IN_LIST ARCHITECTURE)
     target_link_libraries(dynarmic PRIVATE biscuit::biscuit)
 
     target_sources(dynarmic PRIVATE
@@ -291,7 +291,7 @@ if ("riscv" IN_LIST ARCHITECTURE)
         backend/riscv64/a32_interface.cpp
         backend/riscv64/code_block.h
     )
-    message(FATAL_ERROR "TODO: Unimplemented frontend for this host architecture")
+    message(WARNING "TODO: Incomplete frontend for this host architecture")
 endif()
 
 if (WIN32)
