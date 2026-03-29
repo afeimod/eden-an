@@ -287,6 +287,7 @@ if ("riscv64" IN_LIST ARCHITECTURE)
         backend/riscv64/a32_address_space.h
         backend/riscv64/a32_core.h
         backend/riscv64/a32_interface.cpp
+        backend/riscv64/a64_interface.cpp
         backend/riscv64/code_block.h
     )
     message(WARNING "TODO: Incomplete frontend for this host architecture")
