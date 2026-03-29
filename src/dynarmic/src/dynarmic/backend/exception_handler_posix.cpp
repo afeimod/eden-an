@@ -140,7 +140,15 @@ void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
     }
     fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_PC);
 #elif defined(ARCHITECTURE_riscv64)
-    UNREACHABLE();
+    {
+        std::shared_lock guard(sig_handler->code_block_infos_mutex);
+        if (const auto iter = sig_handler->FindCodeBlockInfo(CTX_SEPC); iter != sig_handler->code_block_infos.end()) {
+            FakeCall fc = iter->second.cb(CTX_SEPC);
+            CTX_SEPC = fc.call_sepc;
+            return;
+        }
+    }
+    fmt::print(stderr, "Unhandled {} at pc {:#018x}\n", sig == SIGSEGV ? "SIGSEGV" : "SIGBUS", CTX_SEPC);
 #else
 #    error "Invalid architecture"
 #endif

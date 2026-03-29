@@ -43,6 +43,7 @@ struct FakeCall {
 };
 #elif defined(ARCHITECTURE_riscv64)
 struct FakeCall {
+    u64 call_sepc;
 };
 #else
 #    error "Invalid architecture"
