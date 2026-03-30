@@ -40,7 +40,7 @@ void Translate(IR::Block& block, LocationDescriptor descriptor, MemoryReadCodeFu
     if (single_step && should_continue) {
         visitor.ir.SetTerm(IR::Term::LinkBlock{*visitor.ir.current_location});
     }
-    ASSERT(block.HasTerminal() && "Terminal has not been set");
+    assert(block.HasTerminal() && "Terminal has not been set");
     block.SetEndLocation(*visitor.ir.current_location);
 }
 

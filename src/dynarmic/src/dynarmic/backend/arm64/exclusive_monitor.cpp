@@ -10,7 +10,7 @@
 
 #include <algorithm>
 
-#include "common/assert.h"
+#include <cassert>
 
 namespace Dynarmic {
 

@@ -8,9 +8,9 @@
 
 #include <fmt/format.h>
 #include "dynarmic/tests/unicorn_emu/a64_unicorn.h"
-#include "common/assert.h"
+#include <cassert>
 
-#define CHECKED(expr) do if ((expr)) ASSERT(false && "Call " #expr " failed with error\n"); while (0)
+#define CHECKED(expr) do if ((expr)) assert(false && "Call " #expr " failed with error\n"); while (0)
 
 constexpr u64 BEGIN_ADDRESS = 0;
 constexpr u64 END_ADDRESS = ~u64(0);

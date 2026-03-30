@@ -76,7 +76,7 @@ public:
             inst = bits | (random & ~mask);
         } while (!is_valid(inst));
 
-        ASSERT((inst & mask) == bits);
+        assert((inst & mask) == bits);
 
         return static_cast<u16>(inst);
     }
@@ -89,7 +89,7 @@ public:
             inst = bits | (random & ~mask);
         } while (!is_valid(inst));
 
-        ASSERT((inst & mask) == bits);
+        assert((inst & mask) == bits);
 
         return inst;
     }

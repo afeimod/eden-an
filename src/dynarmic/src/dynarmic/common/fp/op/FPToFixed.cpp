@@ -9,7 +9,7 @@
 #include "dynarmic/common/fp/op/FPToFixed.h"
 
 #include <fmt/format.h>
-#include "common/assert.h"
+#include <cassert>
 #include "dynarmic/mcl/bit.hpp"
 #include "common/common_types.h"
 
@@ -25,9 +25,9 @@ namespace Dynarmic::FP {
 
 template<typename FPT>
 u64 FPToFixed(size_t ibits, FPT op, size_t fbits, bool unsigned_, FPCR fpcr, RoundingMode rounding, FPSR& fpsr) {
-    ASSERT(rounding != RoundingMode::ToOdd);
-    ASSERT(ibits <= 64);
-    ASSERT(fbits <= ibits);
+    assert(rounding != RoundingMode::ToOdd);
+    assert(ibits <= 64);
+    assert(fbits <= ibits);
 
     auto [type, sign, value] = FPUnpack<FPT>(op, fpcr, fpsr);
 

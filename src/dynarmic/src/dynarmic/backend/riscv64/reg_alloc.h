@@ -16,7 +16,7 @@
 
 #include <biscuit/assembler.hpp>
 #include <biscuit/registers.hpp>
-#include "common/assert.h"
+#include <cassert>
 #include "common/common_types.h"
 #include "dynarmic/mcl/is_instance_of_template.hpp"
 #include <ankerl/unordered_dense.h>

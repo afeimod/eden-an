@@ -8,7 +8,7 @@
 
 #include "dynarmic/backend/x64/a32_jitstate.h"
 
-#include "common/assert.h"
+#include <cassert>
 #include "dynarmic/mcl/bit.hpp"
 #include "common/common_types.h"
 
@@ -51,8 +51,8 @@ namespace Dynarmic::Backend::X64 {
  */
 
 u32 A32JitState::Cpsr() const {
-    DEBUG_ASSERT((cpsr_q & ~1) == 0);
-    DEBUG_ASSERT((cpsr_jaifm & ~0x010001DF) == 0);
+    assert((cpsr_q & ~1) == 0);
+    assert((cpsr_jaifm & ~0x010001DF) == 0);
 
     u32 cpsr = 0;
 
@@ -167,7 +167,7 @@ constexpr u32 FPSCR_MODE_MASK = A32::LocationDescriptor::FPSCR_MODE_MASK;
 constexpr u32 FPSCR_NZCV_MASK = 0xF0000000;
 
 u32 A32JitState::Fpscr() const {
-    DEBUG_ASSERT((fpsr_nzcv & ~FPSCR_NZCV_MASK) == 0);
+    assert((fpsr_nzcv & ~FPSCR_NZCV_MASK) == 0);
 
     const u32 fpcr_mode = static_cast<u32>(upper_location_descriptor) & FPSCR_MODE_MASK;
     const u32 mxcsr = guest_MXCSR | asimd_MXCSR;

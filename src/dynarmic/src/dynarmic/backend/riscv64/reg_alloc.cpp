@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <array>
 
-#include "common/assert.h"
+#include <cassert>
 #include "common/common_types.h"
 
 #include "dynarmic/common/always_false.h"
@@ -44,19 +44,19 @@ bool Argument::GetImmediateU1() const {
 
 u8 Argument::GetImmediateU8() const {
     const u64 imm = value.GetImmediateAsU64();
-    ASSERT(imm < 0x100);
+    assert(imm < 0x100);
     return u8(imm);
 }
 
 u16 Argument::GetImmediateU16() const {
     const u64 imm = value.GetImmediateAsU64();
-    ASSERT(imm < 0x10000);
+    assert(imm < 0x10000);
     return u16(imm);
 }
 
 u32 Argument::GetImmediateU32() const {
     const u64 imm = value.GetImmediateAsU64();
-    ASSERT(imm < 0x100000000);
+    assert(imm < 0x100000000);
     return u32(imm);
 }
 
@@ -65,12 +65,12 @@ u64 Argument::GetImmediateU64() const {
 }
 
 IR::Cond Argument::GetImmediateCond() const {
-    ASSERT(IsImmediate() && GetType() == IR::Type::Cond);
+    assert(IsImmediate() && GetType() == IR::Type::Cond);
     return value.GetCond();
 }
 
 IR::AccType Argument::GetImmediateAccType() const {
-    ASSERT(IsImmediate() && GetType() == IR::Type::AccType);
+    assert(IsImmediate() && GetType() == IR::Type::AccType);
     return value.GetAccType();
 }
 
@@ -79,7 +79,7 @@ bool HostLocInfo::Contains(const IR::Inst* value) const {
 }
 
 void HostLocInfo::SetupScratchLocation() {
-    ASSERT(IsCompletelyEmpty());
+    assert(IsCompletelyEmpty());
     realized = true;
 }
 
@@ -104,7 +104,7 @@ RegAlloc::ArgumentInfo RegAlloc::GetArgumentInfo(IR::Inst* inst) {
         const IR::Value arg = inst->GetArg(i);
         ret[i].value = arg;
         if (!arg.IsImmediate() && !IsValuelessType(arg.GetType())) {
-            ASSERT(ValueLocation(arg.GetInst()) && "argument must already been defined");
+            assert(ValueLocation(arg.GetInst()) && "argument must already been defined");
             ValueInfo(arg.GetInst()).uses_this_inst++;
         }
     }
@@ -128,7 +128,7 @@ void RegAlloc::UpdateAllUses() {
 }
 
 void RegAlloc::DefineAsExisting(IR::Inst* inst, Argument& arg) {
-    ASSERT(!ValueLocation(inst));
+    assert(!ValueLocation(inst));
 
     if (arg.value.IsImmediate()) {
         inst->ReplaceUsesWith(arg.value);
@@ -142,15 +142,15 @@ void RegAlloc::DefineAsExisting(IR::Inst* inst, Argument& arg) {
 
 void RegAlloc::AssertNoMoreUses() const {
     const auto is_empty = [](const auto& i) { return i.IsCompletelyEmpty(); };
-    ASSERT(std::all_of(gprs.begin(), gprs.end(), is_empty));
-    ASSERT(std::all_of(fprs.begin(), fprs.end(), is_empty));
-    ASSERT(std::all_of(spills.begin(), spills.end(), is_empty));
+    assert(std::all_of(gprs.begin(), gprs.end(), is_empty));
+    assert(std::all_of(fprs.begin(), fprs.end(), is_empty));
+    assert(std::all_of(spills.begin(), spills.end(), is_empty));
 }
 
 template<HostLoc::Kind kind>
 u32 RegAlloc::GenerateImmediate(const IR::Value& value) {
     // TODO
-    // ASSERT(value.GetType() != IR::Type::U1);
+    // assert(value.GetType() != IR::Type::U1);
 
     if constexpr (kind == HostLoc::Kind::Gpr) {
         const u32 new_location_index = AllocateRegister(gprs, gpr_order);
@@ -161,7 +161,7 @@ u32 RegAlloc::GenerateImmediate(const IR::Value& value) {
 
         return new_location_index;
     } else if constexpr (kind == HostLoc::Kind::Fpr) {
-        ASSERT(false && "Unimplemented instruction");
+        std::terminate(); //unimplemented
     } else {
         UNREACHABLE();
     }
@@ -175,15 +175,15 @@ u32 RegAlloc::RealizeReadImpl(const IR::Value& value) {
     }
 
     const auto current_location = ValueLocation(value.GetInst());
-    ASSERT(current_location);
+    assert(current_location);
 
     if (current_location->kind == required_kind) {
         ValueInfo(*current_location).realized = true;
         return current_location->index;
     }
 
-    ASSERT(!ValueInfo(*current_location).realized);
-    ASSERT(!ValueInfo(*current_location).locked);
+    assert(!ValueInfo(*current_location).realized);
+    assert(!ValueInfo(*current_location).locked);
 
     if constexpr (required_kind == HostLoc::Kind::Gpr) {
         const u32 new_location_index = AllocateRegister(gprs, gpr_order);
@@ -194,7 +194,7 @@ u32 RegAlloc::RealizeReadImpl(const IR::Value& value) {
             UNREACHABLE(); //logic error
         case HostLoc::Kind::Fpr:
             as.FMV_X_D(biscuit::GPR(new_location_index), biscuit::FPR{current_location->index});
-            // ASSERT size fits
+            // assert size fits
             break;
         case HostLoc::Kind::Spill:
             as.LD(biscuit::GPR{new_location_index}, spill_offset + current_location->index * spill_slot_size, biscuit::sp);
@@ -229,7 +229,7 @@ u32 RegAlloc::RealizeReadImpl(const IR::Value& value) {
 
 template<HostLoc::Kind required_kind>
 u32 RegAlloc::RealizeWriteImpl(const IR::Inst* value) {
-    ASSERT(!ValueLocation(value));
+    assert(!ValueLocation(value));
 
     const auto setup_location = [&](HostLocInfo& info) {
         info = {};
@@ -274,7 +274,7 @@ u32 RegAlloc::AllocateRegister(const std::array<HostLocInfo, 32>& regs, const st
 }
 
 void RegAlloc::SpillGpr(u32 index) {
-    ASSERT(!gprs[index].locked && !gprs[index].realized);
+    assert(!gprs[index].locked && !gprs[index].realized);
     if (gprs[index].values.empty()) {
         return;
     }
@@ -284,7 +284,7 @@ void RegAlloc::SpillGpr(u32 index) {
 }
 
 void RegAlloc::SpillFpr(u32 index) {
-    ASSERT(!fprs[index].locked && !fprs[index].realized);
+    assert(!fprs[index].locked && !fprs[index].realized);
     if (fprs[index].values.empty()) {
         return;
     }
@@ -295,7 +295,7 @@ void RegAlloc::SpillFpr(u32 index) {
 
 u32 RegAlloc::FindFreeSpill() const {
     const auto iter = std::find_if(spills.begin(), spills.end(), [](const HostLocInfo& info) { return info.values.empty(); });
-    ASSERT(iter != spills.end() && "All spill locations are full");
+    assert(iter != spills.end() && "All spill locations are full");
     return static_cast<u32>(iter - spills.begin());
 }
 

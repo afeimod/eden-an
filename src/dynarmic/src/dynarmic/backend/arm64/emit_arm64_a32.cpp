@@ -211,7 +211,7 @@ void EmitIR<IR::Opcode::A32GetRegister>(oaknut::CodeGenerator& code, EmitContext
 template<>
 void EmitIR<IR::Opcode::A32GetExtendedRegister32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
-    ASSERT(A32::IsSingleExtReg(reg));
+    assert(A32::IsSingleExtReg(reg));
     const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::S0);
 
     auto Sresult = ctx.reg_alloc.WriteS(inst);
@@ -225,7 +225,7 @@ void EmitIR<IR::Opcode::A32GetExtendedRegister32>(oaknut::CodeGenerator& code, E
 template<>
 void EmitIR<IR::Opcode::A32GetVector>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
-    ASSERT(A32::IsDoubleExtReg(reg) || A32::IsQuadExtReg(reg));
+    assert(A32::IsDoubleExtReg(reg) || A32::IsQuadExtReg(reg));
 
     if (A32::IsDoubleExtReg(reg)) {
         const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::D0);
@@ -243,7 +243,7 @@ void EmitIR<IR::Opcode::A32GetVector>(oaknut::CodeGenerator& code, EmitContext& 
 template<>
 void EmitIR<IR::Opcode::A32GetExtendedRegister64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
-    ASSERT(A32::IsDoubleExtReg(reg));
+    assert(A32::IsDoubleExtReg(reg));
     const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::D0);
 
     auto Dresult = ctx.reg_alloc.WriteD(inst);
@@ -271,7 +271,7 @@ void EmitIR<IR::Opcode::A32SetRegister>(oaknut::CodeGenerator& code, EmitContext
 template<>
 void EmitIR<IR::Opcode::A32SetExtendedRegister32>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
-    ASSERT(A32::IsSingleExtReg(reg));
+    assert(A32::IsSingleExtReg(reg));
     const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::S0);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -286,7 +286,7 @@ void EmitIR<IR::Opcode::A32SetExtendedRegister32>(oaknut::CodeGenerator& code, E
 template<>
 void EmitIR<IR::Opcode::A32SetExtendedRegister64>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
-    ASSERT(A32::IsDoubleExtReg(reg));
+    assert(A32::IsDoubleExtReg(reg));
     const size_t index = static_cast<size_t>(reg) - static_cast<size_t>(A32::ExtReg::D0);
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
@@ -301,7 +301,7 @@ void EmitIR<IR::Opcode::A32SetExtendedRegister64>(oaknut::CodeGenerator& code, E
 template<>
 void EmitIR<IR::Opcode::A32SetVector>(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     const A32::ExtReg reg = inst->GetArg(0).GetA32ExtRegRef();
-    ASSERT(A32::IsDoubleExtReg(reg) || A32::IsQuadExtReg(reg));
+    assert(A32::IsDoubleExtReg(reg) || A32::IsQuadExtReg(reg));
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
 
     if (A32::IsDoubleExtReg(reg)) {

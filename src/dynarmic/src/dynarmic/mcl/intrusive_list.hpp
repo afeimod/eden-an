@@ -9,7 +9,7 @@
 #include <iterator>
 #include <memory>
 #include <type_traits>
-#include "common/assert.h"
+#include <cassert>
 
 namespace mcl {
 
@@ -114,7 +114,7 @@ public:
 
     reference operator*() const
     {
-        DEBUG_ASSERT(!node->is_sentinel());
+        assert(!node->is_sentinel());
         return static_cast<reference>(*node);
     }
     pointer operator->() const
@@ -215,7 +215,7 @@ public:
      */
     void pop_front()
     {
-        DEBUG_ASSERT(!empty());
+        assert(!empty());
         erase(begin());
     }
 
@@ -225,7 +225,7 @@ public:
      */
     void pop_back()
     {
-        DEBUG_ASSERT(!empty());
+        assert(!empty());
         erase(--end());
     }
 
@@ -235,7 +235,7 @@ public:
      */
     pointer remove(iterator& it)
     {
-        DEBUG_ASSERT(it != end());
+        assert(it != end());
 
         pointer node = &*it++;
 
@@ -301,7 +301,7 @@ public:
      */
     reference front()
     {
-        DEBUG_ASSERT(!empty());
+        assert(!empty());
         return *begin();
     }
 
@@ -311,7 +311,7 @@ public:
      */
     const_reference front() const
     {
-        DEBUG_ASSERT(!empty());
+        assert(!empty());
         return *begin();
     }
 
@@ -321,7 +321,7 @@ public:
      */
     reference back()
     {
-        DEBUG_ASSERT(!empty());
+        assert(!empty());
         return *--end();
     }
 
@@ -331,7 +331,7 @@ public:
      */
     const_reference back() const
     {
-        DEBUG_ASSERT(!empty());
+        assert(!empty());
         return *--end();
     }
 

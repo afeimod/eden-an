@@ -8,7 +8,7 @@
 
 #include "dynarmic/common/fp/op/FPRoundInt.h"
 
-#include "common/assert.h"
+#include <cassert>
 #include "dynarmic/mcl/bit.hpp"
 #include "common/common_types.h"
 
@@ -26,7 +26,7 @@ namespace Dynarmic::FP {
 
 template<typename FPT>
 u64 FPRoundInt(FPT op, FPCR fpcr, RoundingMode rounding, bool exact, FPSR& fpsr) {
-    ASSERT(rounding != RoundingMode::ToOdd);
+    assert(rounding != RoundingMode::ToOdd);
 
     auto [type, sign, value] = FPUnpack<FPT>(op, fpcr, fpsr);
 

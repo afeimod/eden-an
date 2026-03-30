@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "common/assert.h"
+#include <cassert>
 #include "dynarmic/backend/x64/xbyak.h"
 
 namespace Dynarmic::Backend::X64 {

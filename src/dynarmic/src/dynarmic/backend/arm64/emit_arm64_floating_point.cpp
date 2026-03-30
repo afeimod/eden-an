@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -68,7 +68,7 @@ static void EmitConvert(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst
     RegAlloc::Realize(Vto, Vfrom);
     ctx.fpsr.Load();
 
-    ASSERT(rounding_mode == ctx.FPCR().RMode());
+    assert(rounding_mode == ctx.FPCR().RMode());
 
     emit(Vto, Vfrom);
 }
@@ -106,8 +106,8 @@ static void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst*
             }
         }
     } else {
-        ASSERT(fbits == 0);
-        ASSERT(bitsize_to != 16);
+        assert(fbits == 0);
+        assert(bitsize_to != 16);
         if constexpr (is_signed) {
             switch (rounding_mode) {
             case FP::RoundingMode::ToNearest_TieEven:
@@ -449,7 +449,7 @@ void EmitIR<IR::Opcode::FPRoundInt32>(oaknut::CodeGenerator& code, EmitContext& 
     ctx.fpsr.Load();
 
     if (exact) {
-        ASSERT(ctx.FPCR().RMode() == rounding_mode);
+        assert(ctx.FPCR().RMode() == rounding_mode);
         code.FRINTX(Sresult, Soperand);
     } else {
         switch (rounding_mode) {
@@ -486,7 +486,7 @@ void EmitIR<IR::Opcode::FPRoundInt64>(oaknut::CodeGenerator& code, EmitContext& 
     ctx.fpsr.Load();
 
     if (exact) {
-        ASSERT(ctx.FPCR().RMode() == rounding_mode);
+        assert(ctx.FPCR().RMode() == rounding_mode);
         code.FRINTX(Dresult, Doperand);
     } else {
         switch (rounding_mode) {

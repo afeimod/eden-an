@@ -49,19 +49,19 @@ public:
         return is_being_used_count == 0 && current_references == 1 && size_t(accumulated_uses) + 1 == size_t(total_uses);
     }
     inline void ReadLock() noexcept {
-        ASSERT(size_t(is_being_used_count) + 1 < (std::numeric_limits<decltype(is_being_used_count)>::max)());
-        ASSERT(!is_scratch);
+        assert(size_t(is_being_used_count) + 1 < (std::numeric_limits<decltype(is_being_used_count)>::max)());
+        assert(!is_scratch);
         is_being_used_count++;
     }
     inline void WriteLock() noexcept {
-        ASSERT(is_being_used_count == 0);
+        assert(is_being_used_count == 0);
         is_being_used_count++;
         is_scratch = true;
     }
     inline void AddArgReference() noexcept {
-        ASSERT(size_t(current_references) + 1 < (std::numeric_limits<decltype(current_references)>::max)());
+        assert(size_t(current_references) + 1 < (std::numeric_limits<decltype(current_references)>::max)());
         ++current_references;
-        ASSERT(size_t(accumulated_uses) + current_references <= size_t(total_uses));
+        assert(size_t(accumulated_uses) + current_references <= size_t(total_uses));
     }
     void ReleaseOne() noexcept;
     void ReleaseAll() noexcept;
@@ -147,12 +147,12 @@ public:
         return !!ValueLocation(inst);
     }
     inline Xbyak::Reg64 UseGpr(BlockOfCode& code, Argument& arg) noexcept {
-        ASSERT(!arg.allocated);
+        assert(!arg.allocated);
         arg.allocated = true;
         return HostLocToReg64(UseImpl(code, arg.value, gpr_order));
     }
     inline Xbyak::Xmm UseXmm(BlockOfCode& code, Argument& arg) noexcept {
-        ASSERT(!arg.allocated);
+        assert(!arg.allocated);
         arg.allocated = true;
         return HostLocToXmm(UseImpl(code, arg.value, xmm_order));
     }
@@ -160,7 +160,7 @@ public:
         return UseGpr(code, arg);
     }
     inline void Use(BlockOfCode& code, Argument& arg, const HostLoc host_loc) noexcept {
-        ASSERT(!arg.allocated);
+        assert(!arg.allocated);
         arg.allocated = true;
         UseImpl(code, arg.value, BuildRegSet({host_loc}));
     }
@@ -205,7 +205,7 @@ public:
             iter.ReleaseAll();
     }
     inline void AssertNoMoreUses() noexcept {
-        ASSERT(std::all_of(hostloc_info.begin(), hostloc_info.end(), [](const auto& i) noexcept { return i.IsEmpty(); }));
+        assert(std::all_of(hostloc_info.begin(), hostloc_info.end(), [](const auto& i) noexcept { return i.IsEmpty(); }));
     }
 #ifndef NDEBUG
     inline void EmitVerboseDebuggingOutput(BlockOfCode& code) noexcept {
@@ -234,11 +234,11 @@ private:
     HostLoc FindFreeSpill(bool is_xmm) const noexcept;
 
     inline HostLocInfo& LocInfo(const HostLoc loc) noexcept {
-        DEBUG_ASSERT(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
+        assert(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
         return hostloc_info[size_t(loc)];
     }
     inline const HostLocInfo& LocInfo(const HostLoc loc) const noexcept {
-        DEBUG_ASSERT(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
+        assert(loc != HostLoc::RSP && loc != ABI_JIT_PTR);
         return hostloc_info[size_t(loc)];
     }
 

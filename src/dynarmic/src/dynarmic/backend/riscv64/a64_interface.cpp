@@ -5,7 +5,7 @@
 #include <mutex>
 
 #include <boost/icl/interval_set.hpp>
-#include "common/assert.h"
+#include <cassert>
 #include "common/common_types.h"
 
 #include "dynarmic/frontend/A64/a64_location_descriptor.h"
@@ -28,12 +28,12 @@ struct Jit::Impl final {
         , jit_interface(jit_interface) {}
 
     HaltReason Run() {
-        ASSERT(false);
+        assert(false);
         return HaltReason{};
     }
 
     HaltReason Step() {
-        ASSERT(false);
+        assert(false);
         return HaltReason{};
     }
 
@@ -51,7 +51,7 @@ struct Jit::Impl final {
     }
 
     void Reset() {
-        ASSERT(!is_executing);
+        assert(!is_executing);
         //jit_state = {};
     }
 

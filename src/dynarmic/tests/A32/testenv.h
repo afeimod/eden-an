@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-#include "common/assert.h"
+#include <cassert>
 #include "common/common_types.h"
 #include "dynarmic/interface/A32/a32.h"
 
@@ -98,11 +98,11 @@ public:
     }
 
     void CallSVC(std::uint32_t swi) override {
-        UNREACHABLE(); //ASSERT(false && "CallSVC({})", swi);
+        UNREACHABLE(); //assert(false && "CallSVC({})", swi);
     }
 
     void ExceptionRaised(u32 pc, Dynarmic::A32::Exception /*exception*/) override {
-        UNREACHABLE(); //ASSERT(false && "ExceptionRaised({:08x}) code = {:08x}", pc, *MemoryReadCode(pc));
+        UNREACHABLE(); //assert(false && "ExceptionRaised({:08x}) code = {:08x}", pc, *MemoryReadCode(pc));
     }
 
     void AddTicks(std::uint64_t ticks) override {
@@ -187,11 +187,11 @@ public:
     }
 
     void CallSVC(std::uint32_t swi) override {
-        UNREACHABLE(); //ASSERT(false && "CallSVC({})", swi);
+        UNREACHABLE(); //assert(false && "CallSVC({})", swi);
     }
 
     void ExceptionRaised(std::uint32_t pc, Dynarmic::A32::Exception) override {
-        UNREACHABLE(); //ASSERT(false && "ExceptionRaised({:016x})", pc);
+        UNREACHABLE(); //assert(false && "ExceptionRaised({:016x})", pc);
     }
 
     void AddTicks(std::uint64_t ticks) override {

@@ -8,7 +8,7 @@
 
 #include <utility>
 
-#include "common/assert.h"
+#include <cassert>
 
 #include "dynarmic/frontend/A64/translate/impl/impl.h"
 
@@ -223,7 +223,7 @@ bool TranslatorVisitor::FCMLA_elt(bool Q, Imm<2> size, Imm<1> L, Imm<1> M, Imm<4
     const size_t esize = 8U << size.ZeroExtend();
 
     // TODO: We don't support the half-precision floating point variant yet.
-    ASSERT(esize != 16);
+    assert(esize != 16);
 
     const size_t index = [=] {
         if (size == 0b01) {

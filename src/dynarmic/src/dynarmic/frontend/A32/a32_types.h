@@ -10,7 +10,7 @@
 
 #include <string>
 #include <fmt/format.h>
-#include "common/assert.h"
+#include <cassert>
 #include "common/common_types.h"
 #include "dynarmic/interface/A32/coprocessor_util.h"
 #include "dynarmic/ir/cond.h"
@@ -85,7 +85,7 @@ constexpr bool IsQuadExtReg(ExtReg reg) {
 }
 
 inline size_t RegNumber(Reg reg) {
-    ASSERT(reg != Reg::INVALID_REG);
+    assert(reg != Reg::INVALID_REG);
     return size_t(reg);
 }
 
@@ -95,13 +95,13 @@ inline size_t RegNumber(ExtReg reg) {
     } else if (IsDoubleExtReg(reg)) {
         return size_t(reg) - size_t(ExtReg::D0);
     }
-    ASSERT(IsQuadExtReg(reg));
+    assert(IsQuadExtReg(reg));
     return size_t(reg) - size_t(ExtReg::Q0);
 }
 
 inline Reg operator+(Reg reg, size_t number) {
     const size_t new_reg = RegNumber(reg) + number;
-    ASSERT(new_reg <= 15);
+    assert(new_reg <= 15);
 
     return static_cast<Reg>(new_reg);
 }
@@ -109,7 +109,7 @@ inline Reg operator+(Reg reg, size_t number) {
 inline ExtReg operator+(ExtReg reg, size_t number) {
     const auto new_reg = static_cast<ExtReg>(static_cast<size_t>(reg) + number);
 
-    ASSERT((IsSingleExtReg(reg) && IsSingleExtReg(new_reg))
+    assert((IsSingleExtReg(reg) && IsSingleExtReg(new_reg))
            || (IsDoubleExtReg(reg) && IsDoubleExtReg(new_reg))
            || (IsQuadExtReg(reg) && IsQuadExtReg(new_reg)));
 

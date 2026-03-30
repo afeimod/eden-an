@@ -10,7 +10,7 @@
 #include <mutex>
 
 #include <boost/icl/interval_set.hpp>
-#include "common/assert.h"
+#include <cassert>
 #include "common/common_types.h"
 
 #include "dynarmic/backend/arm64/a64_address_space.h"
@@ -31,7 +31,7 @@ struct Jit::Impl final {
             , core(conf) {}
 
     HaltReason Run() {
-        ASSERT(!is_executing);
+        assert(!is_executing);
         PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&halt_reason)));
         is_executing = true;
         HaltReason hr = core.Run(current_address_space, current_state, &halt_reason);
@@ -41,7 +41,7 @@ struct Jit::Impl final {
     }
 
     HaltReason Step() {
-        ASSERT(!is_executing);
+        assert(!is_executing);
         PerformRequestedCacheInvalidation(static_cast<HaltReason>(Atomic::Load(&halt_reason)));
         is_executing = true;
         HaltReason hr = core.Step(current_address_space, current_state, &halt_reason);

@@ -10,7 +10,7 @@
 
 #include <tuple>
 
-#include "common/assert.h"
+#include <cassert>
 #include "common/common_types.h"
 
 #include "dynarmic/common/fp/fpcr.h"

@@ -9,7 +9,7 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "common/assert.h"
+#include <cassert>
 #include "common/common_types.h"
 
 #include "dynarmic/backend/x64/block_of_code.h"
@@ -129,7 +129,7 @@ void EmitX64::EmitIsZero64(EmitContext& ctx, IR::Inst* inst) {
 void EmitX64::EmitTestBit(EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const Xbyak::Reg64 result = ctx.reg_alloc.UseScratchGpr(code, args[0]);
-    ASSERT(args[1].IsImmediate());
+    assert(args[1].IsImmediate());
     // TODO: Flag optimization
     code.bt(result, args[1].GetImmediateU8());
     code.setc(result.cvt8());

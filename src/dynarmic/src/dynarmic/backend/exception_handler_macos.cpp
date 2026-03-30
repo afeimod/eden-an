@@ -19,7 +19,7 @@
 #include <bit>
 
 #include <fmt/format.h>
-#include "common/assert.h"
+#include <cassert>
 #include "common/common_types.h"
 
 #include "dynarmic/backend/exception_handler.h"
@@ -87,7 +87,7 @@ private:
 };
 
 MachHandler::MachHandler() {
-#define KCHECK(x) ASSERT((x) == KERN_SUCCESS && "init failure at " #x)
+#define KCHECK(x) assert((x) == KERN_SUCCESS && "init failure at " #x)
     KCHECK(mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &server_port));
     KCHECK(mach_port_insert_right(mach_task_self(), server_port, server_port, MACH_MSG_TYPE_MAKE_SEND));
     KCHECK(task_set_exception_ports(mach_task_self(), EXC_MASK_BAD_ACCESS, server_port, EXCEPTION_STATE | MACH_EXCEPTION_CODES, THREAD_STATE));

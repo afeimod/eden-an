@@ -10,7 +10,7 @@
 
 #include <functional>
 
-#include "common/assert.h"
+#include <cassert>
 
 namespace Dynarmic::Decoder {
 
@@ -51,7 +51,7 @@ public:
     /// @param v The visitor to use
     /// @param instruction The instruction to decode.
     inline handler_return_type call(Visitor& v, opcode_type instruction) const noexcept {
-        ASSERT(Matches(instruction));
+        assert(Matches(instruction));
         return fn(v, instruction);
     }
 

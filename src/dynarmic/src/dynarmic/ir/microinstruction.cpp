@@ -10,7 +10,7 @@
 
 #include <algorithm>
 
-#include "common/assert.h"
+#include <cassert>
 
 #include "dynarmic/ir/opcodes.h"
 #include "dynarmic/ir/type.h"
@@ -27,7 +27,7 @@ Inst* Inst::GetAssociatedPseudoOperation(Opcode opcode) {
     Inst* pseudoop = next_pseudoop;
     while (pseudoop) {
         if (pseudoop->GetOpcode() == opcode) {
-            ASSERT(pseudoop->GetArg(0).GetInst() == this);
+            assert(pseudoop->GetArg(0).GetInst() == this);
             return pseudoop;
         }
         pseudoop = pseudoop->next_pseudoop;
@@ -42,10 +42,10 @@ Type Inst::GetType() const {
 }
 
 void Inst::SetArg(size_t index, Value value) noexcept {
-    DEBUG_ASSERT(index < GetNumArgsOf(op));
-    DEBUG_ASSERT(AreTypesCompatible(value.GetType(), GetArgTypeOf(op, index)));
-    //DEBUG_ASSERT(index < GetNumArgsOf(op) && "Inst::SetArg: index {} >= number of arguments of {} ({})", index, op, GetNumArgsOf(op));
-    //DEBUG_ASSERT(AreTypesCompatible(value.GetType(), GetArgTypeOf(op, index)) && "Inst::SetArg: type {} of argument {} not compatible with operation {} ({})", value.GetType(), index, op, GetArgTypeOf(op, index));
+    assert(index < GetNumArgsOf(op));
+    assert(AreTypesCompatible(value.GetType(), GetArgTypeOf(op, index)));
+    //assert(index < GetNumArgsOf(op) && "Inst::SetArg: index {} >= number of arguments of {} ({})", index, op, GetNumArgsOf(op));
+    //assert(AreTypesCompatible(value.GetType(), GetArgTypeOf(op, index)) && "Inst::SetArg: type {} of argument {} not compatible with operation {} ({})", value.GetType(), index, op, GetArgTypeOf(op, index));
     if (!args[index].IsImmediate()) {
         UndoUse(args[index]);
     }
@@ -81,13 +81,13 @@ void Inst::Use(const Value& value) {
 
     if (IsAPseudoOperation(op)) {
         if (op == Opcode::GetNZCVFromOp) {
-            ASSERT(MayGetNZCVFromOp(value.GetInst()->GetOpcode()) && "This value doesn't support the GetNZCVFromOp pseduo-op");
+            assert(MayGetNZCVFromOp(value.GetInst()->GetOpcode()) && "This value doesn't support the GetNZCVFromOp pseduo-op");
         }
 
         Inst* insert_point = value.GetInst();
         while (insert_point->next_pseudoop) {
             insert_point = insert_point->next_pseudoop;
-            DEBUG_ASSERT(insert_point->GetArg(0).GetInst() == value.GetInst());
+            assert(insert_point->GetArg(0).GetInst() == value.GetInst());
         }
         insert_point->next_pseudoop = this;
     }
@@ -100,7 +100,7 @@ void Inst::UndoUse(const Value& value) {
         Inst* insert_point = value.GetInst();
         while (insert_point->next_pseudoop != this) {
             insert_point = insert_point->next_pseudoop;
-            DEBUG_ASSERT(insert_point->GetArg(0).GetInst() == value.GetInst());
+            assert(insert_point->GetArg(0).GetInst() == value.GetInst());
         }
         insert_point->next_pseudoop = next_pseudoop;
         next_pseudoop = nullptr;

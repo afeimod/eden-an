@@ -10,7 +10,7 @@
 #include <mutex>
 
 #include <boost/icl/interval_set.hpp>
-#include "common/assert.h"
+#include <cassert>
 #include "common/common_types.h"
 
 #include "dynarmic/backend/riscv64/a32_address_space.h"
@@ -31,7 +31,7 @@ struct Jit::Impl final {
             , core(conf) {}
 
     HaltReason Run() {
-        ASSERT(!jit_interface->is_executing);
+        assert(!jit_interface->is_executing);
         jit_interface->is_executing = true;
         HaltReason hr = core.Run(current_address_space, current_state, &halt_reason);
         RequestCacheInvalidation();
@@ -40,9 +40,9 @@ struct Jit::Impl final {
     }
 
     HaltReason Step() {
-        ASSERT(!jit_interface->is_executing);
+        assert(!jit_interface->is_executing);
         jit_interface->is_executing = true;
-        ASSERT(false && "Unimplemented instruction");
+        std::terminate(); //unimplemented
         RequestCacheInvalidation();
         jit_interface->is_executing = false;
         return HaltReason{};

@@ -12,7 +12,7 @@
 #include <array>
 #include <tuple>
 
-#include "common/assert.h"
+#include <cassert>
 #include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/mcl/function_info.hpp"
 
@@ -99,9 +99,9 @@ struct detail {
                 shifts[arg_index] = bit_position;
             }
         }
-#if !defined(DYNARMIC_IGNORE_ASSERTS) && !defined(__ANDROID__)
+#if !defined(DYNARMIC_IGNORE_assertS) && !defined(__ANDROID__)
         // Avoids a MSVC ICE, and avoids Android NDK issue.
-        ASSERT(std::all_of(masks.begin(), masks.end(), [](auto m) { return m != 0; }));
+        assert(std::all_of(masks.begin(), masks.end(), [](auto m) { return m != 0; }));
 #endif
         return std::make_tuple(masks, shifts);
     }

@@ -14,7 +14,7 @@
 #include <string>
 
 #include <fmt/format.h>
-#include "common/assert.h"
+#include <cassert>
 #include "dynarmic/frontend/A32/a32_types.h"
 #include "dynarmic/frontend/A64/a64_types.h"
 #include "dynarmic/ir/cond.h"
@@ -49,7 +49,7 @@ Block::iterator Block::PrependNewInst(iterator insertion_point, Opcode opcode, s
         pooled_inst.back().emplace_back(opcode);
         inst = &pooled_inst.back()[pooled_inst.back().size() - 1];
     }
-    DEBUG_ASSERT(args.size() == inst->NumArgs());
+    assert(args.size() == inst->NumArgs());
     std::for_each(args.begin(), args.end(), [&inst, index = size_t(0)](const auto& arg) mutable {
         inst->SetArg(index, arg);
         index++;
@@ -69,7 +69,7 @@ void Block::Reset(LocationDescriptor location_) noexcept {
     terminal = Term::Invalid{};
     cond_failed_cycle_count = 0;
     cycle_count = 0;
-    ASSERT(instructions.size() == 0);
+    assert(instructions.size() == 0);
 }
 
 static std::string TerminalToString(const Terminal& terminal_variant) noexcept {

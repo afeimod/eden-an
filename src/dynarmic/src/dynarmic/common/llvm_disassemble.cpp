@@ -15,7 +15,7 @@
 #    include <llvm-c/Target.h>
 #endif
 
-#include "common/assert.h"
+#include <cassert>
 #include <bit>
 #include "common/common_types.h"
 
@@ -37,7 +37,7 @@ std::string DisassembleX64(const void* begin, const void* end) {
     while (pos < end) {
         char buffer[80];
         size_t inst_size = LLVMDisasmInstruction(llvm_ctx, const_cast<u8*>(pos), remaining, reinterpret_cast<u64>(pos), buffer, sizeof(buffer));
-        ASSERT(inst_size);
+        assert(inst_size);
         for (const u8* i = pos; i < pos + inst_size; i++)
             result += fmt::format("{:02x} ", *i);
         for (size_t i = inst_size; i < 10; i++)

@@ -134,7 +134,7 @@ template<>
             code.and_(tmp, u32((1 << valid_page_index_bits) - 1));
         }
     } else {
-        ASSERT(valid_page_index_bits < 32);
+        assert(valid_page_index_bits < 32);
         code.mov(tmp, vaddr);
         code.shr(tmp, int(page_table_const_bits));
         code.test(tmp, u32(-(1 << valid_page_index_bits)));

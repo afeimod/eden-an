@@ -17,7 +17,7 @@
 #include <fmt/format.h>
 #include <ankerl/unordered_dense.h>
 #include "dynarmic/backend/exception_handler.h"
-#include "common/assert.h"
+#include <cassert>
 #include "dynarmic/common/context.h"
 #include "common/common_types.h"
 #if defined(ARCHITECTURE_x86_64)
@@ -116,7 +116,7 @@ void RegisterHandler() {
 }
 
 void SigHandler::SigAction(int sig, siginfo_t* info, void* raw_context) {
-    DEBUG_ASSERT(sig == SIGSEGV || sig == SIGBUS);
+    assert(sig == SIGSEGV || sig == SIGBUS);
     CTX_DECLARE(raw_context);
 #if defined(ARCHITECTURE_x86_64)
     {

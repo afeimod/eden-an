@@ -14,7 +14,7 @@
 #include <utility>
 #include <vector>
 
-#include "common/assert.h"
+#include <cassert>
 #include "common/common_types.h"
 #include "dynarmic/mcl/is_instance_of_template.hpp"
 #include <oaknut/oaknut.hpp>

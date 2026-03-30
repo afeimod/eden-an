@@ -8,7 +8,7 @@
 
 #include <limits>
 
-#include "common/assert.h"
+#include <cassert>
 #include "dynarmic/mcl/bit.hpp"
 #include "common/common_types.h"
 #include "dynarmic/mcl/integer_of_size.hpp"
@@ -118,7 +118,7 @@ void EmitX64::EmitSignedSaturation(EmitContext& ctx, IR::Inst* inst) {
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const size_t N = args[1].GetImmediateU8();
-    ASSERT(N >= 1 && N <= 32);
+    assert(N >= 1 && N <= 32);
 
     if (N == 32) {
         if (overflow_inst) {
@@ -167,7 +167,7 @@ void EmitX64::EmitUnsignedSaturation(EmitContext& ctx, IR::Inst* inst) {
 
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     const size_t N = args[1].GetImmediateU8();
-    ASSERT(N <= 31);
+    assert(N <= 31);
 
     const u32 saturated_value = (1u << N) - 1;
 

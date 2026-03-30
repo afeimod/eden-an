@@ -8,7 +8,7 @@
 
 #include "dynarmic/common/fp/process_exception.h"
 
-#include "common/assert.h"
+#include <cassert>
 
 #include "dynarmic/common/fp/fpcr.h"
 #include "dynarmic/common/fp/fpsr.h"
@@ -18,27 +18,27 @@ namespace Dynarmic::FP {
 void FPProcessException(FPExc exception, FPCR fpcr, FPSR& fpsr) {
     switch (exception) {
     case FPExc::InvalidOp:
-        ASSERT(!fpcr.IOE() && "Raising floating point exceptions unimplemented");
+        assert(!fpcr.IOE() && "Raising floating point exceptions unimplemented");
         fpsr.IOC(true);
         break;
     case FPExc::DivideByZero:
-        ASSERT(!fpcr.DZE() && "Raising floating point exceptions unimplemented");
+        assert(!fpcr.DZE() && "Raising floating point exceptions unimplemented");
         fpsr.DZC(true);
         break;
     case FPExc::Overflow:
-        ASSERT(!fpcr.OFE() && "Raising floating point exceptions unimplemented");
+        assert(!fpcr.OFE() && "Raising floating point exceptions unimplemented");
         fpsr.OFC(true);
         break;
     case FPExc::Underflow:
-        ASSERT(!fpcr.UFE() && "Raising floating point exceptions unimplemented");
+        assert(!fpcr.UFE() && "Raising floating point exceptions unimplemented");
         fpsr.UFC(true);
         break;
     case FPExc::Inexact:
-        ASSERT(!fpcr.IXE() && "Raising floating point exceptions unimplemented");
+        assert(!fpcr.IXE() && "Raising floating point exceptions unimplemented");
         fpsr.IXC(true);
         break;
     case FPExc::InputDenorm:
-        ASSERT(!fpcr.IDE() && "Raising floating point exceptions unimplemented");
+        assert(!fpcr.IDE() && "Raising floating point exceptions unimplemented");
         fpsr.IDC(true);
         break;
     default:

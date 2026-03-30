@@ -12,7 +12,7 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include "common/assert.h"
+#include <cassert>
 
 #include "dynarmic/tests/rand_int.h"
 #include "dynarmic/common/fp/fpcr.h"
@@ -40,7 +40,7 @@ u32 RandomFpcr() {
 
 InstructionGenerator::InstructionGenerator(const char* format) {
     const size_t format_len = std::strlen(format);
-    ASSERT(format_len == 16 || format_len == 32);
+    assert(format_len == 16 || format_len == 32);
 
     if (format_len == 16) {
         // Begin with 16 zeros

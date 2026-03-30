@@ -10,7 +10,7 @@
 
 #include <type_traits>
 
-#include "common/assert.h"
+#include <cassert>
 #include "dynarmic/mcl/bit.hpp"
 #include "common/common_types.h"
 
@@ -29,7 +29,7 @@ public:
 
     explicit Imm(u32 value)
             : value(value) {
-        ASSERT((mcl::bit::get_bits<0, bit_size - 1>(value) == value) && "More bits in value than expected");
+        assert((mcl::bit::get_bits<0, bit_size - 1>(value) == value) && "More bits in value than expected");
     }
 
     template<typename T = u32>

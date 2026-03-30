@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include "common/assert.h"
+#include <cassert>
 #include "dynarmic/mcl/bit.hpp"
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
@@ -17,7 +17,7 @@ namespace Dynarmic::A32 {
 using SaturationFunction = IR::ResultAndOverflow<IR::U32> (IREmitter::*)(const IR::U32&, size_t);
 
 static bool Saturation(TranslatorVisitor& v, bool sh, Reg n, Reg d, Imm<5> shift_amount, size_t saturate_to, SaturationFunction sat_fn) {
-    ASSERT(!(sh && shift_amount == 0) && "Invalid decode");
+    assert(!(sh && shift_amount == 0) && "Invalid decode");
 
     if (d == Reg::PC || n == Reg::PC) {
         return v.UnpredictableInstruction();

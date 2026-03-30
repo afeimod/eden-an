@@ -13,7 +13,7 @@
 
 #include <sys/mman.h>
 
-#include "common/assert.h"
+#include <cassert>
 #include "common/common_types.h"
 
 namespace Dynarmic::Backend::RV64 {
@@ -22,7 +22,7 @@ class CodeBlock {
 public:
     explicit CodeBlock(std::size_t size) noexcept : memsize(size) {
         mem = (u8*)mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
-        ASSERT(mem != nullptr);
+        assert(mem != nullptr);
     }
 
     ~CodeBlock() noexcept {

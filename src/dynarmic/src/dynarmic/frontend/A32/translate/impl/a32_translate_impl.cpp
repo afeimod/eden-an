@@ -8,7 +8,7 @@
 
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
 
-#include "common/assert.h"
+#include <cassert>
 
 #include "dynarmic/interface/A32/config.h"
 
@@ -29,7 +29,7 @@ bool TranslatorVisitor::ThumbConditionPassed() {
 
 bool TranslatorVisitor::VFPConditionPassed(Cond cond) {
     if (ir.current_location.TFlag()) {
-        ASSERT(cond == Cond::AL);
+        assert(cond == Cond::AL);
         return true;
     }
     return ArmConditionPassed(cond);

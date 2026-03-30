@@ -11,7 +11,7 @@
 #include <initializer_list>
 
 #include "common/common_types.h"
-#include "common/assert.h"
+#include <cassert>
 #include <oaknut/oaknut.hpp>
 
 
@@ -57,7 +57,7 @@ constexpr RegisterList ToRegList(oaknut::Reg reg) {
     if (reg.is_vector()) {
         return RegisterList{1} << (reg.index() + 32);
     }
-    ASSERT(reg.index() != 31 && "ZR not allowed in reg list");
+    assert(reg.index() != 31 && "ZR not allowed in reg list");
     if (reg.index() == -1) {
         return RegisterList{1} << 31;
     }

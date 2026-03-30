@@ -22,37 +22,37 @@ namespace Dynarmic::Backend::RV64 {
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocInternalOperation>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    ASSERT(false && "Unimplemented instruction");
+    std::terminate(); //unimplemented
 }
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocSendOneWord>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    ASSERT(false && "Unimplemented instruction");
+    std::terminate(); //unimplemented
 }
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocSendTwoWords>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    ASSERT(false && "Unimplemented instruction");
+    std::terminate(); //unimplemented
 }
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocGetOneWord>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    ASSERT(false && "Unimplemented instruction");
+    std::terminate(); //unimplemented
 }
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocGetTwoWords>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    ASSERT(false && "Unimplemented instruction");
+    std::terminate(); //unimplemented
 }
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocLoadWords>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    ASSERT(false && "Unimplemented instruction");
+    std::terminate(); //unimplemented
 }
 
 template<>
 void EmitIR<IR::Opcode::A32CoprocStoreWords>(biscuit::Assembler&, EmitContext&, IR::Inst*) {
-    ASSERT(false && "Unimplemented instruction");
+    std::terminate(); //unimplemented
 }
 
 }  // namespace Dynarmic::Backend::RV64

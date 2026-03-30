@@ -44,7 +44,7 @@ TEST_CASE("arm: Opt Failure: Const folding in MostSignificantWord", "[arm][A32]"
     test_env.ticks_left = 6;
     CheckedRun([&]() { jit.Run(); });
 
-    // If we don't trigger the GetCarryFromOp ASSERT, we're fine.
+    // If we don't trigger the GetCarryFromOp assert, we're fine.
 }
 
 TEST_CASE("arm: Unintended modification in SetCFlag", "[arm][A32]") {

@@ -10,7 +10,7 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include "common/assert.h"
+#include <cassert>
 #include "common/common_types.h"
 #include "dynarmic/mcl/integer_of_size.hpp"
 #include <boost/container/static_vector.hpp>
@@ -89,7 +89,7 @@ A64EmitX64::BlockDescriptor A64EmitX64::Emit(IR::Block& block) noexcept {
     code.align();
     const auto* const entrypoint = code.getCurr();
 
-    DEBUG_ASSERT(block.GetCondition() == IR::Cond::AL);
+    assert(block.GetCondition() == IR::Cond::AL);
     typedef void (EmitX64::*EmitHandlerFn)(EmitContext& context, IR::Inst* inst);
     constexpr EmitHandlerFn opcode_handlers[] = {
 #define OPCODE(name, type, ...) &EmitX64::Emit##name,
@@ -497,7 +497,7 @@ void A64EmitX64::EmitA64SetPC(A64EmitContext& ctx, IR::Inst* inst) {
 void A64EmitX64::EmitA64CallSupervisor(A64EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.HostCall(code, nullptr);
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    ASSERT(args[0].IsImmediate());
+    assert(args[0].IsImmediate());
     const u32 imm = args[0].GetImmediateU32();
     Devirtualize<&A64::UserCallbacks::CallSVC>(conf.callbacks).EmitCall(code, [&](RegList param) {
         code.mov(param[0], imm);
@@ -509,7 +509,7 @@ void A64EmitX64::EmitA64CallSupervisor(A64EmitContext& ctx, IR::Inst* inst) {
 void A64EmitX64::EmitA64ExceptionRaised(A64EmitContext& ctx, IR::Inst* inst) {
     ctx.reg_alloc.HostCall(code, nullptr);
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
-    ASSERT(args[0].IsImmediate() && args[1].IsImmediate());
+    assert(args[0].IsImmediate() && args[1].IsImmediate());
     const u64 pc = args[0].GetImmediateU64();
     const u64 exception = args[1].GetImmediateU64();
     Devirtualize<&A64::UserCallbacks::ExceptionRaised>(conf.callbacks).EmitCall(code, [&](RegList param) {

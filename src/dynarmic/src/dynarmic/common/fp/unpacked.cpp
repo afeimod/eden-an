@@ -85,8 +85,8 @@ std::tuple<bool, int, u64, ResidualError> Normalize(FPUnpacked op, int extra_rig
 
 template<typename FPT>
 FPT FPRoundBase(FPUnpacked op, FPCR fpcr, RoundingMode rounding, FPSR& fpsr) {
-    ASSERT(op.mantissa != 0);
-    ASSERT(rounding != RoundingMode::ToNearest_TieAwayFromZero);
+    assert(op.mantissa != 0);
+    assert(rounding != RoundingMode::ToNearest_TieAwayFromZero);
 
     constexpr int minimum_exp = FPInfo<FPT>::exponent_min;
     constexpr size_t E = FPInfo<FPT>::exponent_width;

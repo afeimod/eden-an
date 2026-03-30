@@ -10,7 +10,7 @@
 
 #include <cstring>
 
-#include "common/assert.h"
+#include <cassert>
 
 #include "dynarmic/backend/x64/block_of_code.h"
 
@@ -29,7 +29,7 @@ Xbyak::Address ConstantPool::GetConstant(const Xbyak::AddressFrame& frame, u64 l
     const auto constant = ConstantT(lower, upper);
     auto iter = constant_info.find(constant);
     if (iter == constant_info.end()) {
-        ASSERT(insertion_point < pool.size());
+        assert(insertion_point < pool.size());
         ConstantT& target_constant = pool[insertion_point];
         target_constant = constant;
         iter = constant_info.insert({constant, &target_constant}).first;

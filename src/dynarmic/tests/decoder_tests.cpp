@@ -11,7 +11,7 @@
 #include <iostream>
 
 #include <catch2/catch_test_macros.hpp>
-#include "common/assert.h"
+#include <cassert>
 
 #include "dynarmic/frontend/A32/decoder/asimd.h"
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
@@ -24,7 +24,7 @@ TEST_CASE("ASIMD Decoder: Ensure table order correctness", "[decode][a32][.]") {
     const auto table = A32::GetASIMDDecodeTable<A32::TranslatorVisitor>();
 
     const auto get_ir = [](const A32::ASIMDMatcher<A32::TranslatorVisitor>& matcher, u32 instruction) {
-        ASSERT(matcher.Matches(instruction));
+        assert(matcher.Matches(instruction));
 
         const A32::LocationDescriptor location{0, {}, {}};
         IR::Block block{location};
