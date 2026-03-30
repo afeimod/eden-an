@@ -228,6 +228,9 @@ if (VulkanMemoryAllocator_ADDED)
 endif()
 
 # httplib
+if (IOS)
+    set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
+endif()
 AddJsonPackage(httplib)
 
 # cpp-jwt
