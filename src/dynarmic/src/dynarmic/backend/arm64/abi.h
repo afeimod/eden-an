@@ -9,14 +9,11 @@
 #pragma once
 
 #include <initializer_list>
-#include <stdexcept>
-#include <type_traits>
 
 #include "common/common_types.h"
 #include "common/assert.h"
 #include <oaknut/oaknut.hpp>
 
-#include "dynarmic/common/always_false.h"
 
 namespace Dynarmic::Backend::Arm64 {
 
@@ -29,7 +26,7 @@ constexpr oaknut::XReg Xpagetable{24};
 constexpr oaknut::XReg Xscratch0{16}, Xscratch1{17}, Xscratch2{30};
 constexpr oaknut::WReg Wscratch0{16}, Wscratch1{17}, Wscratch2{30};
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 constexpr auto Rscratch0() {
     if constexpr (bitsize == 32) {
         return Wscratch0;
@@ -40,7 +37,7 @@ constexpr auto Rscratch0() {
     }
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 constexpr auto Rscratch1() {
     if constexpr (bitsize == 32) {
         return Wscratch1;

@@ -11,7 +11,6 @@
 #include <fmt/ostream.h>
 #include <oaknut/oaknut.hpp>
 
-#include "dynarmic/backend/arm64/a32_jitstate.h"
 #include "dynarmic/backend/arm64/abi.h"
 #include "dynarmic/backend/arm64/emit_arm64.h"
 #include "dynarmic/backend/arm64/emit_context.h"
@@ -1102,7 +1101,7 @@ void EmitIR<IR::Opcode::SignedDiv64>(oaknut::CodeGenerator& code, EmitContext& c
         [&](auto& Xresult, auto& Xa, auto& Xb) { code.SDIV(Xresult, Xa, Xb); });
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 static bool IsValidBitImm(u64 imm) {
     static_assert(bitsize == 32 || bitsize == 64);
     if constexpr (bitsize == 32) {
@@ -1112,7 +1111,7 @@ static bool IsValidBitImm(u64 imm) {
     }
 }
 
-template<size_t bitsize, typename EmitFn>
+template<std::size_t bitsize, typename EmitFn>
 static void MaybeBitImm(oaknut::CodeGenerator& code, u64 imm, EmitFn emit_fn) {
     static_assert(bitsize == 32 || bitsize == 64);
     if constexpr (bitsize == 32) {

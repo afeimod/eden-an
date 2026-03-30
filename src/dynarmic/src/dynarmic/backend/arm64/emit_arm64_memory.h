@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: 0BSD
  */
 
-#include "common/common_types.h"
+#include <cstddef>
 
 namespace oaknut {
 struct CodeGenerator;
@@ -23,13 +23,13 @@ namespace Dynarmic::Backend::Arm64 {
 struct EmitContext;
 enum class LinkTarget;
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void EmitReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst);
-template<size_t bitsize>
+template<std::size_t bitsize>
 void EmitExclusiveReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst);
-template<size_t bitsize>
+template<std::size_t bitsize>
 void EmitWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst);
-template<size_t bitsize>
+template<std::size_t bitsize>
 void EmitExclusiveWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst);
 
 }  // namespace Dynarmic::Backend::Arm64

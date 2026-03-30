@@ -10,6 +10,7 @@
 
 #include <optional>
 #include <utility>
+#include <cstddef>
 
 #include <bit>
 #include <oaknut/oaknut.hpp>
@@ -23,7 +24,6 @@
 #include "dynarmic/ir/acc_type.h"
 #include "dynarmic/ir/basic_block.h"
 #include "dynarmic/ir/microinstruction.h"
-#include "dynarmic/ir/opcodes.h"
 
 namespace Dynarmic::Backend::Arm64 {
 
@@ -131,7 +131,7 @@ LinkTarget ExclusiveWriteMemoryLinkTarget(size_t bitsize) {
     UNREACHABLE();
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void CallbackOnlyEmitReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.PrepareForCall({}, args[1]);
@@ -150,7 +150,7 @@ void CallbackOnlyEmitReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, I
     }
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void CallbackOnlyEmitExclusiveReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.PrepareForCall({}, args[1]);
@@ -171,7 +171,7 @@ void CallbackOnlyEmitExclusiveReadMemory(oaknut::CodeGenerator& code, EmitContex
     }
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void CallbackOnlyEmitWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.PrepareForCall({}, args[1], args[2]);
@@ -186,7 +186,7 @@ void CallbackOnlyEmitWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, 
     }
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void CallbackOnlyEmitExclusiveWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     ctx.reg_alloc.PrepareForCall({}, args[1], args[2]);
@@ -215,7 +215,7 @@ constexpr size_t page_table_const_mask = (1 << page_table_const_bits) - 1;
 
 // This function may use Xscratch0 as a scratch register
 // Trashes NZCV
-template<size_t bitsize>
+template<std::size_t bitsize>
 void EmitDetectMisalignedVAddr(oaknut::CodeGenerator& code, EmitContext& ctx, oaknut::XReg Xaddr, const SharedLabel& fallback) {
     static_assert(bitsize == 8 || bitsize == 16 || bitsize == 32 || bitsize == 64 || bitsize == 128);
 
@@ -253,7 +253,7 @@ void EmitDetectMisalignedVAddr(oaknut::CodeGenerator& code, EmitContext& ctx, oa
 // May use Xscratch1 as scratch register
 // Address to read/write = [ret0 + ret1], ret0 is always Xscratch0 and ret1 is either Xaddr or Xscratch1
 // Trashes NZCV
-template<size_t bitsize>
+template<std::size_t bitsize>
 std::pair<oaknut::XReg, oaknut::XReg> InlinePageTableEmitVAddrLookup(oaknut::CodeGenerator& code, EmitContext& ctx, oaknut::XReg Xaddr, const SharedLabel& fallback) {
     const size_t valid_page_index_bits = ctx.conf.page_table_address_space_bits - page_table_const_bits;
     const size_t unused_top_bits = 64 - ctx.conf.page_table_address_space_bits;
@@ -408,7 +408,7 @@ CodePtr EmitMemoryStr(oaknut::CodeGenerator& code, int value_idx, oaknut::XReg X
     return fastmem_location;
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void InlinePageTableEmitReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Xaddr = ctx.reg_alloc.ReadX(args[1]);
@@ -448,7 +448,7 @@ void InlinePageTableEmitReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx
     code.l(*end);
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void InlinePageTableEmitWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Xaddr = ctx.reg_alloc.ReadX(args[1]);
@@ -511,7 +511,7 @@ inline bool ShouldExt32(EmitContext& ctx) {
 // May use Xscratch0 as scratch register
 // Address to read/write = [ret0 + ret1], ret0 is always Xfastmem and ret1 is either Xaddr or Xscratch0
 // Trashes NZCV
-template<size_t bitsize>
+template<std::size_t bitsize>
 std::pair<oaknut::XReg, oaknut::XReg> FastmemEmitVAddrLookup(oaknut::CodeGenerator& code, EmitContext& ctx, oaknut::XReg Xaddr, const SharedLabel& fallback) {
     if (ctx.conf.fastmem_address_space_bits == 64 || ShouldExt32(ctx)) {
         return std::make_pair(Xfastmem, Xaddr);
@@ -527,7 +527,7 @@ std::pair<oaknut::XReg, oaknut::XReg> FastmemEmitVAddrLookup(oaknut::CodeGenerat
     return std::make_pair(Xfastmem, Xaddr);
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void FastmemEmitReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, DoNotFastmemMarker marker) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Xaddr = ctx.reg_alloc.ReadX(args[1]);
@@ -577,7 +577,7 @@ void FastmemEmitReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::In
     code.l(*end);
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void FastmemEmitWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst, DoNotFastmemMarker marker) {
     auto args = ctx.reg_alloc.GetArgumentInfo(inst);
     auto Xaddr = ctx.reg_alloc.ReadX(args[1]);
@@ -633,7 +633,7 @@ void FastmemEmitWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::I
 
 }  // namespace
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void EmitReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     if (const auto marker = ShouldFastmem(ctx, inst)) {
         FastmemEmitReadMemory<bitsize>(code, ctx, inst, *marker);
@@ -644,12 +644,12 @@ void EmitReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* ins
     }
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void EmitExclusiveReadMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     CallbackOnlyEmitExclusiveReadMemory<bitsize>(code, ctx, inst);
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void EmitWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     if (const auto marker = ShouldFastmem(ctx, inst)) {
         FastmemEmitWriteMemory<bitsize>(code, ctx, inst, *marker);
@@ -660,7 +660,7 @@ void EmitWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* in
     }
 }
 
-template<size_t bitsize>
+template<std::size_t bitsize>
 void EmitExclusiveWriteMemory(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) {
     CallbackOnlyEmitExclusiveWriteMemory<bitsize>(code, ctx, inst);
 }
