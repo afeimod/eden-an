@@ -278,6 +278,7 @@ if ("riscv64" IN_LIST ARCHITECTURE)
         backend/riscv64/emit_riscv64_vector.cpp
         backend/riscv64/emit_riscv64.cpp
         backend/riscv64/emit_riscv64.h
+        backend/riscv64/exclusive_monitor.cpp
         backend/riscv64/reg_alloc.cpp
         backend/riscv64/reg_alloc.h
         backend/riscv64/stack_layout.h
@@ -288,6 +289,8 @@ if ("riscv64" IN_LIST ARCHITECTURE)
         backend/riscv64/a32_interface.cpp
         backend/riscv64/a64_interface.cpp
         backend/riscv64/code_block.h
+
+        common/spin_lock_riscv64.cpp
     )
     message(WARNING "TODO: Incomplete frontend for this host architecture")
 endif()
