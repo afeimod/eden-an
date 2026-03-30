@@ -128,7 +128,7 @@ void A32AddressSpace::Link(EmittedBlockInfo& block_info) {
             break;
         }
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     }
 }

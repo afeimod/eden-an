@@ -45,7 +45,7 @@ static void EmitTwoOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, IR:
         } else if constexpr (size == 64) {
             emit(Qresult->D2(), Qoperand->D2());
         } else {
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     });
 }
@@ -68,7 +68,7 @@ static void EmitTwoOpArrangedWiden(oaknut::CodeGenerator& code, EmitContext& ctx
         } else if constexpr (size == 32) {
             emit(Qresult->D2(), Qoperand->toD().S2());
         } else {
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     });
 }
@@ -83,7 +83,7 @@ static void EmitTwoOpArrangedNarrow(oaknut::CodeGenerator& code, EmitContext& ct
         } else if constexpr (size == 64) {
             emit(Qresult->toD().S2(), Qoperand->D2());
         } else {
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     });
 }
@@ -106,7 +106,7 @@ static void EmitTwoOpArrangedPairWiden(oaknut::CodeGenerator& code, EmitContext&
         } else if constexpr (size == 32) {
             emit(Qresult->D2(), Qoperand->S4());
         } else {
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     });
 }
@@ -121,7 +121,7 @@ static void EmitTwoOpArrangedLower(oaknut::CodeGenerator& code, EmitContext& ctx
         } else if constexpr (size == 32) {
             emit(Qresult->toD().S2(), Qoperand->toD().S2());
         } else {
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     });
 }
@@ -149,7 +149,7 @@ static void EmitThreeOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, I
         } else if constexpr (size == 64) {
             emit(Qresult->D2(), Qa->D2(), Qb->D2());
         } else {
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     });
 }
@@ -174,7 +174,7 @@ static void EmitThreeOpArrangedWiden(oaknut::CodeGenerator& code, EmitContext& c
         } else if constexpr (size == 64) {
             emit(Qresult->Q1(), Qa->toD().D1(), Qb->toD().D1());
         } else {
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     });
 }
@@ -197,7 +197,7 @@ static void EmitThreeOpArrangedLower(oaknut::CodeGenerator& code, EmitContext& c
         } else if constexpr (size == 32) {
             emit(Qresult->toD().S2(), Qa->toD().S2(), Qb->toD().S2());
         } else {
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     });
 }
@@ -219,7 +219,7 @@ static void EmitSaturatedAccumulate(oaknut::CodeGenerator&, EmitContext& ctx, IR
     } else if constexpr (size == 64) {
         emit(Qaccumulator->D2(), Qoperand->D2());
     } else {
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 }
 
@@ -240,7 +240,7 @@ static void EmitImmShift(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* ins
     } else if constexpr (size == 64) {
         emit(Qresult->D2(), Qoperand->D2(), shift_amount);
     } else {
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 }
 
@@ -268,7 +268,7 @@ static void EmitReduce(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst,
     } else if constexpr (size == 64) {
         emit(Vresult, Qoperand->D2());
     } else {
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 }
 
@@ -640,7 +640,7 @@ void EmitIR<IR::Opcode::VectorEqual128>(oaknut::CodeGenerator& code, EmitContext
     (void)code;
     (void)ctx;
     (void)inst;
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>
@@ -869,7 +869,7 @@ void EmitIR<IR::Opcode::VectorMaxS64>(oaknut::CodeGenerator& code, EmitContext& 
     (void)code;
     (void)ctx;
     (void)inst;
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>
@@ -892,7 +892,7 @@ void EmitIR<IR::Opcode::VectorMaxU64>(oaknut::CodeGenerator& code, EmitContext& 
     (void)code;
     (void)ctx;
     (void)inst;
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>
@@ -915,7 +915,7 @@ void EmitIR<IR::Opcode::VectorMinS64>(oaknut::CodeGenerator& code, EmitContext& 
     (void)code;
     (void)ctx;
     (void)inst;
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>
@@ -938,7 +938,7 @@ void EmitIR<IR::Opcode::VectorMinU64>(oaknut::CodeGenerator& code, EmitContext& 
     (void)code;
     (void)ctx;
     (void)inst;
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>
@@ -1385,7 +1385,7 @@ void EmitIR<IR::Opcode::VectorSignExtend64>(oaknut::CodeGenerator& code, EmitCon
     (void)code;
     (void)ctx;
     (void)inst;
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>
@@ -1408,7 +1408,7 @@ void EmitIR<IR::Opcode::VectorSignedMultiply16>(oaknut::CodeGenerator& code, Emi
     (void)code;
     (void)ctx;
     (void)inst;
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>
@@ -1416,7 +1416,7 @@ void EmitIR<IR::Opcode::VectorSignedMultiply32>(oaknut::CodeGenerator& code, Emi
     (void)code;
     (void)ctx;
     (void)inst;
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>
@@ -1668,7 +1668,7 @@ void EmitIR<IR::Opcode::VectorTableLookup64>(oaknut::CodeGenerator& code, EmitCo
         }
         break;
     default:
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 }
 
@@ -1732,7 +1732,7 @@ void EmitIR<IR::Opcode::VectorTableLookup128>(oaknut::CodeGenerator& code, EmitC
         }
         break;
     default:
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 }
 
@@ -1780,7 +1780,7 @@ void EmitIR<IR::Opcode::VectorUnsignedMultiply16>(oaknut::CodeGenerator& code, E
     (void)code;
     (void)ctx;
     (void)inst;
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>
@@ -1788,7 +1788,7 @@ void EmitIR<IR::Opcode::VectorUnsignedMultiply32>(oaknut::CodeGenerator& code, E
     (void)code;
     (void)ctx;
     (void)inst;
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>

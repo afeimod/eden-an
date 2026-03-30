@@ -110,7 +110,7 @@ bool TranslatorVisitor::asimd_VMOV_imm(Imm<1> a, bool D, Imm<1> b, Imm<1> c, Imm
         return bic();
     }
 
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 }  // namespace Dynarmic::A32

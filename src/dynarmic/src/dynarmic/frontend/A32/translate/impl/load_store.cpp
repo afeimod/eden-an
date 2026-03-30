@@ -870,11 +870,11 @@ bool TranslatorVisitor::arm_LDMIB(Cond cond, bool W, Reg n, RegList list) {
 }
 
 bool TranslatorVisitor::arm_LDM_usr() {
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 bool TranslatorVisitor::arm_LDM_eret() {
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 static bool STMHelper(A32::IREmitter& ir, bool W, Reg n, RegList list, IR::U32 start_address, IR::U32 writeback_address) {
@@ -955,7 +955,7 @@ bool TranslatorVisitor::arm_STMIB(Cond cond, bool W, Reg n, RegList list) {
 }
 
 bool TranslatorVisitor::arm_STM_usr() {
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 }  // namespace Dynarmic::A32

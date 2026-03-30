@@ -120,7 +120,7 @@ public:
         case 64:
             return;
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     }
 

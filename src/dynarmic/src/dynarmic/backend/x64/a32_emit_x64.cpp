@@ -56,7 +56,7 @@ static Xbyak::Address MJitStateExtReg(A32::ExtReg reg) {
         const size_t index = size_t(reg) - size_t(A32::ExtReg::Q0);
         return xword[BlockOfCode::ABI_JIT_PTR + offsetof(A32JitState, ExtReg) + 2 * sizeof(u64) * index];
     }
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 A32EmitContext::A32EmitContext(const A32::UserConfig& conf, RegAlloc& reg_alloc, IR::Block& block)
@@ -135,7 +135,7 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
 #undef A32OPC
 #undef A64OPC
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
         reg_alloc.EndOfAllocScope();
 #ifndef NDEBUG
@@ -833,7 +833,7 @@ void A32EmitX64::EmitA32SetFpscrNZCV(A32EmitContext& ctx, IR::Inst* inst) {
 }
 
 static void EmitCoprocessorException() {
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 static void CallCoprocCallback(BlockOfCode& code, RegAlloc& reg_alloc, A32::Coprocessor::Callback callback, IR::Inst* inst = nullptr, std::optional<Argument::copyable_reference> arg0 = {}, std::optional<Argument::copyable_reference> arg1 = {}) {
@@ -909,7 +909,7 @@ void A32EmitX64::EmitA32CoprocSendOneWord(A32EmitContext& ctx, IR::Inst* inst) {
         return;
     }
 
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 void A32EmitX64::EmitA32CoprocSendTwoWords(A32EmitContext& ctx, IR::Inst* inst) {
@@ -952,7 +952,7 @@ void A32EmitX64::EmitA32CoprocSendTwoWords(A32EmitContext& ctx, IR::Inst* inst) 
         return;
     }
 
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 void A32EmitX64::EmitA32CoprocGetOneWord(A32EmitContext& ctx, IR::Inst* inst) {
@@ -995,7 +995,7 @@ void A32EmitX64::EmitA32CoprocGetOneWord(A32EmitContext& ctx, IR::Inst* inst) {
         return;
     }
 
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 void A32EmitX64::EmitA32CoprocGetTwoWords(A32EmitContext& ctx, IR::Inst* inst) {
@@ -1040,7 +1040,7 @@ void A32EmitX64::EmitA32CoprocGetTwoWords(A32EmitContext& ctx, IR::Inst* inst) {
         return;
     }
 
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 void A32EmitX64::EmitA32CoprocLoadWords(A32EmitContext& ctx, IR::Inst* inst) {
@@ -1216,7 +1216,7 @@ void EmitTerminalImpl(A32EmitX64& e, IR::Term::CheckHalt terminal, IR::LocationD
 }
 
 void EmitTerminalImpl(A32EmitX64&, IR::Term::Invalid, IR::LocationDescriptor, bool) {
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 }
 

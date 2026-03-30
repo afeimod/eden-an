@@ -43,7 +43,7 @@ FakeCall AxxEmitX64::FastmemCallback(u64 rip_) {
     }
     fmt::print("dynarmic: Segfault happened within JITted code at rip = {:016x}\n"
         "Segfault wasn't at a fastmem patch location!\n", rip_);
-    std::terminate(); //unreachable //("iter != fastmem_patch_info.end()");
+    assert(false && "unreachable"); //("iter != fastmem_patch_info.end()");
 }
 
 template<std::size_t bitsize, auto callback>
@@ -489,7 +489,7 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
             code.cmpxchg16b(ptr[dest_ptr]);
             break;
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
 
         code.setnz(status.cvt8());

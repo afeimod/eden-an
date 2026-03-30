@@ -81,7 +81,7 @@ bool FPMinMax(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd, MinMaxOpera
         case MinMaxOperation::MinNumeric:
             return v.ir.FPMinNumeric(lhs, rhs);
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     };
 
@@ -144,7 +144,7 @@ bool ScalarMinMax(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vn, Vec Vd, Sca
             return v.ir.MinUnsigned(a, b);
 
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     };
 

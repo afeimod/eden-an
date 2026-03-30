@@ -95,7 +95,7 @@ bool TranslatorVisitor::MOVI(bool Q, bool op, Imm<1> a, Imm<1> b, Imm<1> c, Imm<
         return bic();
     }
 
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 bool TranslatorVisitor::FMOV_2(bool Q, bool op, Imm<1> a, Imm<1> b, Imm<1> c, Imm<1> d, Imm<1> e, Imm<1> f, Imm<1> g, Imm<1> h, Vec Vd) {

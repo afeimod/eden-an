@@ -161,7 +161,7 @@ bool FPCompareRegister(TranslatorVisitor& v, bool Q, bool sz, Vec Vm, Vec Vn, Ve
                                         v.ir.FPVectorAbs(esize, operand2));
         }
 
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }();
 
     v.V(datasize, Vd, result);
@@ -198,7 +198,7 @@ bool VectorMinMaxOperationSTS(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm,
             return v.ir.VectorMinUnsigned(esize, operand1, operand2);
 
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     }();
 
@@ -275,7 +275,7 @@ bool PairedMinMaxOperationSTS(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm,
             return Q ? v.ir.VectorPairedMinUnsigned(esize, operand1, operand2) : v.ir.VectorPairedMinUnsignedLower(esize, operand1, operand2);
 
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     }();
 

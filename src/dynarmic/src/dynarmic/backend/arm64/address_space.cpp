@@ -260,7 +260,7 @@ void AddressSpace::Link(EmittedBlockInfo& block_info) {
             c.BL(prelude_info.get_ticks_remaining);
             break;
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     }
 
@@ -294,7 +294,7 @@ void AddressSpace::LinkBlockLinks(const CodePtr entry_point, const CodePtr targe
             }
             break;
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     }
 }
@@ -346,7 +346,7 @@ FakeCall AddressSpace::FastmemCallback(u64 host_pc) {
 fail:
     fmt::print("dynarmic: Segfault happened within JITted code at host_pc = {:016x}\n"
         "Segfault wasn't at a fastmem patch location!\n", host_pc);
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 }  // namespace Dynarmic::Backend::Arm64

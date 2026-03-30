@@ -72,7 +72,7 @@ u64 FPRoundInt(FPT op, FPCR fpcr, RoundingMode rounding, bool exact, FPSR& fpsr)
         round_up = error > ResidualError::Half || (error == ResidualError::Half && !mcl::bit::most_significant_bit(int_result));
         break;
     case RoundingMode::ToOdd:
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 
     if (round_up) {

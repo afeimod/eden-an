@@ -72,7 +72,7 @@ static bool ExclusiveSharedDecodeAndOperation(TranslatorVisitor& v, bool pair, s
         break;
     }
     default:
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 
     return true;
@@ -175,7 +175,7 @@ static bool OrderedSharedDecodeAndOperation(TranslatorVisitor& v, size_t size, b
         break;
     }
     default:
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 
     return true;

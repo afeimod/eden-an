@@ -120,7 +120,7 @@ bool ScalarFPCompareRegister(TranslatorVisitor& v, bool sz, Vec Vm, Vec Vn, Vec 
                                         v.ir.FPVectorAbs(esize, operand2));
         }
 
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }();
 
     v.V_scalar(datasize, Vd, v.ir.VectorGetElement(esize, result, 0));

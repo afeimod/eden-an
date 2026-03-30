@@ -70,7 +70,7 @@ static bool RegSharedDecodeAndOperation(TranslatorVisitor& v, size_t scale, u8 s
         // TODO: Prefetch
         break;
     default:
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 
     return true;
@@ -128,7 +128,7 @@ static bool VecSharedDecodeAndOperation(TranslatorVisitor& v, size_t scale, u8 s
         break;
     }
     default:
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 
     return true;

@@ -120,7 +120,7 @@ void EmitIR<IR::Opcode::SM4AccessSubstitutionBox>(oaknut::CodeGenerator& code, E
     (void)code;
     (void)ctx;
     (void)inst;
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>

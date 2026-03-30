@@ -47,7 +47,7 @@ static inline size_t GetBitWidth(const IR::Type type) noexcept {
         return 32;  // TODO: Update to 16 when flags optimization is done
     default:
         // A32REG A32EXTREG A64REG A64VEC COPROCINFO COND VOID TABLE ACCTYPE OPAQUE
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 }
 
@@ -375,7 +375,7 @@ void RegAlloc::HostCall(
             case IR::Type::U64:
                 break; //no op
             default:
-                std::terminate(); //unreachable
+                assert(false && "unreachable");
             }
         }
     }
@@ -548,7 +548,7 @@ HostLoc RegAlloc::FindFreeSpill(bool is_xmm) const noexcept {
     for (size_t i = size_t(HostLoc::FirstSpill); i < hostloc_info.size(); ++i)
         if (const auto loc = HostLoc(i); LocInfo(loc).IsEmpty())
             return loc;
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 #define MAYBE_AVX(OPCODE, ...) \
@@ -576,7 +576,7 @@ HostLoc RegAlloc::LoadImmediate(BlockOfCode& code, IR::Value imm, HostLoc host_l
             MAYBE_AVX(movaps, reg, code.Const(code.xword, imm_value));
         }
     } else {
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
     return host_loc;
 }
@@ -630,7 +630,7 @@ void RegAlloc::EmitMove(BlockOfCode& code, const size_t bit_width, const HostLoc
             MAYBE_AVX(movss, HostLocToXmm(to), spill_addr);
             break;
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     } else if (HostLocIsSpill(to) && HostLocIsXMM(from)) {
         const Xbyak::Address spill_addr = spill_xmm_to_op(to);
@@ -648,7 +648,7 @@ void RegAlloc::EmitMove(BlockOfCode& code, const size_t bit_width, const HostLoc
             MAYBE_AVX(movss, spill_addr, HostLocToXmm(from));
             break;
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     } else if (HostLocIsGPR(to) && HostLocIsSpill(from)) {
         assert(bit_width != 128);
@@ -665,7 +665,7 @@ void RegAlloc::EmitMove(BlockOfCode& code, const size_t bit_width, const HostLoc
             code.mov(Xbyak::util::dword[spill_to_op_arg_helper(to, reserved_stack_space)], HostLocToReg64(from).cvt32());
         }
     } else {
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 }
 #undef MAYBE_AVX

@@ -163,7 +163,7 @@ u32 RegAlloc::GenerateImmediate(const IR::Value& value) {
     } else if constexpr (kind == HostLoc::Kind::Fpr) {
         std::terminate(); //unimplemented
     } else {
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
     return 0;
 }
@@ -191,7 +191,7 @@ u32 RegAlloc::RealizeReadImpl(const IR::Value& value) {
 
         switch (current_location->kind) {
         case HostLoc::Kind::Gpr:
-            std::terminate(); //unreachable //logic error
+            assert(false && "unreachable"); //logic error
         case HostLoc::Kind::Fpr:
             as.FMV_X_D(biscuit::GPR(new_location_index), biscuit::FPR{current_location->index});
             // assert size fits
@@ -213,7 +213,7 @@ u32 RegAlloc::RealizeReadImpl(const IR::Value& value) {
             as.FMV_D_X(biscuit::FPR{new_location_index}, biscuit::GPR(current_location->index));
             break;
         case HostLoc::Kind::Fpr:
-            std::terminate(); //unreachable //logic error
+            assert(false && "unreachable"); //logic error
         case HostLoc::Kind::Spill:
             as.FLD(biscuit::FPR{new_location_index}, spill_offset + current_location->index * spill_slot_size, biscuit::sp);
             break;
@@ -223,7 +223,7 @@ u32 RegAlloc::RealizeReadImpl(const IR::Value& value) {
         fprs[new_location_index].realized = true;
         return new_location_index;
     } else {
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 }
 
@@ -250,7 +250,7 @@ u32 RegAlloc::RealizeWriteImpl(const IR::Inst* value) {
         setup_location(fprs[new_location_index]);
         return new_location_index;
     } else {
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 }
 
@@ -322,7 +322,7 @@ HostLocInfo& RegAlloc::ValueInfo(HostLoc host_loc) {
     case HostLoc::Kind::Spill:
         return spills[size_t(host_loc.index)];
     }
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 HostLocInfo& RegAlloc::ValueInfo(const IR::Inst* value) {
@@ -336,7 +336,7 @@ HostLocInfo& RegAlloc::ValueInfo(const IR::Inst* value) {
     } else if (const auto iter = std::find_if(spills.begin(), spills.end(), contains_value); iter != gprs.end()) {
         return *iter;
     }
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 }  // namespace Dynarmic::Backend::RV64

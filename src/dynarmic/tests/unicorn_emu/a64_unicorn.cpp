@@ -242,7 +242,7 @@ bool A64Unicorn::MemoryWriteHook(uc_engine* /*uc*/, uc_mem_type /*type*/, u64 st
         this_->testenv.MemoryWrite64(start_address, value);
         break;
     default:
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 
     return true;

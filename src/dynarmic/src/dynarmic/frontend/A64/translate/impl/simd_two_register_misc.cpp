@@ -77,7 +77,7 @@ bool FPCompareAgainstZero(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd,
             return v.ir.FPVectorGreater(esize, zero, operand);
         }
 
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }();
 
     v.V(datasize, Vd, result);

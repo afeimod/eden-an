@@ -172,7 +172,7 @@ bool TranslatorVisitor::asimd_VREV(bool D, size_t sz, size_t Vd, size_t op, bool
             return ir.VectorReverseElementsInHalfGroups(esize, reg_m);
         }
 
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }();
 
     ir.SetVector(d, result);

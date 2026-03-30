@@ -43,7 +43,7 @@ bool ScalarFPCompareAgainstZero(TranslatorVisitor& v, bool sz, Vec Vn, Vec Vd, C
             return v.ir.FPVectorGreater(esize, zero, operand);
         }
 
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }();
 
     v.V_scalar(datasize, Vd, v.ir.VectorGetElement(esize, result, 0));

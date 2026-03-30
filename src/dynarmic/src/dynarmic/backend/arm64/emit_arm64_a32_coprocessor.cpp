@@ -24,7 +24,7 @@ using namespace oaknut::util;
 
 static void EmitCoprocessorException() {
     // TODO: Raise coproc except
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 static void CallCoprocCallback(oaknut::CodeGenerator& code, EmitContext& ctx, A32::Coprocessor::Callback callback, IR::Inst* inst = nullptr, std::optional<Argument::copyable_reference> arg0 = {}, std::optional<Argument::copyable_reference> arg1 = {}) {
@@ -107,7 +107,7 @@ void EmitIR<IR::Opcode::A32CoprocSendOneWord>(oaknut::CodeGenerator& code, EmitC
         return;
     }
 
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>
@@ -151,7 +151,7 @@ void EmitIR<IR::Opcode::A32CoprocSendTwoWords>(oaknut::CodeGenerator& code, Emit
         return;
     }
 
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>
@@ -193,7 +193,7 @@ void EmitIR<IR::Opcode::A32CoprocGetOneWord>(oaknut::CodeGenerator& code, EmitCo
         return;
     }
 
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>
@@ -235,7 +235,7 @@ void EmitIR<IR::Opcode::A32CoprocGetTwoWords>(oaknut::CodeGenerator& code, EmitC
         return;
     }
 
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 template<>

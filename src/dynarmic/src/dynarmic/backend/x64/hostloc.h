@@ -106,7 +106,7 @@ constexpr size_t HostLocBitWidth(HostLoc loc) {
         return 128;
     else if (HostLocIsFlag(loc))
         return 1;
-    std::terminate(); //unreachable
+    assert(false && "unreachable");
 }
 
 constexpr std::bitset<32> BuildRegSet(std::initializer_list<HostLoc> regs) {

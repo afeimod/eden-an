@@ -34,7 +34,7 @@ bool FPPairwiseMinMax(TranslatorVisitor& v, bool sz, Vec Vn, Vec Vd, MinMaxOpera
         case MinMaxOperationSSPW::MinNumeric:
             return v.ir.FPMinNumeric(element1, element2);
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
     }();
 

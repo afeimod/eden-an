@@ -201,7 +201,7 @@ bool ShiftRightNarrowing(TranslatorVisitor& v, Imm<4> immh, Imm<3> immb, Vec Vn,
             assert(SignednessSSSBI == SignednessSSSBI::Signed);
             return v.ir.VectorSignedSaturatedNarrowToSigned(source_esize, wide_result);
         }
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }();
 
     const IR::UAny segment = v.ir.VectorGetElement(esize, result, 0);
@@ -251,7 +251,7 @@ bool ScalarFPConvertWithRound(TranslatorVisitor& v, Imm<4> immh, Imm<3> immb, Ve
                      : v.ir.FPUnsignedFixedToSingle(operand, fbits, rounding_mode);
         }
 
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }();
 
     v.V_scalar(esize, Vd, result);

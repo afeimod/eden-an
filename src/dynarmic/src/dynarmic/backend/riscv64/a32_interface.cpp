@@ -110,7 +110,7 @@ struct Jit::Impl final {
 
 private:
     void RequestCacheInvalidation() {
-        // std::terminate(); //unreachable
+        // assert(false && "unreachable");
 
         invalidate_entire_cache = false;
         invalid_cache_ranges.clear();

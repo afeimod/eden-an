@@ -130,7 +130,7 @@ bool ShiftRightNarrowingSSBI(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> i
             assert(SignednessSSBI == SignednessSSBI::Signed);
             return v.ir.VectorSignedSaturatedNarrowToSigned(source_esize, wide_result);
         }
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }();
 
     v.Vpart(64, Vd, part, result);
@@ -222,7 +222,7 @@ bool ConvertFloat(TranslatorVisitor& v, bool Q, Imm<4> immh, Imm<3> immb, Vec Vn
                      ? v.ir.FPVectorToSignedFixed(esize, operand, fbits, rounding_mode)
                      : v.ir.FPVectorToUnsignedFixed(esize, operand, fbits, rounding_mode);
         }
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }();
 
     v.V(datasize, Vd, result);

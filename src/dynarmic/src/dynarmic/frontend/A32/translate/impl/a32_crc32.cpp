@@ -77,7 +77,7 @@ bool CRC32Variant(TranslatorVisitor& v, Cond cond, Imm<2> sz, Reg n, Reg d, Reg 
             }
         }
 
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }();
 
     v.ir.SetRegister(d, result);

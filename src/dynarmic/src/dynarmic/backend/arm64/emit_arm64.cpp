@@ -112,7 +112,7 @@ void EmitIR<IR::Opcode::GetNZCVFromOp>(oaknut::CodeGenerator& code, EmitContext&
         break;
     }
     default:
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 }
 
@@ -142,7 +142,7 @@ void EmitIR<IR::Opcode::GetNZFromOp>(oaknut::CodeGenerator& code, EmitContext& c
         break;
     }
     default:
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 }
 
@@ -239,7 +239,7 @@ EmittedBlockInfo EmitArm64(oaknut::CodeGenerator& code, IR::Block block, const E
 #undef A32OPC
 #undef A64OPC
         default:
-            std::terminate(); //unreachable
+            assert(false && "unreachable");
         }
 
         reg_alloc.UpdateAllUses();
@@ -283,7 +283,7 @@ void EmitBlockLinkRelocation(oaknut::CodeGenerator& code, EmitContext& ctx, cons
         code.NOP();
         break;
     default:
-        std::terminate(); //unreachable
+        assert(false && "unreachable");
     }
 }
 

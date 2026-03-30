@@ -659,7 +659,7 @@ static void EmitFPMulAdd(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, bo
                 FCODE(ucomis)(result, result);
                 code.jp(*fallback, code.T_NEAR);
             } else {
-                std::terminate(); //unreachable
+                assert(false && "unreachable");
             }
             if (ctx.FPCR().DN()) {
                 ForceToDefaultNaN<fsize>(code, result);
@@ -1079,7 +1079,7 @@ static void EmitFPRound(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst, siz
         case 64: code.CallFunction(EmitFPRoundThunk<u64>); break;
         case 32: code.CallFunction(EmitFPRoundThunk<u32>); break;
         case 16: code.CallFunction(EmitFPRoundThunk<u16>); break;
-        default: std::terminate(); //unreachable
+        default: assert(false && "unreachable");
         }
     }
 }
