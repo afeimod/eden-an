@@ -11,7 +11,7 @@
 #include <iostream>
 
 #include <catch2/catch_test_macros.hpp>
-#include "dynarmic/common/assert.h"
+#include "common/assert.h"
 
 #include "dynarmic/frontend/A32/decoder/asimd.h"
 #include "dynarmic/frontend/A32/translate/impl/a32_translate_impl.h"
