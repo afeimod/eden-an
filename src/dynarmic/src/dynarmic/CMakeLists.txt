@@ -357,7 +357,7 @@ set_target_properties(dynarmic PROPERTIES
 target_compile_options(dynarmic PRIVATE ${DYNARMIC_CXX_FLAGS})
 
 target_link_libraries(dynarmic PRIVATE unordered_dense::unordered_dense)
-target_link_libraries(dynarmic PUBLIC fmt::fmt)
+target_link_libraries(dynarmic PUBLIC fmt::fmt common)
 
 if (BOOST_NO_HEADERS)
     target_link_libraries(dynarmic PRIVATE Boost::variant Boost::icl Boost::pool)
