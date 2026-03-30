@@ -214,6 +214,7 @@ else()
             --extra-ldflags="-miphoneos-version-min=16.0"
             --install-name-dir='@rpath'
             --disable-audiotoolbox
+            --disable-videotoolbox
         )
     endif()
 
