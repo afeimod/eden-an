@@ -133,7 +133,7 @@ bool ShiftRightNarrowing(TranslatorVisitor& v, bool D, size_t imm6, size_t Vd, b
             assert(signedness == Signedness::Signed);
             return v.ir.VectorSignedSaturatedNarrowToSigned(source_esize, wide_result);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }();
 
     v.ir.SetVector(d, result);

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -23,7 +26,7 @@ bool TranslatorVisitor::SCVTF_float_int(bool sf, Imm<2> type, Reg Rn, Vec Vd) {
     } else if (*fltsize == 64) {
         fltval = ir.FPSignedFixedToDouble(intval, 0, ir.current_location->FPCR().RMode());
     } else {
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     V_scalar(*fltsize, Vd, fltval);
@@ -46,7 +49,7 @@ bool TranslatorVisitor::UCVTF_float_int(bool sf, Imm<2> type, Reg Rn, Vec Vd) {
     } else if (*fltsize == 64) {
         fltval = ir.FPUnsignedFixedToDouble(intval, 0, ir.current_location->FPCR().RMode());
     } else {
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     V_scalar(*fltsize, Vd, fltval);
@@ -75,7 +78,7 @@ bool TranslatorVisitor::FMOV_float_gen(bool sf, Imm<2> type, Imm<1> rmode_0, Imm
         case 0b11:
             return 16;
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }();
 
@@ -127,7 +130,7 @@ static bool FloaingPointConvertSignedInteger(TranslatorVisitor& v, bool sf, Imm<
     } else if (intsize == 64) {
         intval = v.ir.FPToFixedS64(fltval, 0, rounding_mode);
     } else {
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     v.X(intsize, Rd, intval);
@@ -149,7 +152,7 @@ static bool FloaingPointConvertUnsignedInteger(TranslatorVisitor& v, bool sf, Im
     } else if (intsize == 64) {
         intval = v.ir.FPToFixedU64(fltval, 0, rounding_mode);
     } else {
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     v.X(intsize, Rd, intval);

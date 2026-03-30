@@ -64,7 +64,7 @@ u64 AdvSIMDExpandImm(bool op, Imm<4> cmode, Imm<8> imm8) {
             return result;
         }
     }
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 }  // namespace Dynarmic

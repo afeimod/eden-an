@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -27,7 +30,7 @@ bool TranslatorVisitor::SCVTF_float_fix(bool sf, Imm<2> type, Imm<6> scale, Reg 
         case 64:
             return ir.FPSignedFixedToDouble(intval, fracbits, rounding_mode);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }();
 
     V_scalar(*fltsize, Vd, fltval);
@@ -54,7 +57,7 @@ bool TranslatorVisitor::UCVTF_float_fix(bool sf, Imm<2> type, Imm<6> scale, Reg 
         case 64:
             return ir.FPUnsignedFixedToDouble(intval, fracbits, rounding_mode);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }();
 
     V_scalar(*fltsize, Vd, fltval);
@@ -79,7 +82,7 @@ bool TranslatorVisitor::FCVTZS_float_fix(bool sf, Imm<2> type, Imm<6> scale, Vec
     } else if (intsize == 64) {
         intval = ir.FPToFixedS64(fltval, fracbits, FP::RoundingMode::TowardsZero);
     } else {
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     X(intsize, Rd, intval);
@@ -104,7 +107,7 @@ bool TranslatorVisitor::FCVTZU_float_fix(bool sf, Imm<2> type, Imm<6> scale, Vec
     } else if (intsize == 64) {
         intval = ir.FPToFixedU64(fltval, fracbits, FP::RoundingMode::TowardsZero);
     } else {
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     X(intsize, Rd, intval);

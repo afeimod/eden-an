@@ -265,7 +265,7 @@ struct PairedIndexer {
         case 1:
             return std::make_tuple(b[2 * i], b[2 * i + 1]);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 };
 
@@ -288,7 +288,7 @@ struct PairedLowerIndexer {
             }
             return std::make_tuple(0, 0);
         } else {
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 };
@@ -681,7 +681,7 @@ void EmitX64::EmitFPVectorFromHalf32(EmitContext& ctx, IR::Inst* inst) {
             EmitTwoOpFallback<2>(code, ctx, inst, EmitFPVectorFromHalf32Thunk<FP::RoundingMode::ToNearest_TieAwayFromZero>);
             break;
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 }
@@ -1679,7 +1679,7 @@ void EmitFPVectorRoundInt(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
                 case FP::RoundingMode::TowardsPlusInfinity: return 0b10;
                 case FP::RoundingMode::TowardsMinusInfinity: return 0b01;
                 case FP::RoundingMode::TowardsZero: return 0b11;
-                default: UNREACHABLE();
+                default: std::terminate(); //unreachable
                 }
             }();
 
@@ -1720,7 +1720,7 @@ void EmitFPVectorRoundInt(BlockOfCode& code, EmitContext& ctx, IR::Inst* inst) {
             : EmitTwoOpFallback<3>(code, ctx, inst, EmitFPVectorRoundIntThunk<FPT, FP::RoundingMode::ToNearest_TieAwayFromZero, false>);
         break;
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 
@@ -1988,7 +1988,7 @@ void EmitX64::EmitFPVectorToHalf32(EmitContext& ctx, IR::Inst* inst) {
             EmitTwoOpFallback<2>(code, ctx, inst, EmitFPVectorToHalf32Thunk<FP::RoundingMode::ToNearest_TieAwayFromZero>);
             break;
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 }

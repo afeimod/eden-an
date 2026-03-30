@@ -77,7 +77,7 @@ struct TranslatorVisitor final {
                 case 0b11:
                     return mcl::bit::replicate_element<u8, u32>(imm8);
                 }
-                UNREACHABLE();
+                std::terminate(); //unreachable
             }();
             return {imm32, carry_in};
         }

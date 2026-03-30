@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -67,7 +70,7 @@ static bool RegSharedDecodeAndOperation(TranslatorVisitor& v, size_t scale, u8 s
         // TODO: Prefetch
         break;
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     return true;
@@ -125,7 +128,7 @@ static bool VecSharedDecodeAndOperation(TranslatorVisitor& v, size_t scale, u8 s
         break;
     }
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     return true;

@@ -98,11 +98,11 @@ public:
     }
 
     void CallSVC(std::uint32_t swi) override {
-        UNREACHABLE(); //assert(false && "CallSVC({})", swi);
+        std::terminate(); //unreachable //assert(false && "CallSVC({})", swi);
     }
 
     void ExceptionRaised(u32 pc, Dynarmic::A32::Exception /*exception*/) override {
-        UNREACHABLE(); //assert(false && "ExceptionRaised({:08x}) code = {:08x}", pc, *MemoryReadCode(pc));
+        std::terminate(); //unreachable //assert(false && "ExceptionRaised({:08x}) code = {:08x}", pc, *MemoryReadCode(pc));
     }
 
     void AddTicks(std::uint64_t ticks) override {
@@ -187,11 +187,11 @@ public:
     }
 
     void CallSVC(std::uint32_t swi) override {
-        UNREACHABLE(); //assert(false && "CallSVC({})", swi);
+        std::terminate(); //unreachable //assert(false && "CallSVC({})", swi);
     }
 
     void ExceptionRaised(std::uint32_t pc, Dynarmic::A32::Exception) override {
-        UNREACHABLE(); //assert(false && "ExceptionRaised({:016x})", pc);
+        std::terminate(); //unreachable //assert(false && "ExceptionRaised({:016x})", pc);
     }
 
     void AddTicks(std::uint64_t ticks) override {

@@ -30,7 +30,7 @@ struct OpArg {
         case Type::Reg:
             return inner_reg;
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     void setBit(int bits) {
@@ -57,7 +57,7 @@ struct OpArg {
                 return;
             }
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
 private:

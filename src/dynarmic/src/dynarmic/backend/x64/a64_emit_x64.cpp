@@ -123,7 +123,7 @@ A64EmitX64::BlockDescriptor A64EmitX64::Emit(IR::Block& block) noexcept {
 #undef A32OPC
 #undef A64OPC
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
 opcode_branch:
         (this->*opcode_handlers[size_t(opcode)])(ctx, &inst);
@@ -710,7 +710,7 @@ void EmitTerminalImpl(A64EmitX64& e, IR::Term::CheckHalt terminal, IR::LocationD
 }
 
 void EmitTerminalImpl(A64EmitX64&, IR::Term::Invalid, IR::LocationDescriptor, bool) {
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 }
 

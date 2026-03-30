@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -31,7 +34,7 @@ bool FPPairwiseMinMax(TranslatorVisitor& v, bool sz, Vec Vn, Vec Vd, MinMaxOpera
         case MinMaxOperationSSPW::MinNumeric:
             return v.ir.FPMinNumeric(element1, element2);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }();
 

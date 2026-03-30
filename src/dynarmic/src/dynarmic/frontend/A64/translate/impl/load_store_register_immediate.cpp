@@ -153,7 +153,7 @@ static bool LoadStoreSIMD(TranslatorVisitor& v, bool wback, bool postindex, size
         }
         break;
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     if (wback) {

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -74,7 +77,7 @@ bool FPCompareAgainstZero(TranslatorVisitor& v, bool Q, bool sz, Vec Vn, Vec Vd,
             return v.ir.FPVectorGreater(esize, zero, operand);
         }
 
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }();
 
     v.V(datasize, Vd, result);

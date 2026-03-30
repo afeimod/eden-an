@@ -298,7 +298,7 @@ int RegAlloc::GenerateImmediate(const IR::Value& value) {
 
         return 0;
     } else {
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 
@@ -325,7 +325,7 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
 
         switch (current_location->kind) {
         case HostLoc::Kind::Gpr:
-            UNREACHABLE(); //logic error
+            std::terminate(); //unreachable //logic error
         case HostLoc::Kind::Fpr:
             code.FMOV(oaknut::XReg{new_location_index}, oaknut::DReg{current_location->index});
             // assert size fits
@@ -350,7 +350,7 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
             code.FMOV(oaknut::DReg{new_location_index}, oaknut::XReg{current_location->index});
             break;
         case HostLoc::Kind::Fpr:
-            UNREACHABLE(); //logic error
+            std::terminate(); //unreachable //logic error
         case HostLoc::Kind::Spill:
             code.LDR(oaknut::QReg{new_location_index}, SP, spill_offset + current_location->index * spill_slot_size);
             break;
@@ -363,9 +363,9 @@ int RegAlloc::RealizeReadImpl(const IR::Value& value) {
         fprs[new_location_index].realized = true;
         return new_location_index;
     } else if constexpr (required_kind == HostLoc::Kind::Flags) {
-        UNREACHABLE(); //A simple read from flags is likely a logic error
+        std::terminate(); //unreachable //A simple read from flags is likely a logic error
     } else {
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 
@@ -389,7 +389,7 @@ int RegAlloc::RealizeWriteImpl(const IR::Inst* value) {
         flags.SetupLocation(value);
         return 0;
     } else {
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 
@@ -409,7 +409,7 @@ int RegAlloc::RealizeReadWriteImpl(const IR::Value& read_value, const IR::Inst* 
     } else if constexpr (kind == HostLoc::Kind::Flags) {
         assert(false && "Incorrect function for ReadWrite of flags");
     } else {
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 
@@ -479,7 +479,7 @@ void RegAlloc::ReadWriteFlags(Argument& read, IR::Inst* write) {
         code.LDR(Wscratch0, SP, spill_offset + current_location->index * spill_slot_size);
         code.MSR(oaknut::SystemReg::NZCV, Xscratch0);
     } else {
-        UNREACHABLE(); //assert(false && "Invalid current location for flags");
+        std::terminate(); //unreachable //assert(false && "Invalid current location for flags");
     }
 
     if (write) {
@@ -551,7 +551,7 @@ void RegAlloc::LoadCopyInto(const IR::Value& value, oaknut::QReg reg) {
         code.LDR(reg, SP, spill_offset + current_location->index * spill_slot_size);
         break;
     case HostLoc::Kind::Flags:
-        UNREACHABLE(); //assert(false && "Moving from flags into fprs is not currently supported");
+        std::terminate(); //unreachable //assert(false && "Moving from flags into fprs is not currently supported");
     }
 }
 
@@ -584,7 +584,7 @@ HostLocInfo& RegAlloc::ValueInfo(HostLoc host_loc) {
     case HostLoc::Kind::Spill:
         return spills[static_cast<size_t>(host_loc.index)];
     }
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 HostLocInfo& RegAlloc::ValueInfo(const IR::Inst* value) {
@@ -599,7 +599,7 @@ HostLocInfo& RegAlloc::ValueInfo(const IR::Inst* value) {
     } else if (const auto iter = std::find_if(spills.begin(), spills.end(), contains_value); iter != spills.end()) {
         return *iter;
     }
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 }  // namespace Dynarmic::Backend::Arm64

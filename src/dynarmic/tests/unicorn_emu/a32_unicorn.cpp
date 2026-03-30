@@ -336,7 +336,7 @@ bool A32Unicorn<TestEnvironment>::MemoryWriteHook(uc_engine* /*uc*/, uc_mem_type
         this_->testenv.MemoryWrite64(start_address, value);
         break;
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     return true;

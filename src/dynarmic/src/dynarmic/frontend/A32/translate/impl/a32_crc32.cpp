@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2019 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -74,7 +77,7 @@ bool CRC32Variant(TranslatorVisitor& v, Cond cond, Imm<2> sz, Reg n, Reg d, Reg 
             }
         }
 
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }();
 
     v.ir.SetRegister(d, result);

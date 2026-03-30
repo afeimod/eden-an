@@ -33,7 +33,7 @@ constexpr auto Rscratch0() {
     } else if constexpr (bitsize == 64) {
         return Xscratch0;
     } else {
-        return Xscratch0; //UNREACHABLE();
+        return Xscratch0; //std::terminate(); //unreachable
     }
 }
 
@@ -44,7 +44,7 @@ constexpr auto Rscratch1() {
     } else if constexpr (bitsize == 64) {
         return Xscratch1;
     } else {
-        return Xscratch1; //UNREACHABLE();
+        return Xscratch1; //std::terminate(); //unreachable
     }
 }
 

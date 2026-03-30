@@ -83,7 +83,7 @@ bool FPMultiplyByElement(TranslatorVisitor& v, bool Q, bool sz, Imm<1> L, Imm<1>
         case ExtraBehaviorSVXIE::Subtract:
             return v.ir.FPVectorMulAdd(esize, operand3, v.ir.FPVectorNeg(esize, operand1), operand2);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }();
     v.V(datasize, Vd, result);
     return true;
@@ -113,7 +113,7 @@ bool FPMultiplyByElementHalfPrecision(TranslatorVisitor& v, bool Q, Imm<1> L, Im
         case ExtraBehaviorSVXIE::Subtract:
             return v.ir.FPVectorMulAdd(esize, operand3, v.ir.FPVectorNeg(esize, operand1), operand2);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }();
     v.V(datasize, Vd, result);
     return true;

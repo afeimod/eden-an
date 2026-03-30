@@ -70,7 +70,7 @@ u64 FPToFixed(size_t ibits, FPT op, size_t fbits, bool unsigned_, FPCR fpcr, Rou
         round_up = error > ResidualError::Half || (error == ResidualError::Half && !mcl::bit::most_significant_bit(int_result));
         break;
     case RoundingMode::ToOdd:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     if (round_up) {

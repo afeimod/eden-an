@@ -2280,27 +2280,27 @@ void EmitX64::EmitVectorMultiply64(EmitContext& ctx, IR::Inst* inst) {
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden8(EmitContext&, IR::Inst*) {
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden16(EmitContext&, IR::Inst*) {
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 void EmitX64::EmitVectorMultiplySignedWiden32(EmitContext&, IR::Inst*) {
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden8(EmitContext&, IR::Inst*) {
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden16(EmitContext&, IR::Inst*) {
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 void EmitX64::EmitVectorMultiplyUnsignedWiden32(EmitContext&, IR::Inst*) {
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 void EmitX64::EmitVectorNarrow16(EmitContext& ctx, IR::Inst* inst) {
@@ -3869,7 +3869,7 @@ static void EmitVectorSignedAbsoluteDifference(size_t esize, EmitContext& ctx, I
             code.psubd(x, tmp);
             break;
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     } else {
         code.movdqa(tmp, y);
@@ -3888,7 +3888,7 @@ static void EmitVectorSignedAbsoluteDifference(size_t esize, EmitContext& ctx, I
             code.psubd(x, tmp);
             break;
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -4092,7 +4092,7 @@ static void EmitVectorSignedSaturatedAbs(size_t esize, BlockOfCode& code, EmitCo
         break;
     }
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     code.or_(code.dword[code.ABI_JIT_PTR + code.GetJitStateInfo().offsetof_fpsr_qc], bit);
@@ -4542,7 +4542,7 @@ static void EmitVectorSignedSaturatedNarrowToSigned(size_t original_esize, Block
         code.punpcklwd(reconstructed, sign);
         break;
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     const Xbyak::Reg32 bit = ctx.reg_alloc.ScratchGpr(code).cvt32();
@@ -4597,7 +4597,7 @@ static void EmitVectorSignedSaturatedNarrowToUnsigned(size_t original_esize, Blo
         code.punpcklwd(reconstructed, xmm0);
         break;
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     const Xbyak::Reg32 bit = ctx.reg_alloc.ScratchGpr(code).cvt32();
@@ -4661,7 +4661,7 @@ static void EmitVectorSignedSaturatedNeg(size_t esize, BlockOfCode& code, EmitCo
         case 64:
             return code.Const(xword, 0x8000000000000000, 0x8000000000000000);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }();
 
@@ -4957,7 +4957,7 @@ void EmitX64::EmitVectorTableLookup64(EmitContext& ctx, IR::Inst* inst) {
             break;
         }
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
             break;
         }
         return;

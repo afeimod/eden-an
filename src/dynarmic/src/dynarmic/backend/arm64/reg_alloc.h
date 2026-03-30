@@ -186,7 +186,7 @@ public:
         } else if constexpr (size == 32) {
             return ReadW(arg);
         } else {
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -203,7 +203,7 @@ public:
         } else if constexpr (size == 8) {
             return ReadB(arg);
         } else {
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -225,7 +225,7 @@ public:
         } else if constexpr (size == 32) {
             return WriteW(inst);
         } else {
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -242,7 +242,7 @@ public:
         } else if constexpr (size == 8) {
             return WriteB(inst);
         } else {
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -262,7 +262,7 @@ public:
         } else if constexpr (size == 32) {
             return ReadWriteW(arg, inst);
         } else {
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -279,7 +279,7 @@ public:
         } else if constexpr (size == 8) {
             return ReadWriteB(arg, inst);
         } else {
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -370,7 +370,7 @@ void RAReg<T>::Realize() {
         reg = T{reg_alloc.RealizeReadWriteImpl<kind>(read_value, write_value)};
         break;
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 

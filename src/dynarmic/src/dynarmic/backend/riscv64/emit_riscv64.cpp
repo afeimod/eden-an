@@ -143,7 +143,7 @@ EmittedBlockInfo EmitRV64(biscuit::Assembler& as, IR::Block block, const EmitCon
 #undef A32OPC
 #undef A64OPC
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 

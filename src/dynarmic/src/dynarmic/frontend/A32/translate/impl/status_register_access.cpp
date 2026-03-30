@@ -15,7 +15,7 @@ namespace Dynarmic::A32 {
 // CPS<effect> <iflags>{, #<mode>}
 // CPS #<mode>
 bool TranslatorVisitor::arm_CPS() {
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 // MRS<c> <Rd>, <spec_reg>
@@ -107,7 +107,7 @@ bool TranslatorVisitor::arm_MSR_reg(Cond cond, unsigned mask, Reg n) {
 
 // RFE{<amode>} <Rn>{!}
 bool TranslatorVisitor::arm_RFE() {
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 // SETEND <endian_specifier>
@@ -118,7 +118,7 @@ bool TranslatorVisitor::arm_SETEND(bool E) {
 
 // SRS{<amode>} SP{!}, #<mode>
 bool TranslatorVisitor::arm_SRS() {
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 }  // namespace Dynarmic::A32

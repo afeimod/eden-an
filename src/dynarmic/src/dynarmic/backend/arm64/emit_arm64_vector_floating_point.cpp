@@ -75,7 +75,7 @@ static void EmitTwoOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, IR:
         } else if constexpr (size == 64) {
             emit(Qresult->D2(), Qa->D2());
         } else {
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     });
 }
@@ -103,7 +103,7 @@ static void EmitThreeOpArranged(oaknut::CodeGenerator& code, EmitContext& ctx, I
         } else if constexpr (size == 64) {
             emit(Qresult->D2(), Qa->D2(), Qb->D2());
         } else {
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     });
 }
@@ -126,7 +126,7 @@ static void EmitFMA(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* ins
         } else if constexpr (size == 64) {
             emit(Qresult->D2(), Qm->D2(), Qn->D2());
         } else {
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     });
 }
@@ -148,7 +148,7 @@ static void EmitFromFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Ins
         } else if constexpr (size == 64) {
             emit(Qto->D2(), Qfrom->D2(), fbits);
         } else {
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     });
 }
@@ -170,7 +170,7 @@ void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) 
         } else if constexpr (fsize == 64) {
             return Qto->D2();
         } else {
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }();
     auto Vfrom = [&] {
@@ -179,7 +179,7 @@ void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) 
         } else if constexpr (fsize == 64) {
             return Qfrom->D2();
         } else {
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }();
 
@@ -218,10 +218,10 @@ void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) 
                     code.FCVTAS(Vto, Vfrom);
                     break;
                 case FP::RoundingMode::ToOdd:
-                    UNREACHABLE();
+                    std::terminate(); //unreachable
                     break;
                 default:
-                    UNREACHABLE();
+                    std::terminate(); //unreachable
                 }
             } else {
                 switch (rounding_mode) {
@@ -241,10 +241,10 @@ void EmitToFixed(oaknut::CodeGenerator& code, EmitContext& ctx, IR::Inst* inst) 
                     code.FCVTAU(Vto, Vfrom);
                     break;
                 case FP::RoundingMode::ToOdd:
-                    UNREACHABLE();
+                    std::terminate(); //unreachable
                     break;
                 default:
-                    UNREACHABLE();
+                    std::terminate(); //unreachable
                 }
             }
         }
@@ -329,7 +329,7 @@ void EmitIR<IR::Opcode::FPVectorEqual16>(oaknut::CodeGenerator& code, EmitContex
     (void)code;
     (void)ctx;
     (void)inst;
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 template<>
@@ -454,7 +454,7 @@ void EmitIR<IR::Opcode::FPVectorMulAdd16>(oaknut::CodeGenerator& code, EmitConte
     (void)code;
     (void)ctx;
     (void)inst;
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 template<>
@@ -482,7 +482,7 @@ void EmitIR<IR::Opcode::FPVectorNeg16>(oaknut::CodeGenerator& code, EmitContext&
     (void)code;
     (void)ctx;
     (void)inst;
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 template<>
@@ -527,7 +527,7 @@ void EmitIR<IR::Opcode::FPVectorRecipEstimate16>(oaknut::CodeGenerator& code, Em
     (void)code;
     (void)ctx;
     (void)inst;
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 template<>
@@ -545,7 +545,7 @@ void EmitIR<IR::Opcode::FPVectorRecipStepFused16>(oaknut::CodeGenerator& code, E
     (void)code;
     (void)ctx;
     (void)inst;
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 template<>
@@ -599,7 +599,7 @@ void EmitIR<IR::Opcode::FPVectorRoundInt16>(oaknut::CodeGenerator& code, EmitCon
             : EmitTwoOpFallback<3>(code, ctx, inst, EmitIRVectorRoundInt16Thunk<FPT, FP::RoundingMode::ToNearest_TieAwayFromZero, false>);
         break;
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 
@@ -637,7 +637,7 @@ void EmitIR<IR::Opcode::FPVectorRoundInt32>(oaknut::CodeGenerator& code, EmitCon
                 code.FRINTA(Qresult->S4(), Qoperand->S4());
                 break;
             default:
-                UNREACHABLE();
+                std::terminate(); //unreachable
             }
         }
     });
@@ -677,7 +677,7 @@ void EmitIR<IR::Opcode::FPVectorRoundInt64>(oaknut::CodeGenerator& code, EmitCon
                 code.FRINTA(Qresult->D2(), Qoperand->D2());
                 break;
             default:
-                UNREACHABLE();
+                std::terminate(); //unreachable
             }
         }
     });
@@ -688,7 +688,7 @@ void EmitIR<IR::Opcode::FPVectorRSqrtEstimate16>(oaknut::CodeGenerator& code, Em
     (void)code;
     (void)ctx;
     (void)inst;
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 template<>
@@ -706,7 +706,7 @@ void EmitIR<IR::Opcode::FPVectorRSqrtStepFused16>(oaknut::CodeGenerator& code, E
     (void)code;
     (void)ctx;
     (void)inst;
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 template<>
@@ -761,7 +761,7 @@ void EmitIR<IR::Opcode::FPVectorToSignedFixed16>(oaknut::CodeGenerator& code, Em
     (void)code;
     (void)ctx;
     (void)inst;
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 template<>
@@ -779,7 +779,7 @@ void EmitIR<IR::Opcode::FPVectorToUnsignedFixed16>(oaknut::CodeGenerator& code, 
     (void)code;
     (void)ctx;
     (void)inst;
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 template<>

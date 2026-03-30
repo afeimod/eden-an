@@ -35,7 +35,7 @@ size_t IREmitter::ArchVersion() const {
     case ArchVersion::v8:
         return 8;
     }
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 u32 IREmitter::PC() const {
@@ -60,7 +60,7 @@ IR::U32U64 IREmitter::GetExtendedRegister(ExtReg reg) {
         return Inst<IR::U32U64>(Opcode::A32GetExtendedRegister32, IR::Value(reg));
     else if (A32::IsDoubleExtReg(reg))
         return Inst<IR::U32U64>(Opcode::A32GetExtendedRegister64, IR::Value(reg));
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 IR::U128 IREmitter::GetVector(ExtReg reg) {
@@ -79,7 +79,7 @@ void IREmitter::SetExtendedRegister(const ExtReg reg, const IR::U32U64& value) {
     } else if (A32::IsDoubleExtReg(reg)) {
         Inst(Opcode::A32SetExtendedRegister64, IR::Value(reg), value);
     } else {
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 
@@ -236,7 +236,7 @@ IR::UAny IREmitter::ReadMemory(size_t bitsize, const IR::U32& vaddr, IR::AccType
     case 64:
         return ReadMemory64(vaddr, acc_type);
     }
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 IR::U8 IREmitter::ReadMemory8(const IR::U32& vaddr, IR::AccType acc_type) {
@@ -294,7 +294,7 @@ void IREmitter::WriteMemory(size_t bitsize, const IR::U32& vaddr, const IR::UAny
     case 64:
         return WriteMemory64(vaddr, value, acc_type);
     }
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 void IREmitter::WriteMemory8(const IR::U32& vaddr, const IR::U8& value, IR::AccType acc_type) {

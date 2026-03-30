@@ -108,7 +108,7 @@ void EmitA32Cond(biscuit::Assembler& as, EmitContext&, IR::Cond cond, biscuit::L
         as.BNEZ(Xscratch0, label);
         break;
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 

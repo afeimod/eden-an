@@ -55,7 +55,7 @@ FPT FPRecipEstimate(FPT op, FPCR fpcr, FPSR& fpsr) {
             case RoundingMode::TowardsZero:
                 return false;
             default:
-                UNREACHABLE();
+                std::terminate(); //unreachable
             }
         }();
 
@@ -86,7 +86,7 @@ FPT FPRecipEstimate(FPT op, FPCR fpcr, FPSR& fpsr) {
             result_exponent++;
             break;
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 

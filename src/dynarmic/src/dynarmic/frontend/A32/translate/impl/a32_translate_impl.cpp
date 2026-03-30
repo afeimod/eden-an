@@ -66,7 +66,7 @@ IR::UAny TranslatorVisitor::I(size_t bitsize, u64 value) {
     case 64:
         return ir.Imm64(value);
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 
@@ -92,7 +92,7 @@ IR::ResultAndCarry<IR::U32> TranslatorVisitor::EmitImmShift(IR::U32 value, Shift
             return ir.RotateRightExtended(value, carry_in);
         }
     }
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 IR::ResultAndCarry<IR::U32> TranslatorVisitor::EmitRegShift(IR::U32 value, ShiftType type, IR::U8 amount, IR::U1 carry_in) {
@@ -106,7 +106,7 @@ IR::ResultAndCarry<IR::U32> TranslatorVisitor::EmitRegShift(IR::U32 value, Shift
     case ShiftType::ROR:
         return ir.RotateRight(value, amount, carry_in);
     }
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 }  // namespace Dynarmic::A32

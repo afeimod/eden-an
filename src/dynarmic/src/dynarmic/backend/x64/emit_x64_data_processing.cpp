@@ -194,7 +194,7 @@ static void EmitConditionalSelect(BlockOfCode& code, EmitContext& ctx, IR::Inst*
         code.mov(else_, then_);
         break;
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     ctx.reg_alloc.DefineValue(code, inst, else_);

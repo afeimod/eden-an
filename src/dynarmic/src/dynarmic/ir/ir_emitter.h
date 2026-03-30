@@ -121,7 +121,7 @@ public:
             assert(value.GetType() == Type::U64);
             return value;
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U32 LeastSignificantWord(const U64& value) {
@@ -430,7 +430,7 @@ public:
         case Type::U64:
             return U64(a);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -445,7 +445,7 @@ public:
         case Type::U64:
             return Inst<U32>(Opcode::LeastSignificantWord, a);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -472,7 +472,7 @@ public:
         case Type::U64:
             return U64(a);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -487,7 +487,7 @@ public:
         case Type::U64:
             return Inst<U32>(Opcode::LeastSignificantWord, a);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -641,7 +641,7 @@ public:
             case IR::Type::U32:
                 return Inst<U32>(Opcode::SignedSaturatedDoublingMultiplyReturnHigh32, a, b);
             default:
-                UNREACHABLE();
+                std::terminate(); //unreachable
             }
         }();
         return result;
@@ -715,7 +715,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorSignedSaturatedAdd64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -730,7 +730,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorSignedSaturatedSub64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -745,7 +745,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorUnsignedSaturatedAdd64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -760,7 +760,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorUnsignedSaturatedSub64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1000,7 +1000,7 @@ public:
         case 64:
             return Inst<U64>(Opcode::VectorGetElement64, a, Imm8(static_cast<u8>(index)));
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1016,7 +1016,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorSetElement64, a, Imm8(static_cast<u8>(index)), elem);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1031,7 +1031,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorAbs64, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorAdd(size_t esize, const U128& a, const U128& b) {
@@ -1045,7 +1045,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorAdd64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorAnd(const U128& a, const U128& b) {
@@ -1067,7 +1067,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorArithmeticShiftRight64, a, Imm8(shift_amount));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorArithmeticVShift(size_t esize, const U128& a, const U128& b) {
@@ -1081,7 +1081,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorArithmeticVShift64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorBroadcastLower(size_t esize, const UAny& a) {
@@ -1093,7 +1093,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorBroadcastLower32, U32(a));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorBroadcast(size_t esize, const UAny& a) {
@@ -1107,7 +1107,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorBroadcast64, U64(a));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorBroadcastElementLower(size_t esize, const U128& a, size_t index) {
@@ -1120,7 +1120,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorBroadcastElementLower32, a, u8(index));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorBroadcastElement(size_t esize, const U128& a, size_t index) {
@@ -1135,7 +1135,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorBroadcastElement64, a, u8(index));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorCountLeadingZeros(size_t esize, const U128& a) {
@@ -1147,7 +1147,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorCountLeadingZeros32, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorDeinterleaveEven(size_t esize, const U128& a, const U128& b) {
@@ -1161,7 +1161,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorDeinterleaveEven64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorDeinterleaveOdd(size_t esize, const U128& a, const U128& b) {
@@ -1175,7 +1175,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorDeinterleaveOdd64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorDeinterleaveEvenLower(size_t esize, const U128& a, const U128& b) {
@@ -1187,7 +1187,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorDeinterleaveEvenLower32, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorDeinterleaveOddLower(size_t esize, const U128& a, const U128& b) {
@@ -1199,7 +1199,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorDeinterleaveOddLower32, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorEor(const U128& a, const U128& b) {
@@ -1219,7 +1219,7 @@ public:
         case 128:
             return Inst<U128>(Opcode::VectorEqual128, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorExtract(const U128& a, const U128& b, size_t position) {
@@ -1243,7 +1243,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorGreaterS64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorGreaterEqualSigned(size_t esize, const U128& a, const U128& b) {
@@ -1267,7 +1267,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorHalvingAddS32, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorHalvingAddUnsigned(size_t esize, const U128& a, const U128& b) {
@@ -1279,7 +1279,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorHalvingAddU32, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorHalvingSubSigned(size_t esize, const U128& a, const U128& b) {
@@ -1291,7 +1291,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorHalvingSubS32, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorHalvingSubUnsigned(size_t esize, const U128& a, const U128& b) {
@@ -1303,7 +1303,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorHalvingSubU32, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorInterleaveLower(size_t esize, const U128& a, const U128& b) {
@@ -1317,7 +1317,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorInterleaveLower64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorInterleaveUpper(size_t esize, const U128& a, const U128& b) {
@@ -1331,7 +1331,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorInterleaveUpper64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorLessEqualSigned(size_t esize, const U128& a, const U128& b) {
@@ -1361,7 +1361,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorLogicalShiftLeft64, a, Imm8(shift_amount));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorLogicalShiftRight(size_t esize, const U128& a, u8 shift_amount) {
@@ -1375,7 +1375,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorLogicalShiftRight64, a, Imm8(shift_amount));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorLogicalVShift(size_t esize, const U128& a, const U128& b) {
@@ -1389,7 +1389,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorLogicalVShift64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorMaxSigned(size_t esize, const U128& a, const U128& b) {
@@ -1403,7 +1403,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorMaxS64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorMaxUnsigned(size_t esize, const U128& a, const U128& b) {
@@ -1417,7 +1417,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorMaxU64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorMinSigned(size_t esize, const U128& a, const U128& b) {
@@ -1431,7 +1431,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorMinS64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorMinUnsigned(size_t esize, const U128& a, const U128& b) {
@@ -1445,7 +1445,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorMinU64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorMultiply(size_t esize, const U128& a, const U128& b) {
@@ -1459,7 +1459,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorMultiply64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorMultiplySignedWiden(size_t esize, const U128& a, const U128& b) {
@@ -1471,7 +1471,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorMultiplySignedWiden32, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorMultiplyUnsignedWiden(size_t esize, const U128& a, const U128& b) {
@@ -1483,7 +1483,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorMultiplyUnsignedWiden32, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorNarrow(size_t original_esize, const U128& a) {
@@ -1495,7 +1495,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorNarrow64, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorNot(const U128& a) {
@@ -1517,7 +1517,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorPairedAdd64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorPairedAddLower(size_t esize, const U128& a, const U128& b) {
@@ -1529,7 +1529,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorPairedAddLower32, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorPairedAddSignedWiden(size_t original_esize, const U128& a) {
@@ -1541,7 +1541,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorPairedAddSignedWiden32, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorPairedAddUnsignedWiden(size_t original_esize, const U128& a) {
@@ -1553,7 +1553,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorPairedAddUnsignedWiden32, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorPairedMaxSigned(size_t esize, const U128& a, const U128& b) {
@@ -1565,7 +1565,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorPairedMaxS32, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1578,7 +1578,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorPairedMaxU32, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1591,7 +1591,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorPairedMinS32, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1604,7 +1604,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorPairedMinU32, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1617,7 +1617,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorPairedMaxLowerS32, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1630,7 +1630,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorPairedMaxLowerU32, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1643,7 +1643,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorPairedMinLowerS32, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1656,7 +1656,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorPairedMinLowerU32, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1671,7 +1671,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorPolynomialMultiplyLong64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1688,7 +1688,7 @@ public:
         case 8:
             return Inst<U128>(Opcode::VectorReverseElementsInHalfGroups8, a);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1699,7 +1699,7 @@ public:
         case 16:
             return Inst<U128>(Opcode::VectorReverseElementsInWordGroups16, a);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1712,7 +1712,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorReverseElementsInLongGroups32, a);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1728,7 +1728,7 @@ public:
             return Inst<U128>(Opcode::VectorReduceAdd64, a);
         }
 
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorRotateLeft(size_t esize, const U128& a, u8 amount) {
@@ -1768,7 +1768,7 @@ public:
             return Inst<U128>(Opcode::VectorRoundingHalvingAddS32, a, b);
         }
 
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorRoundingHalvingAddUnsigned(size_t esize, const U128& a, const U128& b) {
@@ -1781,7 +1781,7 @@ public:
             return Inst<U128>(Opcode::VectorRoundingHalvingAddU32, a, b);
         }
 
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorRoundingShiftLeftSigned(size_t esize, const U128& a, const U128& b) {
@@ -1796,7 +1796,7 @@ public:
             return Inst<U128>(Opcode::VectorRoundingShiftLeftS64, a, b);
         }
 
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorRoundingShiftLeftUnsigned(size_t esize, const U128& a, const U128& b) {
@@ -1811,7 +1811,7 @@ public:
             return Inst<U128>(Opcode::VectorRoundingShiftLeftU64, a, b);
         }
 
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorSignExtend(size_t original_esize, const U128& a) {
@@ -1825,7 +1825,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorSignExtend64, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorSignedAbsoluteDifference(size_t esize, const U128& a, const U128& b) {
@@ -1837,7 +1837,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorSignedAbsoluteDifference32, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     UpperAndLower VectorSignedMultiply(size_t esize, const U128& a, const U128& b) {
@@ -1848,7 +1848,7 @@ public:
             case 32:
                 return Inst(Opcode::VectorSignedMultiply32, a, b);
             }
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }();
 
         return {
@@ -1868,7 +1868,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorSignedSaturatedAbs64, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorSignedSaturatedAccumulateUnsigned(size_t esize, const U128& a, const U128& b) {
@@ -1882,7 +1882,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorSignedSaturatedAccumulateUnsigned64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorSignedSaturatedDoublingMultiplyHigh(size_t esize, const U128& a, const U128& b) {
@@ -1892,7 +1892,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorSignedSaturatedDoublingMultiplyHigh32, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1903,7 +1903,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorSignedSaturatedDoublingMultiplyHighRounding32, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -1914,7 +1914,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorSignedSaturatedDoublingMultiplyLong32, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorSignedSaturatedNarrowToSigned(size_t original_esize, const U128& a) {
@@ -1926,7 +1926,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorSignedSaturatedNarrowToSigned64, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorSignedSaturatedNarrowToUnsigned(size_t original_esize, const U128& a) {
@@ -1938,7 +1938,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorSignedSaturatedNarrowToUnsigned64, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorSignedSaturatedNeg(size_t esize, const U128& a) {
@@ -1952,7 +1952,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorSignedSaturatedNeg64, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorSignedSaturatedShiftLeft(size_t esize, const U128& a, const U128& b) {
@@ -1966,7 +1966,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorSignedSaturatedShiftLeft64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorSignedSaturatedShiftLeftUnsigned(size_t esize, const U128& a, u8 shift_amount) {
@@ -1981,7 +1981,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorSignedSaturatedShiftLeftUnsigned64, a, Imm8(shift_amount));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorSub(size_t esize, const U128& a, const U128& b) {
@@ -1995,7 +1995,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorSub64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     Table VectorTable(std::vector<U64> values) {
@@ -2031,7 +2031,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorTranspose64, a, b, Imm1(part));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorUnsignedAbsoluteDifference(size_t esize, const U128& a, const U128& b) {
@@ -2043,7 +2043,7 @@ public:
         case 32:
             return Inst<U128>(Opcode::VectorUnsignedAbsoluteDifference32, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorUnsignedRecipEstimate(const U128& a) {
@@ -2065,7 +2065,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorUnsignedSaturatedAccumulateSigned64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorUnsignedSaturatedNarrow(size_t esize, const U128& a) {
@@ -2077,7 +2077,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorUnsignedSaturatedNarrow64, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorUnsignedSaturatedShiftLeft(size_t esize, const U128& a, const U128& b) {
@@ -2091,7 +2091,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorUnsignedSaturatedShiftLeft64, a, b);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorZeroExtend(size_t original_esize, const U128& a) {
@@ -2105,7 +2105,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::VectorZeroExtend64, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 VectorZeroUpper(const U128& a) {
@@ -2125,7 +2125,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPAbs64, a);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2138,7 +2138,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPAdd64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2153,7 +2153,7 @@ public:
         case Type::U64:
             return Inst<NZCV>(Opcode::FPCompare64, a, b, exc_on_qnan_imm);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2166,7 +2166,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPDiv64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2179,7 +2179,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPMax64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2192,7 +2192,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPMaxNumeric64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2205,7 +2205,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPMin64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2218,7 +2218,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPMinNumeric64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2231,7 +2231,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPMul64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2246,7 +2246,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPMulAdd64, a, b, c);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2261,7 +2261,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPMulSub64, a, b, c);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2274,7 +2274,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPMulX64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2287,7 +2287,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPNeg64, a);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2300,7 +2300,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPRecipEstimate64, a);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2313,7 +2313,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPRecipExponent64, a);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2328,7 +2328,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPRecipStepFused64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2344,7 +2344,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPRoundInt64, a, rounding_value, exact_imm);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2357,7 +2357,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPRSqrtEstimate64, a);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2372,7 +2372,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPRSqrtStepFused64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2383,7 +2383,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPSqrt64, a);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2396,7 +2396,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPSub64, a, b);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2438,7 +2438,7 @@ public:
         case Type::U64:
             return Inst<U16>(Opcode::FPDoubleToFixedS16, a, fbits_imm, rounding_imm);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2456,7 +2456,7 @@ public:
         case Type::U64:
             return Inst<U32>(Opcode::FPDoubleToFixedS32, a, fbits_imm, rounding_imm);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2474,7 +2474,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPDoubleToFixedS64, a, fbits_imm, rounding_imm);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2492,7 +2492,7 @@ public:
         case Type::U64:
             return Inst<U16>(Opcode::FPDoubleToFixedU16, a, fbits_imm, rounding_imm);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2510,7 +2510,7 @@ public:
         case Type::U64:
             return Inst<U32>(Opcode::FPDoubleToFixedU32, a, fbits_imm, rounding_imm);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2528,7 +2528,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPDoubleToFixedU64, a, fbits_imm, rounding_imm);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2546,7 +2546,7 @@ public:
         case Type::U64:
             return Inst<U32>(Opcode::FPFixedS64ToSingle, a, fbits_imm, rounding_imm);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2564,7 +2564,7 @@ public:
         case Type::U64:
             return Inst<U32>(Opcode::FPFixedU64ToSingle, a, fbits_imm, rounding_imm);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2582,7 +2582,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPFixedS64ToDouble, a, fbits_imm, rounding_imm);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2600,7 +2600,7 @@ public:
         case Type::U64:
             return Inst<U64>(Opcode::FPFixedU64ToDouble, a, fbits_imm, rounding_imm);
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 
@@ -2613,7 +2613,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorAbs64, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorAdd(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2623,7 +2623,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorAdd64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorDiv(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2633,7 +2633,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorDiv64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorEqual(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2645,7 +2645,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorEqual64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorFromHalf(size_t esize, const U128& a, FP::RoundingMode rounding, bool fpcr_controlled = true) {
@@ -2661,7 +2661,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorFromSignedFixed64, a, Imm8(static_cast<u8>(fbits)), Imm8(static_cast<u8>(rounding)), Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorFromUnsignedFixed(size_t esize, const U128& a, size_t fbits, FP::RoundingMode rounding, bool fpcr_controlled = true) {
@@ -2672,7 +2672,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorFromUnsignedFixed64, a, Imm8(static_cast<u8>(fbits)), Imm8(static_cast<u8>(rounding)), Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorGreater(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2682,7 +2682,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorGreater64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorGreaterEqual(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2692,7 +2692,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorGreaterEqual64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorMax(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2702,7 +2702,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorMax64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorMaxNumeric(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2712,7 +2712,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorMaxNumeric64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorMin(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2722,7 +2722,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorMin64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorMinNumeric(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2732,7 +2732,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorMinNumeric64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorMul(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2742,7 +2742,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorMul64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorMulAdd(size_t esize, const U128& a, const U128& b, const U128& c, bool fpcr_controlled = true) {
@@ -2754,7 +2754,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorMulAdd64, a, b, c, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorMulX(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2764,7 +2764,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorMulX64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorNeg(size_t esize, const U128& a) {
@@ -2776,7 +2776,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorNeg64, a);
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorPairedAdd(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2786,7 +2786,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorPairedAdd64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorPairedAddLower(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2796,7 +2796,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorPairedAddLower64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorRecipEstimate(size_t esize, const U128& a, bool fpcr_controlled = true) {
@@ -2808,7 +2808,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorRecipEstimate64, a, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorRecipStepFused(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2820,7 +2820,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorRecipStepFused64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorRoundInt(size_t esize, const U128& operand, FP::RoundingMode rounding, bool exact, bool fpcr_controlled = true) {
@@ -2835,7 +2835,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorRoundInt64, operand, rounding_imm, exact_imm, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorRSqrtEstimate(size_t esize, const U128& a, bool fpcr_controlled = true) {
@@ -2847,7 +2847,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorRSqrtEstimate64, a, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorRSqrtStepFused(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2859,7 +2859,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorRSqrtStepFused64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorSqrt(size_t esize, const U128& a, bool fpcr_controlled = true) {
@@ -2869,7 +2869,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorSqrt64, a, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorSub(size_t esize, const U128& a, const U128& b, bool fpcr_controlled = true) {
@@ -2879,7 +2879,7 @@ public:
         case 64:
             return Inst<U128>(Opcode::FPVectorSub64, a, b, Imm1(fpcr_controlled));
         }
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorToHalf(size_t esize, const U128& a, FP::RoundingMode rounding, bool fpcr_controlled = true) {
@@ -2902,7 +2902,7 @@ public:
             return Inst<U128>(Opcode::FPVectorToSignedFixed64, a, fbits_imm, rounding_imm, Imm1(fpcr_controlled));
         }
 
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     U128 FPVectorToUnsignedFixed(size_t esize, const U128& a, size_t fbits, FP::RoundingMode rounding, bool fpcr_controlled = true) {
@@ -2920,7 +2920,7 @@ public:
             return Inst<U128>(Opcode::FPVectorToUnsignedFixed64, a, fbits_imm, rounding_imm, Imm1(fpcr_controlled));
         }
 
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     void Breakpoint() {

@@ -220,7 +220,7 @@ s64 Value::GetImmediateAsS64() const {
     case IR::Type::U64:
         return s64(GetU64());
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 
@@ -238,7 +238,7 @@ u64 Value::GetImmediateAsU64() const {
     case IR::Type::U64:
         return u64(GetU64());
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 

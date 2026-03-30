@@ -53,7 +53,7 @@ std::optional<EmitX64::BlockDescriptor> EmitX64::GetBasicBlock(IR::LocationDescr
 }
 
 void EmitX64::EmitInvalid(EmitContext&, IR::Inst* inst) {
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 void EmitX64::EmitVoid(EmitContext&, IR::Inst*) {
@@ -193,7 +193,7 @@ void EmitX64::EmitGetNZFromOp(EmitContext& ctx, IR::Inst* inst) {
         case IR::Type::U64:
             return 64;
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }();
 
@@ -224,7 +224,7 @@ void EmitX64::EmitGetNZCVFromOp(EmitContext& ctx, IR::Inst* inst) {
         case IR::Type::U64:
             return 64;
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }();
 
@@ -339,7 +339,7 @@ Xbyak::Label EmitX64::EmitCond(IR::Cond cond) {
         code.jle(pass);
         break;
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
     return pass;
 }

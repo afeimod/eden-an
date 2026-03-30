@@ -120,7 +120,7 @@ public:
         case 64:
             return;
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }
 

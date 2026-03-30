@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /* This file is part of the dynarmic project.
@@ -24,7 +24,7 @@ using namespace oaknut::util;
 
 static void EmitCoprocessorException() {
     // TODO: Raise coproc except
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 static void CallCoprocCallback(oaknut::CodeGenerator& code, EmitContext& ctx, A32::Coprocessor::Callback callback, IR::Inst* inst = nullptr, std::optional<Argument::copyable_reference> arg0 = {}, std::optional<Argument::copyable_reference> arg1 = {}) {
@@ -107,7 +107,7 @@ void EmitIR<IR::Opcode::A32CoprocSendOneWord>(oaknut::CodeGenerator& code, EmitC
         return;
     }
 
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 template<>
@@ -151,7 +151,7 @@ void EmitIR<IR::Opcode::A32CoprocSendTwoWords>(oaknut::CodeGenerator& code, Emit
         return;
     }
 
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 template<>
@@ -193,7 +193,7 @@ void EmitIR<IR::Opcode::A32CoprocGetOneWord>(oaknut::CodeGenerator& code, EmitCo
         return;
     }
 
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 template<>
@@ -235,7 +235,7 @@ void EmitIR<IR::Opcode::A32CoprocGetTwoWords>(oaknut::CodeGenerator& code, EmitC
         return;
     }
 
-    UNREACHABLE();
+    std::terminate(); //unreachable
 }
 
 template<>

@@ -42,7 +42,7 @@ void FPProcessException(FPExc exception, FPCR fpcr, FPSR& fpsr) {
         fpsr.IDC(true);
         break;
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 

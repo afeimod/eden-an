@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -158,7 +161,7 @@ bool FPCompareRegister(TranslatorVisitor& v, bool Q, bool sz, Vec Vm, Vec Vn, Ve
                                         v.ir.FPVectorAbs(esize, operand2));
         }
 
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }();
 
     v.V(datasize, Vd, result);
@@ -195,7 +198,7 @@ bool VectorMinMaxOperationSTS(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm,
             return v.ir.VectorMinUnsigned(esize, operand1, operand2);
 
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }();
 
@@ -272,7 +275,7 @@ bool PairedMinMaxOperationSTS(TranslatorVisitor& v, bool Q, Imm<2> size, Vec Vm,
             return Q ? v.ir.VectorPairedMinUnsigned(esize, operand1, operand2) : v.ir.VectorPairedMinUnsignedLower(esize, operand1, operand2);
 
         default:
-            UNREACHABLE();
+            std::terminate(); //unreachable
         }
     }();
 

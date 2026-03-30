@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /* This file is part of the dynarmic project.
  * Copyright (c) 2018 MerryMage
  * SPDX-License-Identifier: 0BSD
@@ -63,7 +66,7 @@ bool TranslatorVisitor::STP_LDP_gen(Imm<2> opc, bool not_postindex, bool wback, 
         break;
     }
     case IR::MemOp::PREFETCH:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     if (wback) {
@@ -133,7 +136,7 @@ bool TranslatorVisitor::STP_LDP_fpsimd(Imm<2> opc, bool not_postindex, bool wbac
         break;
     }
     case IR::MemOp::PREFETCH:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 
     if (wback) {

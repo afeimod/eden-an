@@ -515,7 +515,7 @@ void BlockOfCode::LoadRequiredFlagsForCondFromRax(IR::Cond cond) {
     case IR::Cond::NV:
         break;
     default:
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 

@@ -41,7 +41,7 @@ static void Emit(oaknut::CodeGenerator&, EmitContext& ctx, IR::Inst* inst, EmitF
     } else if constexpr (size == 64) {
         emit(Qresult->D2(), Qa->D2(), Qb->D2());
     } else {
-        UNREACHABLE();
+        std::terminate(); //unreachable
     }
 }
 
