@@ -9,12 +9,13 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 
 #include "common/common_types.h"
 
 namespace Dynarmic::Backend::X64 {
 
-constexpr size_t SpillCount = 64;
+constexpr std::size_t SpillCount = 64;
 
 #ifdef _MSC_VER
 #    pragma warning(push)

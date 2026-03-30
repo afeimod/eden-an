@@ -9,6 +9,7 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 
 #include "common/common_types.h"
 
@@ -48,8 +49,8 @@ struct A32JitState {
     // Exclusive state
     u32 exclusive_state = 0;
 
-    static constexpr size_t RSBSize = 8;  // MUST be a power of 2.
-    static constexpr size_t RSBPtrMask = RSBSize - 1;
+    static constexpr std::size_t RSBSize = 8;  // MUST be a power of 2.
+    static constexpr std::size_t RSBPtrMask = RSBSize - 1;
     u32 rsb_ptr = 0;
     std::array<u64, RSBSize> rsb_location_descriptors;
     std::array<u64, RSBSize> rsb_codeptrs;
