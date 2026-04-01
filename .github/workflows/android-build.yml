@@ -185,6 +185,9 @@ jobs:
       - name: 映射构建参数
         id: build-params
         run: |
+          # 进入 Android 构建目录
+          cd src/android
+          
           # 构建变体映射：用户选择值 -> Gradle 任务名称
           FLAVOR_MAP="standard=Mainline optimized=GenshinSpoof legacy=Legacy chromeos=ChromeOS"
           FLAVOR_NAME=""
@@ -205,6 +208,7 @@ jobs:
           echo "FLAVOR_NAME=$FLAVOR_NAME" >> $GITHUB_OUTPUT
           echo "BUILD_TYPE_NAME=$BUILD_TYPE_NAME" >> $GITHUB_OUTPUT
           echo "FLAVOR_LOWER=${{ github.event.inputs.flavor }}" >> $GITHUB_OUTPUT
+          echo "WORK_DIR=$(pwd)" >> $GITHUB_OUTPUT
 
           # 计算完整任务名称
           TASK_NAME="copy${FLAVOR_NAME}${BUILD_TYPE_NAME}Outputs"
@@ -213,6 +217,7 @@ jobs:
           echo ""
           echo "=========================================="
           echo "构建参数映射："
+          echo "  工作目录: $(pwd)"
           echo "  用户输入 flavor: ${{ github.event.inputs.flavor }}"
           echo "  映射到 flavor: $FLAVOR_NAME"
           echo "  构建类型: $BUILD_TYPE_NAME"
@@ -227,8 +232,28 @@ jobs:
       # 构建 APK
       - name: 构建 Android APK
         id: build
+        working-directory: src/android
+        env:
+          # 显式设置 Android SDK 环境变量
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
+          # 设置 CMake 路径（如果使用手动安装的 CMake）
+          PATH: ${{ env.ANDROID_HOME }}/cmake/3.22.1/bin:${{ env.PATH }}
         run: |
-          cd src/android
+          # 验证当前工作目录
+          echo "当前工作目录: $(pwd)"
+          echo "Android SDK: $ANDROID_HOME"
+          echo "NDK 路径检查:"
+          ls -la "$ANDROID_HOME/ndk/" 2>/dev/null || echo "NDK 目录不存在"
+          
+          # 验证 CMakeLists.txt 存在
+          if [ -f "CMakeLists.txt" ]; then
+            echo "✓ CMakeLists.txt 存在"
+          else
+            echo "✗ CMakeLists.txt 不存在！"
+            ls -la
+            exit 1
+          fi
 
           # 给予 gradlew 执行权限
           chmod +x ./gradlew
@@ -270,8 +295,11 @@ jobs:
 
       # 准备产物目录
       - name: 准备产物
+        working-directory: src/android
         run: |
-          cd src/android
+          # 验证当前工作目录
+          echo "当前工作目录: $(pwd)"
+          
           mkdir -p ../artifacts
 
           # 复制构建产物
