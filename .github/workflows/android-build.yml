@@ -115,7 +115,8 @@ jobs:
             zlib1g-dev \
             libgl1-mesa-dev \
             ccache \
-            ninja-build
+            ninja-build \
+            glslang-tools
 
       # 配置 ccache
       - name: 配置 ccache
