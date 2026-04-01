@@ -62,16 +62,10 @@ env:
   ANDROID_BUILD_TOOLS_VERSION: '36.0.0'
   ANDROID_SDK_VERSION: '1107678'
   ANDROID_NDK_VERSION: '28.2.13676358'
-  # 构建配置
-  BUILD_FLAVOR: ${{ github.events.inputs.flavor }}
-  BUILD_TYPE: ${{ github.events.inputs.build_type }}
-  NIGHTLY: ${{ github.events.inputs.enable_nightly }}
-  DEVEL: ${{ !inputs.enable_release }}
-  CCACHE: ${{ github.events.inputs.enable_ccache }}
 
 jobs:
   build-android:
-    name: 构建 Android APK（${{ github.events.inputs.flavor }} - ${{ github.events.inputs.build_type }}）
+    name: 构建 Android APK（${{ github.event.inputs.flavor }} - ${{ github.event.inputs.build_type }}）
     runs-on: ubuntu-latest
     timeout-minutes: 300
 
@@ -80,7 +74,7 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.events.inputs.branch }}
+          ref: ${{ github.event.inputs.branch }}
           submodules: recursive
           lfs: true
           fetch-depth: 1
@@ -173,7 +167,7 @@ jobs:
 
       # 配置 ccache（如果启用）
       - name: 配置 ccache
-        if: ${{ github.events.inputs.enable_ccache == 'true' }}
+        if: ${{ github.event.inputs.enable_ccache == 'true' }}
         uses: actions/cache@v4
         with:
           path: ~/.ccache
@@ -183,7 +177,7 @@ jobs:
             android-
 
       - name: 初始化 ccache
-        if: ${{ github.events.inputs.enable_ccache == 'true' }}
+        if: ${{ github.event.inputs.enable_ccache == 'true' }}
         run: |
           ccache -M 2G
           ccache -z
@@ -201,19 +195,19 @@ jobs:
           for mapping in $FLAVOR_MAP; do
             key="${mapping%%=*}"
             value="${mapping#*=}"
-            if [ "$key" = "${{ github.events.inputs.flavor }}" ]; then
+            if [ "$key" = "${{ github.event.inputs.flavor }}" ]; then
               FLAVOR_NAME="$value"
               break
             fi
           done
 
           # 构建类型直接使用（保持原始大小写，如 RelWithDebInfo）
-          BUILD_TYPE_NAME="${{ github.events.inputs.build_type }}"
+          BUILD_TYPE_NAME="${{ github.event.inputs.build_type }}"
 
           # 输出到 GitHub Actions
           echo "FLAVOR_NAME=$FLAVOR_NAME" >> $GITHUB_OUTPUT
           echo "BUILD_TYPE_NAME=$BUILD_TYPE_NAME" >> $GITHUB_OUTPUT
-          echo "FLAVOR_LOWER=${{ github.events.inputs.flavor }}" >> $GITHUB_OUTPUT
+          echo "FLAVOR_LOWER=${{ github.event.inputs.flavor }}" >> $GITHUB_OUTPUT
 
           # 计算完整任务名称
           TASK_NAME="copy${FLAVOR_NAME}${BUILD_TYPE_NAME}Outputs"
@@ -222,14 +216,14 @@ jobs:
           echo ""
           echo "=========================================="
           echo "构建参数映射："
-          echo "  用户输入 flavor: ${{ github.events.inputs.flavor }}"
+          echo "  用户输入 flavor: ${{ github.event.inputs.flavor }}"
           echo "  映射到 flavor: $FLAVOR_NAME"
           echo "  构建类型: $BUILD_TYPE_NAME"
           echo "  完整任务名: $TASK_NAME"
           echo "=========================================="
 
           # 设置 Gradle 属性
-          echo "org.gradle.caching=${{ github.events.inputs.enable_ccache }}" >> gradle.properties
+          echo "org.gradle.caching=${{ github.event.inputs.enable_ccache }}" >> gradle.properties
           echo "org.gradle.parallel=true" >> gradle.properties
           echo "org.gradle.daemon=true" >> gradle.properties
 
@@ -244,22 +238,22 @@ jobs:
 
           # 准备额外参数
           EXTRA_ARGS=""
-          if [ "${{ github.events.inputs.enable_nightly }}" = "true" ]; then
+          if [ "${{ github.event.inputs.enable_nightly }}" = "true" ]; then
             EXTRA_ARGS="$EXTRA_ARGS -n"
           fi
-          if [ "${{ github.events.inputs.enable_release }}" = "true" ]; then
+          if [ "${{ github.event.inputs.enable_release }}" = "true" ]; then
             EXTRA_ARGS="$EXTRA_ARGS -r"
           fi
 
           # 执行构建
           echo "=========================================="
           echo "开始构建..."
-          echo "分支: ${{ github.events.inputs.branch }}"
-          echo "变体: ${{ github.events.inputs.flavor }} (${{ steps.build-params.outputs.FLAVOR_NAME }})"
-          echo "类型: ${{ github.events.inputs.build_type }}"
-          echo "夜间构建: ${{ github.events.inputs.enable_nightly }}"
-          echo "发布模式: ${{ github.events.inputs.enable_release }}"
-          echo "CCache: ${{ github.events.inputs.enable_ccache }}"
+          echo "分支: ${{ github.event.inputs.branch }}"
+          echo "变体: ${{ github.event.inputs.flavor }} (${{ steps.build-params.outputs.FLAVOR_NAME }})"
+          echo "类型: ${{ github.event.inputs.build_type }}"
+          echo "夜间构建: ${{ github.event.inputs.enable_nightly }}"
+          echo "发布模式: ${{ github.event.inputs.enable_release }}"
+          echo "CCache: ${{ github.event.inputs.enable_ccache }}"
           echo "=========================================="
 
           echo "执行 Gradle 任务: ${{ steps.build-params.outputs.GRADLE_TASK_NAME }}"
@@ -267,13 +261,13 @@ jobs:
           ./gradlew \
             ${{ steps.build-params.outputs.GRADLE_TASK_NAME }} \
             -PYUZU_ANDROID_ARGS="$EXTRA_ARGS" \
-            -Pnightly=${{ github.events.inputs.enable_nightly }} \
+            -Pnightly=${{ github.event.inputs.enable_nightly }} \
             --no-daemon \
             --stacktrace
 
       # 显示 ccache 统计
       - name: 显示构建统计
-        if: ${{ github.events.inputs.enable_ccache == 'true' }}
+        if: ${{ github.event.inputs.enable_ccache == 'true' }}
         run: |
           ccache -s
 
@@ -301,7 +295,7 @@ jobs:
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk-${{ github.events.inputs.flavor }}-${{ github.events.inputs.build_type }}-${{ github.run_number }}
+          name: android-apk-${{ github.event.inputs.flavor }}-${{ github.event.inputs.build_type }}-${{ github.run_number }}
           path: |
             src/android/artifacts/*.apk
             src/android/artifacts/*.aab
@@ -325,16 +319,16 @@ jobs:
 
           分支信息
           --------
-          构建分支: ${{ github.events.inputs.branch }}
+          构建分支: ${{ github.event.inputs.branch }}
           提交SHA: ${{ github.sha }}
 
           构建配置
           --------
-          构建变体: ${{ github.events.inputs.flavor }}
-          构建类型: ${{ github.events.inputs.build_type }}
-          夜间构建: ${{ github.events.inputs.enable_nightly }}
-          发布模式: ${{ github.events.inputs.enable_release }}
-          编译缓存: ${{ github.events.inputs.enable_ccache }}
+          构建变体: ${{ github.event.inputs.flavor }}
+          构建类型: ${{ github.event.inputs.build_type }}
+          夜间构建: ${{ github.event.inputs.enable_nightly }}
+          发布模式: ${{ github.event.inputs.enable_release }}
+          编译缓存: ${{ github.event.inputs.enable_ccache }}
 
           环境信息
           --------
