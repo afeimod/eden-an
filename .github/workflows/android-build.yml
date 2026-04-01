@@ -181,6 +181,16 @@ jobs:
           echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
           echo "CCACHE=true" >> $GITHUB_ENV
 
+      # 清理旧配置
+      - name: 清理旧配置
+        working-directory: src/android
+        run: |
+          echo "清理可能存在的旧配置文件..."
+          rm -f gradle.properties
+          rm -rf build
+          rm -rf app/build
+          echo "清理完成"
+
       # 映射构建参数
       - name: 映射构建参数
         id: build-params
@@ -223,11 +233,6 @@ jobs:
           echo "  构建类型: $BUILD_TYPE_NAME"
           echo "  完整任务名: $TASK_NAME"
           echo "=========================================="
-
-          # 设置 Gradle 属性
-          echo "org.gradle.caching=${{ github.event.inputs.enable_ccache }}" >> gradle.properties
-          echo "org.gradle.parallel=true" >> gradle.properties
-          echo "org.gradle.daemon=true" >> gradle.properties
 
       # 构建 APK
       - name: 构建 Android APK
@@ -304,12 +309,19 @@ jobs:
           echo "CCache: ${{ github.event.inputs.enable_ccache }}"
           echo "=========================================="
 
+          # 计算并行任务数
+          NUM_JOBS=$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
+          
+          # 执行构建（使用与原始构建脚本相同的参数）
           echo "执行 Gradle 任务: ${{ steps.build-params.outputs.GRADLE_TASK_NAME }}"
           
           ./gradlew \
-            ${{ steps.build-params.outputs.GRADLE_TASK_NAME }} \
+            "${{ steps.build-params.outputs.GRADLE_TASK_NAME }}" \
+            -Dorg.gradle.caching="${{ github.event.inputs.enable_ccache }}" \
+            -Dorg.gradle.parallel="${{ github.event.inputs.enable_ccache }}" \
+            -Dorg.gradle.workers.max="${NUM_JOBS}" \
             -PYUZU_ANDROID_ARGS="$EXTRA_ARGS" \
-            -Pnightly=${{ github.event.inputs.enable_nightly }} \
+            -Pnightly="${{ github.event.inputs.enable_nightly }}" \
             --no-daemon \
             --stacktrace
 
