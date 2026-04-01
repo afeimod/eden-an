@@ -237,20 +237,46 @@ jobs:
           # 显式设置 Android SDK 环境变量
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
-          # 设置 CMake 路径（如果使用手动安装的 CMake）
-          PATH: ${{ env.ANDROID_HOME }}/cmake/3.22.1/bin:${{ env.PATH }}
+          # Gradle 配置
+          GRADLE_OPTS: "-Xmx4g -XX:+HeapDumpOnOutOfMemoryError"
         run: |
           # 验证当前工作目录
           echo "当前工作目录: $(pwd)"
           echo "Android SDK: $ANDROID_HOME"
-          echo "NDK 路径检查:"
-          ls -la "$ANDROID_HOME/ndk/" 2>/dev/null || echo "NDK 目录不存在"
+          echo "项目根目录: $(cd ../.. && pwd)"
           
-          # 验证 CMakeLists.txt 存在
-          if [ -f "CMakeLists.txt" ]; then
-            echo "✓ CMakeLists.txt 存在"
+          # 检查必要的文件
+          echo "检查项目结构："
+          ls -la ../.. | head -20
+          
+          if [ -f "../../CMakeLists.txt" ]; then
+            echo "✓ CMakeLists.txt 存在于项目根目录"
           else
-            echo "✗ CMakeLists.txt 不存在！"
+            echo "✗ CMakeLists.txt 不存在于项目根目录！"
+            ls -la ../..
+            exit 1
+          fi
+          
+          if [ -f "build.gradle.kts" ]; then
+            echo "✓ build.gradle.kts 存在"
+          else
+            echo "✗ build.gradle.kts 不存在！"
+            ls -la
+            exit 1
+          fi
+          
+          if [ -f "app/build.gradle.kts" ]; then
+            echo "✓ app/build.gradle.kts 存在"
+          else
+            echo "✗ app/build.gradle.kts 不存在！"
+            ls -la app/
+            exit 1
+          fi
+          
+          if [ -f "gradlew" ]; then
+            echo "✓ gradlew 存在"
+          else
+            echo "✗ gradlew 不存在！"
             ls -la
             exit 1
           fi
