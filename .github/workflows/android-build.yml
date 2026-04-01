@@ -118,33 +118,90 @@ jobs:
       - name: 配置 Android SDK
         id: android-sdk
         run: |
-          ANDROID_SDK_ROOT=$HOME/android-sdk
-          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
-
-          # 下载命令行工具
-          if [ ! -d "$ANDROID_SDK_ROOT/cmdline-tools/latest" ]; then
-            cd $ANDROID_SDK_ROOT/cmdline-tools
-            wget -q https://dl.google.com/android/repository/commandlinetools-linux-1107678_latest.zip -O cmdline-tools.zip
-            unzip -q cmdline-tools.zip
-            mv cmdline-tools latest
-            rm cmdline-tools.zip
+          set -x  # 启用调试模式，显示执行的命令
+          
+          ANDROID_SDK_ROOT="$HOME/android-sdk"
+          CMDLINE_TOOLS_VERSION="1107678"
+          
+          echo "创建 SDK 目录..."
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+          
+          # 下载命令行工具（仅在不存在时下载）
+          if [ ! -f "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+            echo "下载 Android 命令行工具..."
+            cd "$ANDROID_SDK_ROOT/cmdline-tools"
+            
+            wget --progress=bar:force https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}_latest.zip -O cmdline-tools.zip || {
+              echo "下载失败，尝试使用 curl..."
+              curl -L -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}_latest.zip
+            }
+            
+            echo "解压命令行工具..."
+            unzip -q cmdline-tools.zip || {
+              echo "解压失败"
+              ls -la
+              exit 1
+            }
+            
+            # 重命名目录为 latest
+            if [ -d "cmdline-tools" ]; then
+              rm -rf latest
+              mv cmdline-tools latest
+            fi
+            
+            rm -f cmdline-tools.zip
+          else
+            echo "命令行工具已存在，跳过下载"
           fi
-
+          
+          # 验证 sdkmanager 存在
+          if [ ! -f "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+            echo "错误：sdkmanager 未找到"
+            ls -la "$ANDROID_SDK_ROOT/cmdline-tools/"
+            exit 1
+          fi
+          
+          # 给予执行权限
+          chmod +x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          chmod +x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/binman-int"
+          
           # 配置环境变量
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
           echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_ENV_PATH
-
-          # 接受许可证
-          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
-
+          echo "PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH" >> $GITHUB_ENV
+          
+          echo "当前 SDK 路径: $ANDROID_SDK_ROOT"
+          echo "SDK 管理器路径: $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          
+          # 列出已安装的组件
+          echo "检查已安装的组件..."
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --list_installed || true
+          
+          # 接受所有许可证
+          echo "接受许可证..."
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          
           # 安装所需的 SDK 组件
-          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
+          echo "安装 SDK 组件..."
+          echo "  - Platform: android-${ANDROID_COMPILE_SDK}"
+          echo "  - Build Tools: ${ANDROID_BUILD_TOOLS_VERSION}"
+          echo "  - NDK: ${ANDROID_NDK_VERSION}"
+          echo "  - CMake: 3.22.1"
+          
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
             "platforms;android-${ANDROID_COMPILE_SDK}" \
             "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" \
             "ndk;${ANDROID_NDK_VERSION}" \
-            "cmake;3.22.1"
-
+            "cmake;3.22.1" || {
+              echo "部分 SDK 组件安装失败，继续构建..."
+            }
+          
+          # 验证关键组件
+          echo "验证安装的组件..."
+          ls -la "$ANDROID_SDK_ROOT/platforms/" 2>/dev/null || echo "platforms 目录不存在"
+          ls -la "$ANDROID_SDK_ROOT/build-tools/" 2>/dev/null || echo "build-tools 目录不存在"
+          ls -la "$ANDROID_SDK_ROOT/ndk/" 2>/dev/null || echo "ndk 目录不存在"
+          
           echo "Android SDK 配置完成"
 
       # 配置 CMake
