@@ -196,27 +196,36 @@ jobs:
         run: |
           # 构建变体映射：用户选择值 -> Gradle 任务名称
           FLAVOR_MAP="standard=Mainline optimized=GenshinSpoof legacy=Legacy chromeos=ChromeOS"
-
+          FLAVOR_NAME=""
+          
           for mapping in $FLAVOR_MAP; do
             key="${mapping%%=*}"
             value="${mapping#*=}"
             if [ "$key" = "${{ github.events.inputs.flavor }}" ]; then
-              echo "FLAVOR_NAME=$value" >> $GITHUB_OUTPUT
+              FLAVOR_NAME="$value"
               break
             fi
           done
 
           # 构建类型直接使用（保持原始大小写，如 RelWithDebInfo）
-          echo "BUILD_TYPE_NAME=${{ github.events.inputs.build_type }}" >> $GITHUB_OUTPUT
+          BUILD_TYPE_NAME="${{ github.events.inputs.build_type }}"
+
+          # 输出到 GitHub Actions
+          echo "FLAVOR_NAME=$FLAVOR_NAME" >> $GITHUB_OUTPUT
+          echo "BUILD_TYPE_NAME=$BUILD_TYPE_NAME" >> $GITHUB_OUTPUT
           echo "FLAVOR_LOWER=${{ github.events.inputs.flavor }}" >> $GITHUB_OUTPUT
+
+          # 计算完整任务名称
+          TASK_NAME="copy${FLAVOR_NAME}${BUILD_TYPE_NAME}Outputs"
+          echo "GRADLE_TASK_NAME=$TASK_NAME" >> $GITHUB_OUTPUT
 
           echo ""
           echo "=========================================="
           echo "构建参数映射："
           echo "  用户输入 flavor: ${{ github.events.inputs.flavor }}"
-          echo "  映射到 flavor: ${{ steps.build-params.outputs.FLAVOR_NAME }}"
-          echo "  构建类型: ${{ steps.build-params.outputs.BUILD_TYPE_NAME }}"
-          echo "  完整任务名: copy${{ steps.build-params.outputs.FLAVOR_NAME }}${{ steps.build-params.outputs.BUILD_TYPE_NAME }}Outputs"
+          echo "  映射到 flavor: $FLAVOR_NAME"
+          echo "  构建类型: $BUILD_TYPE_NAME"
+          echo "  完整任务名: $TASK_NAME"
           echo "=========================================="
 
           # 设置 Gradle 属性
@@ -253,8 +262,10 @@ jobs:
           echo "CCache: ${{ github.events.inputs.enable_ccache }}"
           echo "=========================================="
 
+          echo "执行 Gradle 任务: ${{ steps.build-params.outputs.GRADLE_TASK_NAME }}"
+          
           ./gradlew \
-            copy${{ steps.build-params.outputs.FLAVOR_NAME }}${{ steps.build-params.outputs.BUILD_TYPE_NAME }}Outputs \
+            ${{ steps.build-params.outputs.GRADLE_TASK_NAME }} \
             -PYUZU_ANDROID_ARGS="$EXTRA_ARGS" \
             -Pnightly=${{ github.events.inputs.enable_nightly }} \
             --no-daemon \
