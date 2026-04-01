@@ -51,11 +51,9 @@ on:
 
 env:
   JAVA_VERSION: '17'
-  ANDROID_COMPILE_SDK: '36'
-  ANDROID_BUILD_TOOLS_VERSION: '36.0.0'
-  ANDROID_NDK_VERSION: '28.2.13676358'
-  GRADLE_VERSION: '8.13'
-  CMAKE_VERSION: '3.22.1'
+  ANDROID_COMPILE_SDK: '35'
+  ANDROID_BUILD_TOOLS_VERSION: '35.0.0'
+  ANDROID_SDK_VERSION: '28'
 
 jobs:
   build-android:
@@ -74,20 +72,43 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      # 设置 Python
-      - name: 设置 Python
-        uses: actions/setup-python@v5
+      # 设置 JDK 并启用 Gradle 缓存
+      - name: 设置 JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
         with:
-          python-version: '3.11'
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'gradle'
 
-      # 安装依赖
+      # 配置 Android SDK
+      - name: 配置 Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: ${{ env.ANDROID_COMPILE_SDK }}
+          build-tools: ${{ env.ANDROID_BUILD_TOOLS_VERSION }}
+          ndk-version: '28.2.13676358'
+          cmake-version: '3.22.1'
+          cmdline-tools: 'latest'
+
+      # 缓存 Gradle 包
+      - name: 缓存 Gradle 包
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            src/android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('src/android/**/*.gradle*', 'src/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # 安装系统依赖
       - name: 安装系统依赖
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             wget \
             unzip \
-            openjdk-17-jdk \
             python3-pip \
             libncurses6 \
             libsdl2-dev \
@@ -96,50 +117,36 @@ jobs:
             ccache \
             ninja-build
 
-      # 配置 Java 环境
-      - name: 配置 Java 环境
-        env:
-          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
-        run: |
-          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
-          echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
-          java -version
-
-      # 配置 Android SDK
-      - name: 配置 Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          api-level: ${{ env.ANDROID_COMPILE_SDK }}
-          build-tools: ${{ env.ANDROID_BUILD_TOOLS_VERSION }}
-          ndk-version: ${{ env.ANDROID_NDK_VERSION }}
-          cmake-version: ${{ env.CMAKE_VERSION }}
-
       # 配置 ccache
       - name: 配置 ccache
-        if: ${{ github.event.inputs.enable_ccache == 'true' }}
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: android-${{ github.run_id }}
-          restore-keys: android-
-
-      - name: 初始化 ccache
         if: ${{ github.event.inputs.enable_ccache == 'true' }}
         run: |
           ccache -M 2G
           ccache -z
           echo "CCACHE=true" >> $GITHUB_ENV
 
-      # 构建 APK - 直接使用原始构建脚本的方式
-      - name: 构建 Android APK
+      # 准备构建环境
+      - name: 准备构建环境
         working-directory: src/android
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
         run: |
+          chmod +x ./gradlew
+          ./gradlew --version
+
+      # 构建 APK
+      - name: 构建 Android APK
+        working-directory: src/android
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
+          CMAKE_BUILD_PARALLEL_LEVEL: ${{ env.NUM_JOBS }}
+        run: |
           # 计算并行任务数
           NUM_JOBS=$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
           export CMAKE_BUILD_PARALLEL_LEVEL="${NUM_JOBS}"
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
           
           # 映射构建变体
           case "${{ github.event.inputs.flavor }}" in
@@ -167,9 +174,6 @@ jobs:
             NIGHTLY=false
           fi
           
-          # 给予 gradlew 执行权限
-          chmod +x ./gradlew
-          
           echo "=========================================="
           echo "开始构建..."
           echo "分支: ${{ github.event.inputs.branch }}"
@@ -181,14 +185,15 @@ jobs:
           echo "并行任务数: $NUM_JOBS"
           echo "=========================================="
           
-          # 执行构建（使用与原始构建脚本相同的命令）
+          # 执行构建
           ./gradlew "copy${FLAVOR}${BUILD_TYPE}Outputs" \
             -Dorg.gradle.caching="${{ github.event.inputs.enable_ccache }}" \
             -Dorg.gradle.parallel="${{ github.event.inputs.enable_ccache }}" \
             -Dorg.gradle.workers.max="${NUM_JOBS}" \
             -PYUZU_ANDROID_ARGS="$EXTRA_ARGS" \
             -Pnightly="$NIGHTLY" \
-            --info
+            --no-daemon \
+            --stacktrace
 
       # 显示 ccache 统计
       - name: 显示构建统计
@@ -226,7 +231,7 @@ jobs:
       - name: 生成构建信息
         run: |
           BUILD_INFO="构建信息.txt"
-          cat > "$BUILD_INFO" << EOF
+          cat > "$BUILD_INFO" << 'EOF'
           ========================================
           Android 构建报告
           ========================================
@@ -253,7 +258,7 @@ jobs:
           环境信息
           --------
           Android SDK: ${{ env.ANDROID_COMPILE_SDK }}
-          Android NDK: ${{ env.ANDROID_NDK_VERSION }}
+          Android NDK: 28.2.13676358
           Java 版本: OpenJDK 17
           
           ========================================
