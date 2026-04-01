@@ -93,7 +93,8 @@ jobs:
             libncurses6 \
             libsdl2-dev \
             zlib1g-dev \
-            libgl1-mesa-dev
+            libgl1-mesa-dev \
+            ccache
 
       # 配置 Java 环境
       - name: 配置 Java 环境
