@@ -170,7 +170,7 @@ jobs:
           # 进入 Android 构建目录
           cd src/android
           
-          # 映射构建变体
+          # 映射构建变体 - variant 名称首字母大写
           case "${{ github.event.inputs.flavor }}" in
             standard) FLAVOR="Mainline" ;;
             optimized) FLAVOR="GenshinSpoof" ;;
@@ -180,6 +180,13 @@ jobs:
           esac
           
           BUILD_TYPE="${{ github.event.inputs.build_type }}"
+          
+          # 将 BUILD_TYPE 转换为 variant 名称格式（首字母大写，其余小写）
+          case "$BUILD_TYPE" in
+            Release) BUILD_TYPE="release" ;;
+            RelWithDebInfo) BUILD_TYPE="RelWithDebInfo" ;;
+            Debug) BUILD_TYPE="debug" ;;
+          esac
           
           # 准备参数
           EXTRA_ARGS=""
