@@ -100,7 +100,7 @@ jobs:
             unzip \
             openjdk-17-jdk \
             python3-pip \
-            libncurses5 \
+            libncurses6 \
             libsdl2-dev \
             zlib1g-dev \
             libgl1-mesa-dev
