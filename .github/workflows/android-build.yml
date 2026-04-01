@@ -125,28 +125,50 @@ jobs:
           ccache -z
           echo "CCACHE=true" >> $GITHUB_ENV
 
-      # 准备构建环境
+      # 准备构建环境 - 从项目根目录运行
       - name: 准备构建环境
-        working-directory: src/android
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
         run: |
+          cd src/android
           chmod +x ./gradlew
           ./gradlew --version
 
-      # 构建 APK
+      # 诊断 CMakeLists.txt 位置
+      - name: 诊断 CMake 配置
+        run: |
+          echo "=========================================="
+          echo "诊断 CMake 配置"
+          echo "=========================================="
+          
+          cd src/android
+          
+          # 显示当前工作目录
+          echo "当前工作目录: $(pwd)"
+          
+          # 检查 CMakeLists.txt 是否存在
+          if [ -f "../CMakeLists.txt" ]; then
+            echo "✓ CMakeLists.txt 存在于项目根目录"
+            echo "绝对路径: $(realpath ../CMakeLists.txt)"
+          else
+            echo "✗ CMakeLists.txt 不存在于项目根目录"
+          fi
+          
+          # 检查 Gradle 项目配置
+          echo ""
+          echo "Gradle 项目结构:"
+          ./gradlew projects 2>/dev/null | head -20 || echo "无法获取项目列表"
+          
+          echo "=========================================="
+
+      # 构建 APK - 使用更简单的构建命令
       - name: 构建 Android APK
-        working-directory: src/android
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
-          CMAKE_BUILD_PARALLEL_LEVEL: ${{ env.NUM_JOBS }}
         run: |
           # 计算并行任务数
           NUM_JOBS=$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
           export CMAKE_BUILD_PARALLEL_LEVEL="${NUM_JOBS}"
           export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
+          
+          # 进入 Android 构建目录
+          cd src/android
           
           # 映射构建变体
           case "${{ github.event.inputs.flavor }}" in
@@ -161,18 +183,10 @@ jobs:
           
           # 准备参数
           EXTRA_ARGS=""
-          if [ "${{ github.event.inputs.enable_nightly }}" = "true" ]; then
-            EXTRA_ARGS="$EXTRA_ARGS -n"
-          fi
-          if [ "${{ github.event.inputs.enable_release }}" = "true" ]; then
-            EXTRA_ARGS="$EXTRA_ARGS -r"
-          fi
+          [ "${{ github.event.inputs.enable_nightly }}" = "true" ] && EXTRA_ARGS="-n"
+          [ "${{ github.event.inputs.enable_release }}" = "true" ] && EXTRA_ARGS="${EXTRA_ARGS}${EXTRA_ARGS:+ }-r"
           
-          if [ "${{ github.event.inputs.enable_nightly }}" = "true" ]; then
-            NIGHTLY=true
-          else
-            NIGHTLY=false
-          fi
+          NIGHTLY="${{ github.event.inputs.enable_nightly }}"
           
           echo "=========================================="
           echo "开始构建..."
@@ -185,15 +199,13 @@ jobs:
           echo "并行任务数: $NUM_JOBS"
           echo "=========================================="
           
-          # 执行构建
+          # 构建命令 - 使用原始构建脚本的格式
           ./gradlew "copy${FLAVOR}${BUILD_TYPE}Outputs" \
             -Dorg.gradle.caching="${{ github.event.inputs.enable_ccache }}" \
             -Dorg.gradle.parallel="${{ github.event.inputs.enable_ccache }}" \
             -Dorg.gradle.workers.max="${NUM_JOBS}" \
-            -PYUZU_ANDROID_ARGS="$EXTRA_ARGS" \
-            -Pnightly="$NIGHTLY" \
-            --no-daemon \
-            --stacktrace
+            -Pnightly="${NIGHTLY}" \
+            --info
 
       # 显示 ccache 统计
       - name: 显示构建统计
@@ -203,19 +215,17 @@ jobs:
 
       # 准备产物
       - name: 准备产物
-        working-directory: src/android
         run: |
-          mkdir -p ../artifacts
+          mkdir -p artifacts
           
           # 复制构建产物
-          if [ -d "artifacts" ]; then
-            find artifacts -name "*.apk" -exec cp {} ../artifacts/ \; 2>/dev/null || true
-            find artifacts -name "*.aab" -exec cp {} ../artifacts/ \; 2>/dev/null || true
+          if [ -d "src/android/artifacts" ]; then
+            cp -r src/android/artifacts/* ./artifacts/ 2>/dev/null || true
           fi
           
           echo "=========================================="
           echo "构建产物列表："
-          ls -lh ../artifacts/
+          ls -lh artifacts/
           echo "=========================================="
 
       # 上传构建产物
