@@ -10,15 +10,10 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: '选择构建分支'
+        description: '输入分支名称（如 master, main, develop）'
         required: true
-        default: 'main'
-        type: choice
-        options:
-          - main
-          - master
-          - develop
-          - stable
+        default: 'master'
+        type: string
       flavor:
         description: '选择构建变体'
         required: true
@@ -76,8 +71,9 @@ jobs:
         with:
           ref: ${{ github.event.inputs.branch }}
           submodules: recursive
-          lfs: true
+          lfs: false
           fetch-depth: 1
+          persist-credentials: false
 
       # 设置 Python（Gradle 构建脚本需要）
       - name: 设置 Python
