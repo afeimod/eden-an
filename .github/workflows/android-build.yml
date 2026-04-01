@@ -50,13 +50,12 @@ on:
         type: boolean
 
 env:
-  # Java 配置
   JAVA_VERSION: '17'
-  # Android SDK 配置
   ANDROID_COMPILE_SDK: '36'
   ANDROID_BUILD_TOOLS_VERSION: '36.0.0'
-  ANDROID_SDK_VERSION: '1107678'
   ANDROID_NDK_VERSION: '28.2.13676358'
+  GRADLE_VERSION: '8.13'
+  CMAKE_VERSION: '3.22.1'
 
 jobs:
   build-android:
@@ -75,7 +74,7 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      # 设置 Python（Gradle 构建脚本需要）
+      # 设置 Python
       - name: 设置 Python
         uses: actions/setup-python@v5
         with:
@@ -94,7 +93,8 @@ jobs:
             libsdl2-dev \
             zlib1g-dev \
             libgl1-mesa-dev \
-            ccache
+            ccache \
+            ninja-build
 
       # 配置 Java 环境
       - name: 配置 Java 环境
@@ -105,187 +105,54 @@ jobs:
           echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
           java -version
 
-      # 使用 android-actions/setup-android 配置 Android SDK
+      # 配置 Android SDK
       - name: 配置 Android SDK
         uses: android-actions/setup-android@v3
         with:
           api-level: ${{ env.ANDROID_COMPILE_SDK }}
           build-tools: ${{ env.ANDROID_BUILD_TOOLS_VERSION }}
           ndk-version: ${{ env.ANDROID_NDK_VERSION }}
-          cmake-version: "3.22.1"
-          
-      # 验证 SDK 配置
-      - name: 验证 SDK 配置
-        run: |
-          echo "验证 Android SDK 配置..."
-          
-          if [ -d "$ANDROID_HOME" ]; then
-            echo "✓ ANDROID_HOME: $ANDROID_HOME"
-            echo "✓ SDK 目录内容:"
-            ls -la "$ANDROID_HOME/"
-            
-            if [ -d "$ANDROID_HOME/platforms" ]; then
-              echo "  - platforms:"
-              ls "$ANDROID_HOME/platforms/"
-            fi
-            
-            if [ -d "$ANDROID_HOME/build-tools" ]; then
-              echo "  - build-tools:"
-              ls "$ANDROID_HOME/build-tools/"
-            fi
-            
-            if [ -d "$ANDROID_HOME/ndk" ]; then
-              echo "  - ndk:"
-              ls "$ANDROID_HOME/ndk/"
-            fi
-            
-            if [ -d "$ANDROID_HOME/cmake" ]; then
-              echo "  - cmake:"
-              ls "$ANDROID_HOME/cmake/"
-            fi
-            
-            echo ""
-            echo "Android SDK 配置验证完成"
-          else
-            echo "✗ ANDROID_HOME 目录不存在: $ANDROID_HOME"
-            exit 1
-          fi
+          cmake-version: ${{ env.CMAKE_VERSION }}
 
-      # 配置 CMake
-      - name: 配置 CMake
-        run: |
-          which cmake || (
-            wget -q https://cmake.org/files/v3.22/cmake-3.22.1-linux-x86_64.sh
-            chmod +x cmake-3.22.1-linux-x86_64.sh
-            sudo ./cmake-3.22.1-linux-x86_64.sh --prefix=/usr/local --skip-license
-            rm cmake-3.22.1-linux-x86_64.sh
-          )
-          cmake --version
-
-      # 配置 ccache（如果启用）
+      # 配置 ccache
       - name: 配置 ccache
         if: ${{ github.event.inputs.enable_ccache == 'true' }}
         uses: actions/cache@v4
         with:
           path: ~/.ccache
-          key: android-build-${{ github.run_id }}-${{ github.sha }}
-          restore-keys: |
-            android-build-
-            android-
+          key: android-${{ github.run_id }}
+          restore-keys: android-
 
       - name: 初始化 ccache
         if: ${{ github.event.inputs.enable_ccache == 'true' }}
         run: |
           ccache -M 2G
           ccache -z
-          echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
           echo "CCACHE=true" >> $GITHUB_ENV
 
-      # 映射构建参数
-      - name: 映射构建参数
-        id: build-params
-        run: |
-          # 进入 Android 构建目录
-          cd src/android
-          
-          # 检查 gradle.properties 是否存在 AndroidX 配置
-          if ! grep -q "android.useAndroidX=true" gradle.properties 2>/dev/null; then
-            echo "警告: gradle.properties 中缺少 AndroidX 配置"
-            echo "这可能导致构建失败"
-          fi
-          
-          # 构建变体映射：用户选择值 -> Gradle 任务名称
-          FLAVOR_MAP="standard=Mainline optimized=GenshinSpoof legacy=Legacy chromeos=ChromeOS"
-          FLAVOR_NAME=""
-          
-          for mapping in $FLAVOR_MAP; do
-            key="${mapping%%=*}"
-            value="${mapping#*=}"
-            if [ "$key" = "${{ github.event.inputs.flavor }}" ]; then
-              FLAVOR_NAME="$value"
-              break
-            fi
-          done
-
-          # 构建类型直接使用（保持原始大小写，如 RelWithDebInfo）
-          BUILD_TYPE_NAME="${{ github.event.inputs.build_type }}"
-
-          # 输出到 GitHub Actions
-          echo "FLAVOR_NAME=$FLAVOR_NAME" >> $GITHUB_OUTPUT
-          echo "BUILD_TYPE_NAME=$BUILD_TYPE_NAME" >> $GITHUB_OUTPUT
-          echo "FLAVOR_LOWER=${{ github.event.inputs.flavor }}" >> $GITHUB_OUTPUT
-          echo "WORK_DIR=$(pwd)" >> $GITHUB_OUTPUT
-
-          # 计算完整任务名称
-          TASK_NAME="copy${FLAVOR_NAME}${BUILD_TYPE_NAME}Outputs"
-          echo "GRADLE_TASK_NAME=$TASK_NAME" >> $GITHUB_OUTPUT
-
-          echo ""
-          echo "=========================================="
-          echo "构建参数映射："
-          echo "  工作目录: $(pwd)"
-          echo "  用户输入 flavor: ${{ github.event.inputs.flavor }}"
-          echo "  映射到 flavor: $FLAVOR_NAME"
-          echo "  构建类型: $BUILD_TYPE_NAME"
-          echo "  完整任务名: $TASK_NAME"
-          echo "=========================================="
-
-      # 构建 APK
+      # 构建 APK - 直接使用原始构建脚本的方式
       - name: 构建 Android APK
-        id: build
         working-directory: src/android
         env:
-          # 显式设置 Android SDK 环境变量
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
-          # Gradle 配置
-          GRADLE_OPTS: "-Xmx4g -XX:+HeapDumpOnOutOfMemoryError"
         run: |
-          # 验证当前工作目录
-          echo "当前工作目录: $(pwd)"
-          echo "Android SDK: $ANDROID_HOME"
-          echo "项目根目录: $(cd ../.. && pwd)"
+          # 计算并行任务数
+          NUM_JOBS=$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
+          export CMAKE_BUILD_PARALLEL_LEVEL="${NUM_JOBS}"
           
-          # 检查必要的文件
-          echo "检查项目结构："
-          ls -la ../.. | head -20
+          # 映射构建变体
+          case "${{ github.event.inputs.flavor }}" in
+            standard) FLAVOR="Mainline" ;;
+            optimized) FLAVOR="GenshinSpoof" ;;
+            legacy) FLAVOR="Legacy" ;;
+            chromeos) FLAVOR="ChromeOS" ;;
+            *) FLAVOR="Mainline" ;;
+          esac
           
-          if [ -f "../../CMakeLists.txt" ]; then
-            echo "✓ CMakeLists.txt 存在于项目根目录"
-          else
-            echo "✗ CMakeLists.txt 不存在于项目根目录！"
-            ls -la ../..
-            exit 1
-          fi
+          BUILD_TYPE="${{ github.event.inputs.build_type }}"
           
-          if [ -f "build.gradle.kts" ]; then
-            echo "✓ build.gradle.kts 存在"
-          else
-            echo "✗ build.gradle.kts 不存在！"
-            ls -la
-            exit 1
-          fi
-          
-          if [ -f "app/build.gradle.kts" ]; then
-            echo "✓ app/build.gradle.kts 存在"
-          else
-            echo "✗ app/build.gradle.kts 不存在！"
-            ls -la app/
-            exit 1
-          fi
-          
-          if [ -f "gradlew" ]; then
-            echo "✓ gradlew 存在"
-          else
-            echo "✗ gradlew 不存在！"
-            ls -la
-            exit 1
-          fi
-
-          # 给予 gradlew 执行权限
-          chmod +x ./gradlew
-
-          # 准备额外参数
+          # 准备参数
           EXTRA_ARGS=""
           if [ "${{ github.event.inputs.enable_nightly }}" = "true" ]; then
             EXTRA_ARGS="$EXTRA_ARGS -n"
@@ -293,33 +160,35 @@ jobs:
           if [ "${{ github.event.inputs.enable_release }}" = "true" ]; then
             EXTRA_ARGS="$EXTRA_ARGS -r"
           fi
-
-          # 执行构建
+          
+          if [ "${{ github.event.inputs.enable_nightly }}" = "true" ]; then
+            NIGHTLY=true
+          else
+            NIGHTLY=false
+          fi
+          
+          # 给予 gradlew 执行权限
+          chmod +x ./gradlew
+          
           echo "=========================================="
           echo "开始构建..."
           echo "分支: ${{ github.event.inputs.branch }}"
-          echo "变体: ${{ github.event.inputs.flavor }} (${{ steps.build-params.outputs.FLAVOR_NAME }})"
-          echo "类型: ${{ github.event.inputs.build_type }}"
-          echo "夜间构建: ${{ github.event.inputs.enable_nightly }}"
+          echo "变体: ${{ github.event.inputs.flavor }} ($FLAVOR)"
+          echo "类型: $BUILD_TYPE"
+          echo "夜间构建: $NIGHTLY"
           echo "发布模式: ${{ github.event.inputs.enable_release }}"
           echo "CCache: ${{ github.event.inputs.enable_ccache }}"
+          echo "并行任务数: $NUM_JOBS"
           echo "=========================================="
-
-          # 计算并行任务数
-          NUM_JOBS=$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
           
-          # 执行构建（使用与原始构建脚本相同的参数）
-          echo "执行 Gradle 任务: ${{ steps.build-params.outputs.GRADLE_TASK_NAME }}"
-          
-          ./gradlew \
-            "${{ steps.build-params.outputs.GRADLE_TASK_NAME }}" \
+          # 执行构建（使用与原始构建脚本相同的命令）
+          ./gradlew "copy${FLAVOR}${BUILD_TYPE}Outputs" \
             -Dorg.gradle.caching="${{ github.event.inputs.enable_ccache }}" \
             -Dorg.gradle.parallel="${{ github.event.inputs.enable_ccache }}" \
             -Dorg.gradle.workers.max="${NUM_JOBS}" \
             -PYUZU_ANDROID_ARGS="$EXTRA_ARGS" \
-            -Pnightly="${{ github.event.inputs.enable_nightly }}" \
-            --no-daemon \
-            --stacktrace
+            -Pnightly="$NIGHTLY" \
+            --info
 
       # 显示 ccache 统计
       - name: 显示构建统计
@@ -327,24 +196,18 @@ jobs:
         run: |
           ccache -s
 
-      # 准备产物目录
+      # 准备产物
       - name: 准备产物
         working-directory: src/android
         run: |
-          # 验证当前工作目录
-          echo "当前工作目录: $(pwd)"
-          
           mkdir -p ../artifacts
-
+          
           # 复制构建产物
-          if [ -d "app/build/outputs/apk" ]; then
-            find app/build/outputs/apk -name "*.apk" -exec cp {} ../artifacts/ \;
+          if [ -d "artifacts" ]; then
+            find artifacts -name "*.apk" -exec cp {} ../artifacts/ \; 2>/dev/null || true
+            find artifacts -name "*.aab" -exec cp {} ../artifacts/ \; 2>/dev/null || true
           fi
-
-          if [ -d "app/build/outputs/bundle" ]; then
-            find app/build/outputs/bundle -name "*.aab" -exec cp {} ../artifacts/ \;
-          fi
-
+          
           echo "=========================================="
           echo "构建产物列表："
           ls -lh ../artifacts/
@@ -355,9 +218,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-apk-${{ github.event.inputs.flavor }}-${{ github.event.inputs.build_type }}-${{ github.run_number }}
-          path: |
-            src/android/artifacts/*.apk
-            src/android/artifacts/*.aab
+          path: artifacts/*.apk
           retention-days: 30
           compression-level: 9
 
@@ -369,18 +230,18 @@ jobs:
           ========================================
           Android 构建报告
           ========================================
-
+          
           基本信息
           --------
           构建编号: ${{ github.run_number }}
           构建ID: ${{ github.run_id }}
           触发时间: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
-
+          
           分支信息
           --------
           构建分支: ${{ github.event.inputs.branch }}
           提交SHA: ${{ github.sha }}
-
+          
           构建配置
           --------
           构建变体: ${{ github.event.inputs.flavor }}
@@ -388,17 +249,16 @@ jobs:
           夜间构建: ${{ github.event.inputs.enable_nightly }}
           发布模式: ${{ github.event.inputs.enable_release }}
           编译缓存: ${{ github.event.inputs.enable_ccache }}
-
+          
           环境信息
           --------
-          Android SDK: ${{ env.ANDROID_SDK_VERSION }}
+          Android SDK: ${{ env.ANDROID_COMPILE_SDK }}
           Android NDK: ${{ env.ANDROID_NDK_VERSION }}
-          Android Compile SDK: ${{ env.ANDROID_COMPILE_SDK }}
           Java 版本: OpenJDK 17
-
+          
           ========================================
           EOF
-
+          
           echo "$BUILD_INFO"
 
       # 上传构建信息
