@@ -181,22 +181,18 @@ jobs:
           echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
           echo "CCACHE=true" >> $GITHUB_ENV
 
-      # 清理旧配置
-      - name: 清理旧配置
-        working-directory: src/android
-        run: |
-          echo "清理可能存在的旧配置文件..."
-          rm -f gradle.properties
-          rm -rf build
-          rm -rf app/build
-          echo "清理完成"
-
       # 映射构建参数
       - name: 映射构建参数
         id: build-params
         run: |
           # 进入 Android 构建目录
           cd src/android
+          
+          # 检查 gradle.properties 是否存在 AndroidX 配置
+          if ! grep -q "android.useAndroidX=true" gradle.properties 2>/dev/null; then
+            echo "警告: gradle.properties 中缺少 AndroidX 配置"
+            echo "这可能导致构建失败"
+          fi
           
           # 构建变体映射：用户选择值 -> Gradle 任务名称
           FLAVOR_MAP="standard=Mainline optimized=GenshinSpoof legacy=Legacy chromeos=ChromeOS"
