@@ -237,4 +237,32 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
         val dividerView = inflater.inflate(R.layout.item_quick_settings_divider, container, false)
         container.addView(dividerView)
     }
+
+    /**
+     * Adds a non-interactive header line.
+     */
+    fun addHeader(container: ViewGroup, textRes: Int) {
+        val tv = TextView(emulationFragment.requireContext())
+        tv.text = YuzuApplication.appContext.getString(textRes)
+        tv.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleSmall)
+        val pad = (8f * tv.resources.displayMetrics.density).toInt()
+        tv.setPadding(pad, pad * 2, pad, pad / 2)
+        container.addView(tv)
+    }
+
+    /**
+     * Adds a plain clickable button.
+     */
+    fun addButton(textRes: Int, container: ViewGroup, onClick: () -> Unit) {
+        val inflater = LayoutInflater.from(emulationFragment.requireContext())
+        val itemView = inflater.inflate(R.layout.item_quick_settings_menu, container, false)
+        val titleView = itemView.findViewById<TextView>(R.id.switch_title)
+        val switchContainer = itemView.findViewById<ViewGroup>(R.id.switch_container)
+        titleView.text = YuzuApplication.appContext.getString(textRes)
+        // Hide the switch row, reuse the row's click area to act as a button.
+        itemView.findViewById<View>(R.id.setting_switch)?.visibility = View.GONE
+        switchContainer.visibility = View.VISIBLE
+        switchContainer.setOnClickListener { onClick() }
+        container.addView(itemView)
+    }
 }

@@ -28,6 +28,7 @@ import android.util.Rational
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.content.SharedPreferences
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.View
@@ -154,6 +155,22 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     var shouldUseCustom = false
     private var isQuickSettingsMenuOpen = false
     private val quickSettings = QuickSettings(this)
+
+    private var isFreeLayoutEditMode = false
+
+    // SharedPreferences for free layout (avoids touching native settings linkage).
+    private val freeLayoutPrefs: SharedPreferences by lazy {
+        requireContext().getSharedPreferences("free_layout_prefs", Context.MODE_PRIVATE)
+    }
+
+    companion object {
+        // Persisted layout in absolute pixels relative to emulation_container.
+        private const val KEY_FREE_LAYOUT_LEFT = "free_layout_left"
+        private const val KEY_FREE_LAYOUT_TOP = "free_layout_top"
+        private const val KEY_FREE_LAYOUT_RIGHT = "free_layout_right"
+        private const val KEY_FREE_LAYOUT_BOTTOM = "free_layout_bottom"
+        private const val KEY_FREE_LAYOUT_ENABLED = "free_layout_enabled"
+    }
 
     private val loadAmiiboLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -665,6 +682,130 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         requireActivity().finish()
     }
 
+    /**
+     * Initialize the FreeLayoutView: wire callbacks and restore persisted layout if any.
+     */
+    private fun setupFreeLayout() {
+        val flv = binding.freeLayoutView
+        flv.onLayoutChanged = { l, t, r, b ->
+            freeLayoutPrefs.edit()
+                .putInt(KEY_FREE_LAYOUT_LEFT, l)
+                .putInt(KEY_FREE_LAYOUT_TOP, t)
+                .putInt(KEY_FREE_LAYOUT_RIGHT, r)
+                .putInt(KEY_FREE_LAYOUT_BOTTOM, b)
+                .apply()
+        }
+        flv.onDoneClicked = { exitFreeLayoutEditMode() }
+
+        restoreFreeLayoutIfEnabled()
+    }
+
+    /**
+     * If a free layout has been saved previously, apply it. Otherwise free layout stays at
+     * default match_parent so the user sees no visual difference.
+     */
+    private fun restoreFreeLayoutIfEnabled() {
+        val enabled = freeLayoutPrefs.getBoolean(KEY_FREE_LAYOUT_ENABLED, false)
+        if (!enabled) {
+            return
+        }
+        val l = freeLayoutPrefs.getInt(KEY_FREE_LAYOUT_LEFT, 0)
+        val t = freeLayoutPrefs.getInt(KEY_FREE_LAYOUT_TOP, 0)
+        val r = freeLayoutPrefs.getInt(KEY_FREE_LAYOUT_RIGHT, 0)
+        val b = freeLayoutPrefs.getInt(KEY_FREE_LAYOUT_BOTTOM, 0)
+
+        // Need to wait until the parent has measured to apply absolute pixel positions.
+        binding.freeLayoutView.post {
+            val parent = binding.freeLayoutView.parent as View
+            val parentW = parent.width
+            val parentH = parent.height
+            if (parentW == 0 || parentH == 0) return@post
+
+            // Treat right=0/bottom=0 as "use parent bounds" (fullscreen).
+            val targetL: Int
+            val targetT: Int
+            val targetR: Int
+            val targetB: Int
+            if (r == 0 && b == 0) {
+                targetL = 0; targetT = 0; targetR = parentW; targetB = parentH
+            } else {
+                targetL = l.coerceIn(0, parentW)
+                targetT = t.coerceIn(0, parentH)
+                targetR = r.coerceIn(targetL + 1, parentW)
+                targetB = b.coerceIn(targetT + 1, parentH)
+            }
+            // Override the layout params with absolute pixel bounds.
+            binding.freeLayoutView.layout(targetL, targetT, targetR, targetB)
+        }
+    }
+
+    /**
+     * Toggle handler called from the quick-settings menu.
+     * ON  -> enter edit mode (handles + drag enabled).
+     * OFF -> exit edit mode AND reset to fullscreen.
+     */
+    fun toggleFreeLayoutFromMenu(enabled: Boolean) {
+        if (enabled) {
+            enterFreeLayoutEditMode()
+        } else {
+            exitFreeLayoutEditMode()
+            resetFreeLayoutFromMenu()
+        }
+    }
+
+    /**
+     * Enter edit mode: show the FreeLayoutView, draw handles, present the Done/Reset buttons.
+     */
+    private fun enterFreeLayoutEditMode() {
+        val flv = binding.freeLayoutView
+        flv.visibility = View.VISIBLE
+        flv.inEditMode = true
+        binding.doneControlConfig.setVisible(true)
+        binding.doneControlConfig.text = getString(R.string.emulation_done)
+        binding.doneControlConfig.setOnClickListener { exitFreeLayoutEditMode() }
+        isFreeLayoutEditMode = true
+        freeLayoutPrefs.edit().putBoolean(KEY_FREE_LAYOUT_ENABLED, true).apply()
+    }
+
+    /**
+     * Leave edit mode: hide handles, leave the new rect visible.
+     */
+    private fun exitFreeLayoutEditMode() {
+        val flv = binding.freeLayoutView
+        flv.inEditMode = false
+        binding.doneControlConfig.setVisible(false)
+        isFreeLayoutEditMode = false
+        flv.invalidate()
+    }
+
+    /**
+     * Reset free layout to fullscreen. Called from quick-settings reset.
+     */
+    fun resetFreeLayoutFromMenu() {
+        freeLayoutPrefs.edit()
+            .putInt(KEY_FREE_LAYOUT_LEFT, 0)
+            .putInt(KEY_FREE_LAYOUT_TOP, 0)
+            .putInt(KEY_FREE_LAYOUT_RIGHT, 0)
+            .putInt(KEY_FREE_LAYOUT_BOTTOM, 0)
+            .putBoolean(KEY_FREE_LAYOUT_ENABLED, false)
+            .apply()
+        if (isFreeLayoutEditMode) {
+            exitFreeLayoutEditMode()
+        }
+        // Reset to match_parent so the user regains fullscreen view.
+        val parent = binding.freeLayoutView.parent as View
+        val params = binding.freeLayoutView.layoutParams as FrameLayout.LayoutParams
+        params.width = FrameLayout.LayoutParams.MATCH_PARENT
+        params.height = FrameLayout.LayoutParams.MATCH_PARENT
+        params.leftMargin = 0
+        params.topMargin = 0
+        params.rightMargin = 0
+        params.bottomMargin = 0
+        binding.freeLayoutView.layoutParams = params
+        binding.freeLayoutView.requestLayout()
+        binding.freeLayoutView.visibility = View.VISIBLE
+    }
+
     private fun completeViewSetup() {
         if (_binding == null || game == null) {
             return
@@ -729,6 +870,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
 
         updateGameTitle()
+        setupFreeLayout()
 
         binding.inGameMenu.menu.findItem(R.id.menu_quick_settings)?.isVisible =
             BooleanSetting.ENABLE_QUICK_SETTINGS.getBoolean()
@@ -1194,6 +1336,29 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.array.rendererAntiAliasingNames,
                 R.array.rendererAntiAliasingValues
             )
+
+            // --- Free layout (game screen repositioning) ---
+            quickSettings.addDivider(container)
+
+            quickSettings.addHeader(container, R.string.free_layout)
+
+            val freeLayoutEnabled = freeLayoutPrefs.getBoolean(KEY_FREE_LAYOUT_ENABLED, false)
+            quickSettings.addCustomToggle(
+                R.string.free_layout,
+                freeLayoutEnabled,
+                true,
+                container
+            ) { enabled ->
+                toggleFreeLayoutFromMenu(enabled)
+            }
+
+            quickSettings.addButton(
+                R.string.free_layout_reset,
+                container
+            ) {
+                resetFreeLayoutFromMenu()
+                addQuickSettings()
+            }
         }
     }
 
@@ -1438,6 +1603,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         handler.removeCallbacksAndMessages(null)
         clearPausedFrame()
         _binding?.surfaceInputOverlay?.touchEventListener = null
+        _binding?.freeLayoutView?.let {
+            it.onLayoutChanged = null
+            it.onDoneClicked = null
+        }
         _binding = null
         isAmiiboPickerOpen = false
     }

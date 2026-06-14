@@ -18,15 +18,26 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <!-- This is what everything is rendered to during emulation -->
-            <org.yuzu.yuzu_emu.views.FixedRatioSurfaceView
-                android:id="@+id/surface_emulation"
+            <!-- Free-layout wrapper for the emulation surface. Lets the user drag/resize the
+                 game view from four corners via the quick-settings "Free Layout" toggle.
+                 Default state: match_parent and visible (no visual change for end users). -->
+            <org.yuzu.yuzu_emu.views.FreeLayoutView
+                android:id="@+id/free_layout_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:defaultFocusHighlightEnabled="false" />
+                android:layout_gravity="center">
+
+                <!-- This is what everything is rendered to during emulation -->
+                <org.yuzu.yuzu_emu.views.FixedRatioSurfaceView
+                    android:id="@+id/surface_emulation"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:defaultFocusHighlightEnabled="false" />
+
+            </org.yuzu.yuzu_emu.views.FreeLayoutView>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/loading_indicator"
