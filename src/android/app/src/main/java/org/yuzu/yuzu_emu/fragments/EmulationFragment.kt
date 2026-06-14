@@ -6,14 +6,6 @@
 
 package org.yuzu.yuzu_emu.fragments
 
-// File-level constants for free-layout persistence (kept outside any class / companion object
-// to avoid conflicting with the project's existing companion object in EmulationFragment).
-private const val KEY_FREE_LAYOUT_LEFT = "free_layout_left"
-private const val KEY_FREE_LAYOUT_TOP = "free_layout_top"
-private const val KEY_FREE_LAYOUT_RIGHT = "free_layout_right"
-private const val KEY_FREE_LAYOUT_BOTTOM = "free_layout_bottom"
-private const val KEY_FREE_LAYOUT_ENABLED = "free_layout_enabled"
-
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.AlertDialog
@@ -113,6 +105,14 @@ import java.nio.ByteBuffer
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.or
+
+// File-level constants for free-layout persistence (kept outside any class / companion object
+// to avoid conflicting with the project's existing companion object in EmulationFragment).
+private const val KEY_FREE_LAYOUT_LEFT = "free_layout_left"
+private const val KEY_FREE_LAYOUT_TOP = "free_layout_top"
+private const val KEY_FREE_LAYOUT_RIGHT = "free_layout_right"
+private const val KEY_FREE_LAYOUT_BOTTOM = "free_layout_bottom"
+private const val KEY_FREE_LAYOUT_ENABLED = "free_layout_enabled"
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private lateinit var emulationState: EmulationState
