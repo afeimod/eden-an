@@ -6,6 +6,14 @@
 
 package org.yuzu.yuzu_emu.fragments
 
+// File-level constants for free-layout persistence (kept outside any class / companion object
+// to avoid conflicting with the project's existing companion object in EmulationFragment).
+private const val KEY_FREE_LAYOUT_LEFT = "free_layout_left"
+private const val KEY_FREE_LAYOUT_TOP = "free_layout_top"
+private const val KEY_FREE_LAYOUT_RIGHT = "free_layout_right"
+private const val KEY_FREE_LAYOUT_BOTTOM = "free_layout_bottom"
+private const val KEY_FREE_LAYOUT_ENABLED = "free_layout_enabled"
+
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.AlertDialog
@@ -163,14 +171,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         requireContext().getSharedPreferences("free_layout_prefs", Context.MODE_PRIVATE)
     }
 
-    companion object {
-        // Persisted layout in absolute pixels relative to emulation_container.
-        private const val KEY_FREE_LAYOUT_LEFT = "free_layout_left"
-        private const val KEY_FREE_LAYOUT_TOP = "free_layout_top"
-        private const val KEY_FREE_LAYOUT_RIGHT = "free_layout_right"
-        private const val KEY_FREE_LAYOUT_BOTTOM = "free_layout_bottom"
-        private const val KEY_FREE_LAYOUT_ENABLED = "free_layout_enabled"
-    }
 
     private val loadAmiiboLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
