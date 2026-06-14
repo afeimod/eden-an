@@ -216,6 +216,27 @@ namespace AndroidSettings {
                                                         "enable_quick_settings",
                                                         Settings::Category::Android, Settings::Specialization::Default, true,
                                                       false};
+
+        // Free-layout editor: normalised 0..1 rectangle of the emulated screen.
+        // Driven by ScreenPositionEditor on the Java side, consumed by the surface
+        // layout code (android_config.cpp / ndk-side renderer setup) to crop / scale
+        // the game output. Defaults give a small inset so the corner handles of the
+        // editor are visible on first launch.
+        Settings::Setting<bool> screen_custom_layout{linkage, false, "screen_custom_layout",
+                                                     Settings::Category::Android,
+                                                     Settings::Specialization::Default, true, true};
+        Settings::Setting<float> screen_custom_x1{linkage, 0.15f, "screen_custom_x1",
+                                                  Settings::Category::Android,
+                                                  Settings::Specialization::Default, true, true};
+        Settings::Setting<float> screen_custom_y1{linkage, 0.15f, "screen_custom_y1",
+                                                  Settings::Category::Android,
+                                                  Settings::Specialization::Default, true, true};
+        Settings::Setting<float> screen_custom_x2{linkage, 0.85f, "screen_custom_x2",
+                                                  Settings::Category::Android,
+                                                  Settings::Specialization::Default, true, true};
+        Settings::Setting<float> screen_custom_y2{linkage, 0.85f, "screen_custom_y2",
+                                                  Settings::Category::Android,
+                                                  Settings::Specialization::Default, true, true};
     };
 
     extern Values values;

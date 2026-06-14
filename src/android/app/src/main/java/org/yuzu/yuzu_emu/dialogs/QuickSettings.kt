@@ -239,7 +239,7 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
     }
 
     /**
-     * Adds a non-interactive header line.
+     * Adds a clickable header (used as a section title in the quick settings sheet).
      */
     fun addHeader(container: ViewGroup, textRes: Int) {
         val tv = TextView(emulationFragment.requireContext())
@@ -251,7 +251,7 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
     }
 
     /**
-     * Adds a plain clickable button.
+     * Adds a plain clickable button (reuses the toggle row layout minus the switch).
      */
     fun addButton(textRes: Int, container: ViewGroup, onClick: () -> Unit) {
         val inflater = LayoutInflater.from(emulationFragment.requireContext())
@@ -259,7 +259,6 @@ class QuickSettings(val emulationFragment: EmulationFragment) {
         val titleView = itemView.findViewById<TextView>(R.id.switch_title)
         val switchContainer = itemView.findViewById<ViewGroup>(R.id.switch_container)
         titleView.text = YuzuApplication.appContext.getString(textRes)
-        // Hide the switch row, reuse the row's click area to act as a button.
         itemView.findViewById<View>(R.id.setting_switch)?.visibility = View.GONE
         switchContainer.visibility = View.VISIBLE
         switchContainer.setOnClickListener { onClick() }
