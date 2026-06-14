@@ -911,7 +911,8 @@
     <string name="emulation_control_opacity">Opacity</string>
     <string name="emulation_touch_overlay_reset">Reset overlay</string>
     <string name="free_layout">Free layout</string>
-    <string name="free_layout_hint">Drag a corner to resize, drag inside to move. Tap outside the rectangle to exit.</string>
+    <string name="free_layout_hint">Drag a corner to resize, drag inside to move. Tap Done when finished.</string>
+    <string name="free_layout_done">Done</string>
     <string name="free_layout_reset">Reset to default</string>
     <string name="emulation_touch_overlay_edit">Edit overlay</string>
     <string name="emulation_snap_to_grid">Snap to grid</string>

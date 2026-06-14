@@ -1113,20 +1113,18 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         val editor = binding.screenPositionEditor
         editor.listener = object : org.yuzu.yuzu_emu.views.ScreenPositionEditor.Listener {
             override fun onRectChanged(x1: Float, y1: Float, x2: Float, y2: Float, confirm: Boolean) {
-                // Live during drag AND on touch-up we apply the same thing:
-                //  1) re-layout the emulated surface to match the new 0..1 rectangle.
-                //  2) persist via NativeConfig (these keys are now registered in
-                //     AndroidSettings::Values, so the values really hit disk).
+                // Apply the new rectangle to the surface every frame during drag so the
+                // user sees the game follow the cursor.
                 applyScreenRect(x1, y1, x2, y2)
                 if (confirm) {
+                    // Persist on touch-up. Do NOT auto-exit edit mode; the user keeps
+                    // adjusting until they tap the Done button.
                     NativeConfig.setBoolean(KEY_FREE_LAYOUT_ENABLED, true)
                     NativeConfig.setFloat(KEY_FREE_LAYOUT_X1, x1)
                     NativeConfig.setFloat(KEY_FREE_LAYOUT_Y1, y1)
                     NativeConfig.setFloat(KEY_FREE_LAYOUT_X2, x2)
                     NativeConfig.setFloat(KEY_FREE_LAYOUT_Y2, y2)
                     NativeConfig.saveGlobalConfig()
-                    // Auto-exit edit mode after the user lifts their finger.
-                    exitFreeLayoutEditMode()
                 }
             }
         }
@@ -1135,10 +1133,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         val (sx1, sy1, sx2, sy2) = readFreeLayoutRectOrDefault()
         editor.setRect(sx1, sy1, sx2, sy2)
         editor.post {
-            // Force the surface to ignore its fixed aspect ratio so it stretches
-            // to whatever rectangle the user picked. (Without this the vertical-
-            // alignment logic would re-apply setAspectRatio and clamp the size.)
-            binding.surfaceEmulation.setAspectRatio(null)
             applyScreenRect(sx1, sy1, sx2, sy2)
         }
     }
@@ -1184,8 +1178,18 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         editor.visibility = View.VISIBLE
         editor.bringToFront()
         isFreeLayoutEditMode = true
-        // Drop the fixed aspect ratio so the user can free-shape the surface.
+
+        // Remember the user's current aspect ratio so we can restore it on exit.
+        val originalAspect = IntSetting.RENDERER_ASPECT_RATIO.getInt(false)
+        if (originalAspect != 4 /* Stretch */) {
+            IntSetting.RENDERER_ASPECT_RATIO.setInt(4)
+        }
+
+        // Drop the fixed aspect ratio on the Java side too.
         binding.surfaceEmulation.setAspectRatio(null)
+        binding.freeLayoutDoneButton.visibility = View.VISIBLE
+        binding.freeLayoutDoneButton.setOnClickListener { exitFreeLayoutEditMode() }
+
         NativeConfig.setBoolean(KEY_FREE_LAYOUT_ENABLED, true)
         NativeConfig.saveGlobalConfig()
     }
@@ -1209,6 +1213,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
      */
     private fun exitFreeLayoutEditMode() {
         binding.screenPositionEditor.visibility = View.GONE
+        binding.freeLayoutDoneButton.visibility = View.GONE
         isFreeLayoutEditMode = false
     }
 
@@ -1234,7 +1239,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         lp.bottomMargin = 0
         lp.gravity = Gravity.CENTER
         surface.layoutParams = lp
-        // Re-arm the aspect ratio so the vertical-alignment setting takes effect again.
         surface.setAspectRatio(null)
         surface.requestLayout()
 

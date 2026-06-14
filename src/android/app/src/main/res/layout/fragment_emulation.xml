@@ -169,6 +169,17 @@
                 android:focusable="true"
                 android:visibility="gone" />
 
+            <!-- Done button for the free-layout editor. Visible only while editing. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/free_layout_done_button"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="48dp"
+                android:text="@string/free_layout_done"
+                android:visibility="gone" />
+
             <ImageView
                 android:id="@+id/paused_icon"
                 android:layout_width="64dp"
