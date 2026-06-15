@@ -775,6 +775,10 @@
     <string name="emulation_control_opacity">不透明度</string>
     <string name="emulation_touch_overlay_reset">重設虛擬按鍵</string>
     <string name="emulation_touch_overlay_edit">編輯虛擬按鍵</string>
+    <string name="free_layout">自由布局</string>
+    <string name="free_layout_hint">拖動角落可縮放，拖動框內可移動。點完成結束編輯。</string>
+    <string name="free_layout_done">完成</string>
+    <string name="free_layout_reset">恢復預設</string>
     <string name="emulation_pause">暫停模擬</string>
     <string name="emulation_unpause">取消暫停模擬</string>
     <string name="emulation_input_overlay">疊加層/虛擬按鍵設定</string>
