@@ -886,6 +886,10 @@
     <string name="emulation_control_opacity">不透明度</string>
     <string name="emulation_touch_overlay_reset">重置触控叠加层</string>
     <string name="emulation_touch_overlay_edit">编辑触控叠加层</string>
+    <string name="free_layout">自由布局</string>
+    <string name="free_layout_hint">拖动角可缩放，拖动框内可移动。点完成结束编辑。</string>
+    <string name="free_layout_done">完成</string>
+    <string name="free_layout_reset">恢复默认</string>
     <string name="emulation_snap_to_grid">对齐到网格</string>
     <string name="emulation_pause">暂停模拟</string>
     <string name="emulation_unpause">继续模拟</string>
