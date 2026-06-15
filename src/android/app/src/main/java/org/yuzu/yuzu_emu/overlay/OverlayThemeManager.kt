@@ -106,7 +106,7 @@ object OverlayThemeManager {
     fun isActive(context: Context): Boolean =
         savedUri(context).isNotEmpty()
 
-    private fun savedUri(context: Context): String =
+    fun savedUri(context: Context): String =
         prefs(context).getString(KEY_THEME_URI, "") ?: ""
 
     /**
