@@ -8,11 +8,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
+import androidx.preference.PreferenceManager
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipInputStream
-import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 
 /**
  * Manages custom overlay themes packaged as `.zip` files.
@@ -54,6 +54,22 @@ object OverlayThemeManager {
     private const val ACTIVE_DIR = "themes/active"
     private const val BACKGROUND_FILE = "background.png"
 
+    // The theme path lives in SharedPreferences instead of NativeConfig's
+    // string setting table because:
+    //   1. NativeConfig.setString needs an explicit saveGlobalConfig() call
+    //      to persist across process restarts, and the picker must read the
+    //      value back right after install() returns — too easy to miss.
+    //   2. NativeConfig.getString(key, needsGlobal) is unreliable for
+    //      custom keys we haven't registered with the native side; the JNI
+    //      side only knows about settings it has hard-coded defaults for,
+    //      so reading back an unrecognised key returns "" even after a
+    //      successful write. SharedPreferences has neither pitfall.
+    private const val PREFS_NAME = "overlay_theme_prefs"
+    private const val KEY_THEME_URI = "overlay_theme_uri"
+
+    private fun prefs(context: Context) =
+        context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
     /** All filenames we recognise as overlay assets (case-insensitive). */
     val KNOWN_FILES: Set<String> = setOf(
         BACKGROUND_FILE,
@@ -87,8 +103,11 @@ object OverlayThemeManager {
         File(context.filesDir, "themes/last_theme.zip")
 
     /** Returns true if a custom theme is currently active. */
-    fun isActive(): Boolean =
-        StringSetting.OVERLAY_THEME_PATH.getString(needsGlobal = true).isNotEmpty()
+    fun isActive(context: Context): Boolean =
+        savedUri(context).isNotEmpty()
+
+    private fun savedUri(context: Context): String =
+        prefs(context).getString(KEY_THEME_URI, "") ?: ""
 
     /**
      * Install the theme zip pointed to by [uri] as the active theme.
@@ -133,7 +152,9 @@ object OverlayThemeManager {
             }
 
             // 3. Persist the source uri so the next launch can re-apply.
-            StringSetting.OVERLAY_THEME_PATH.setString(uri.toString())
+            prefs(context).edit()
+                .putString(KEY_THEME_URI, uri.toString())
+                .apply()
             Log.i(TAG, "Installed overlay theme from $uri ($extracted files)")
             return extracted
         } catch (e: Exception) {
@@ -149,18 +170,14 @@ object OverlayThemeManager {
      * on view creation so a theme survives app restarts.
      */
     fun reapply(context: Context) {
-        // Always read from the global slot — the theme is a global
-        // setting; without `needsGlobal = true` we'd read the (empty)
-        // per-game config and the theme would never re-apply after a
-        // process restart while a game is loaded.
-        val saved = StringSetting.OVERLAY_THEME_PATH.getString(needsGlobal = true)
+        val saved = savedUri(context)
         if (saved.isEmpty()) return
         runCatching { install(context, Uri.parse(saved)) }
     }
 
     /** Remove the active theme and delete the cached files. */
     fun uninstall(context: Context) {
-        StringSetting.OVERLAY_THEME_PATH.setString("")
+        prefs(context).edit().remove(KEY_THEME_URI).apply()
         activeDir(context).listFiles()?.forEach { it.delete() }
         runCatching { sourceZip(context).delete() }
     }

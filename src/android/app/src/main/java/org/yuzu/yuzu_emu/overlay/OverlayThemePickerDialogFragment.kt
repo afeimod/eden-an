@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogOverlayThemeBinding
-import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 
 /**
  * Bottom sheet that lets the user pick a theme zip (via SAF) or clear the
@@ -84,10 +83,7 @@ class OverlayThemePickerDialogFragment : BottomSheetDialogFragment() {
 
     private fun refreshStatus() {
         val ctx = requireContext()
-        // needsGlobal = true: the theme path is a global setting; it
-        // would otherwise fall through to the (empty) per-game config
-        // when the user is browsing the global settings page.
-        val saved = StringSetting.OVERLAY_THEME_PATH.getString(needsGlobal = true)
+        val saved = OverlayThemeManager.savedUri(ctx)
         if (saved.isEmpty()) {
             binding.statusTitle.text = getString(R.string.overlay_theme_status_none)
             binding.statusDetail.text = getString(R.string.overlay_theme_status_none_detail)
