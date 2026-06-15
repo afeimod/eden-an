@@ -92,11 +92,17 @@ class InputOverlayDrawableCombo(
         val ringPaint = if (comboActive) outerRingActive else outerRing
         canvas.drawRoundRect(bounds, radius, radius, ringPaint)
 
-        // Sub-key hit circles.
+        // Sub-key hit circles. Shrink drawn radius as N grows so the
+        // panel doesn't become an illegible blob of overlapping circles.
         val subCenters = computeSubCenters()
+        val drawRadius = when {
+            subCenters.size <= 4 -> bounds.width() * 0.14f
+            subCenters.size == 5 -> bounds.width() * 0.11f
+            else -> bounds.width() * 0.09f
+        }
         subCenters.forEachIndexed { idx, c ->
             val fill = if (activePointers.values.contains(idx)) subFillActive else subFill
-            canvas.drawCircle(c.x, c.y, bounds.width() * 0.14f, fill)
+            canvas.drawCircle(c.x, c.y, drawRadius, fill)
         }
 
         // Centre label = combo target abbreviation.
@@ -132,7 +138,9 @@ class InputOverlayDrawableCombo(
         val n = preset.triggers.size
         val cx = bounds.centerX()
         val cy = bounds.centerY()
-        val r = bounds.width() * 0.22f
+        // Larger pad to accommodate more child keys; cap the radius so the
+        // sub-circles stay inside the panel.
+        val r = (bounds.width() * 0.32f).coerceAtMost(bounds.width() * 0.4f)
         return when (n) {
             2 -> listOf(
                 PointF(cx - r, cy),
@@ -143,14 +151,41 @@ class InputOverlayDrawableCombo(
                 PointF(cx - r * 0.866f, cy + r * 0.5f),
                 PointF(cx + r * 0.866f, cy + r * 0.5f),
             )
-            else -> emptyList()
+            4 -> listOf(
+                PointF(cx - r, cy - r),
+                PointF(cx + r, cy - r),
+                PointF(cx - r, cy + r),
+                PointF(cx + r, cy + r),
+            )
+            else -> {
+                // 5-8: equally spaced around a circle, starting at top.
+                val out = ArrayList<PointF>(n)
+                val startAngle = -Math.PI / 2.0
+                for (i in 0 until n) {
+                    val theta = startAngle + (2.0 * Math.PI * i) / n
+                    out += PointF(
+                        cx + (r * Math.cos(theta)).toFloat(),
+                        cy + (r * Math.sin(theta)).toFloat()
+                    )
+                }
+                out
+            }
         }
     }
 
-    /** True if [x,y] is inside one of the sub-key hit circles (within 1.4x radius). */
+    /** True if [x,y] is inside one of the sub-key hit circles. */
     private fun hitSubIndex(x: Float, y: Float): Int? {
         val centers = computeSubCenters()
-        val r = bounds.width() * 0.14f * 1.4f
+        if (centers.isEmpty()) return null
+        // For >=5 children, shrink the per-key hit radius so they don't overlap.
+        val n = centers.size
+        val baseRadius = bounds.width() * 0.14f
+        val tol = when {
+            n <= 4 -> 1.5f
+            n == 5 -> 1.25f
+            else -> 1.15f
+        }
+        val r = baseRadius * tol
         centers.forEachIndexed { idx, c ->
             val dx = c.x - x
             val dy = c.y - y

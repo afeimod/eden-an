@@ -939,8 +939,17 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             val drawable = InputOverlayDrawableCombo(resources, preset)
             val position = preset.positionFromLayout(layout)
             val scale = (IntSetting.OVERLAY_SCALE.getInt() + 50).toFloat() / 100f
-            val size = (baseSize * 0.12f * scale * preset.individualScale).toInt()
-                .coerceAtLeast(120)
+            // Larger pad for combos with more child keys so 5-8 finger
+            // presses don't crowd each other. 2-3 keys: 14%; 4 keys: 18%;
+            // 5-6 keys: 22%; 7-8 keys: 26% of the smaller screen side.
+            val pct = when {
+                preset.triggers.size <= 3 -> 0.14f
+                preset.triggers.size == 4 -> 0.18f
+                preset.triggers.size <= 6 -> 0.22f
+                else -> 0.26f
+            }
+            val size = (baseSize * pct * scale * preset.individualScale).toInt()
+                .coerceAtLeast(140)
             val drawableX = (position.first * max.x + min.x).toInt() - size / 2
             val drawableY = (position.second * max.y + min.y).toInt() - size / 2
             drawable.setBounds(drawableX, drawableY, drawableX + size, drawableY + size)

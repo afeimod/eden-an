@@ -162,7 +162,7 @@ object ComboStore {
 
         // Validate triggers; fall back to 2-key ZL if invalid.
         val safeTriggers = when {
-            triggers.size in 2..3 -> triggers
+            triggers.size in ComboPreset.MIN_TRIGGERS..ComboPreset.MAX_TRIGGERS -> triggers
             else -> listOf(NativeButton.L, NativeButton.R)
         }
 

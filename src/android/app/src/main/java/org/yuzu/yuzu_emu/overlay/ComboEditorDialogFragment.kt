@@ -108,10 +108,10 @@ class ComboEditorDialogFragment : DialogFragment() {
         }
     }
 
-    /** Enforce the 2-3 child key constraint. Disables unchecked chips at limit. */
+    /** Enforce the 2-8 child key constraint. Disables unchecked chips at limit. */
     private fun enforceTriggerLimit() {
         val group = binding.triggersChipGroup
-        val atMax = triggerButtons.size >= 3
+        val atMax = triggerButtons.size >= ComboPreset.MAX_TRIGGERS
         for (i in 0 until group.childCount) {
             val chip = group.getChildAt(i) as? Chip ?: continue
             val btn = triggerCandidates.getOrNull(i) ?: continue
@@ -168,7 +168,8 @@ class ComboEditorDialogFragment : DialogFragment() {
         val existing = list.firstOrNull { it.id == id } ?: return
         val name = binding.comboNameInput.text?.toString()?.trim().orEmpty()
             .ifEmpty { existing.displayName }
-        val trig = triggerButtons.toList().takeIf { it.size in 2..3 }
+        val trig = triggerButtons.toList()
+            .takeIf { it.size in ComboPreset.MIN_TRIGGERS..ComboPreset.MAX_TRIGGERS }
             ?: existing.triggers
         val tgt = targetButton ?: existing.target
         val updated = existing.copy(

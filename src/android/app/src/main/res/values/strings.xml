@@ -1817,14 +1817,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
     <!-- Virtual button combos -->
     <string name="combo_menu_title">Virtual button combos</string>
-    <string name="combo_menu_description">Configure multi-key virtual button combos (2 or 3 child keys → 1 target key).</string>
+    <string name="combo_menu_description">Configure multi-key virtual button combos (2-8 child keys → 1 target key).</string>
     <string name="combo_manager_description">Toggle visibility, add custom combos or load a built-in preset. In the overlay editor, drag a combo pad to reposition; tap it to edit.</string>
     <string name="combo_manager_load_preset">Load preset</string>
     <string name="combo_manager_add_new">Add combo</string>
     <string name="combo_item_summary_fmt">Triggers: %1$s → Target: %2$s</string>
     <string name="combo_editor_title">Edit combo</string>
     <string name="combo_editor_name_hint">Combo name</string>
-    <string name="combo_editor_triggers_label">Child trigger keys (pick 2 or 3)</string>
+    <string name="combo_editor_triggers_label">Child trigger keys (pick 2-8)</string>
     <string name="combo_editor_target_label">Target key (this is what gets pressed)</string>
     <string name="combo_editor_enabled_label">Enabled (shown on overlay)</string>
     <string name="combo_preset_picker_title">Pick a built-in combo</string>

@@ -27,9 +27,16 @@ data class ComboPreset(
     var foldablePosition: Pair<Double, Double> = Pair(0.85, 0.7),
     var individualScale: Float = 1.0f,
 ) {
+    companion object {
+        /** Minimum number of child trigger keys per combo. */
+        const val MIN_TRIGGERS = 2
+        /** Maximum number of child trigger keys per combo. */
+        const val MAX_TRIGGERS = 8
+    }
+
     init {
-        require(triggers.size in 2..3) {
-            "ComboPreset requires 2 or 3 child triggers (got ${triggers.size})"
+        require(triggers.size in MIN_TRIGGERS..MAX_TRIGGERS) {
+            "ComboPreset requires $MIN_TRIGGERS-$MAX_TRIGGERS child triggers (got ${triggers.size})"
         }
         require(triggers.distinct().size == triggers.size) {
             "ComboPreset triggers must be distinct"
