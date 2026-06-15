@@ -84,7 +84,10 @@ class OverlayThemePickerDialogFragment : BottomSheetDialogFragment() {
 
     private fun refreshStatus() {
         val ctx = requireContext()
-        val saved = StringSetting.OVERLAY_THEME_PATH.getString()
+        // needsGlobal = true: the theme path is a global setting; it
+        // would otherwise fall through to the (empty) per-game config
+        // when the user is browsing the global settings page.
+        val saved = StringSetting.OVERLAY_THEME_PATH.getString(needsGlobal = true)
         if (saved.isEmpty()) {
             binding.statusTitle.text = getString(R.string.overlay_theme_status_none)
             binding.statusDetail.text = getString(R.string.overlay_theme_status_none_detail)

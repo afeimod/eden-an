@@ -27,6 +27,10 @@ enum class StringSetting(override val key: String) : AbstractStringSetting {
             global = false
         }
         NativeConfig.setString(key, value)
+        // Persist immediately: the picker reads the value right after
+        // install() returns, and the user can quit the settings page
+        // before another save point is hit.
+        NativeConfig.saveGlobalConfig()
     }
 
     override val defaultValue: String by lazy { NativeConfig.getDefaultToString(key) }

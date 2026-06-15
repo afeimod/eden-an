@@ -87,7 +87,8 @@ object OverlayThemeManager {
         File(context.filesDir, "themes/last_theme.zip")
 
     /** Returns true if a custom theme is currently active. */
-    fun isActive(): Boolean = StringSetting.OVERLAY_THEME_PATH.getString().isNotEmpty()
+    fun isActive(): Boolean =
+        StringSetting.OVERLAY_THEME_PATH.getString(needsGlobal = true).isNotEmpty()
 
     /**
      * Install the theme zip pointed to by [uri] as the active theme.
@@ -148,7 +149,11 @@ object OverlayThemeManager {
      * on view creation so a theme survives app restarts.
      */
     fun reapply(context: Context) {
-        val saved = StringSetting.OVERLAY_THEME_PATH.getString()
+        // Always read from the global slot — the theme is a global
+        // setting; without `needsGlobal = true` we'd read the (empty)
+        // per-game config and the theme would never re-apply after a
+        // process restart while a game is loaded.
+        val saved = StringSetting.OVERLAY_THEME_PATH.getString(needsGlobal = true)
         if (saved.isEmpty()) return
         runCatching { install(context, Uri.parse(saved)) }
     }
