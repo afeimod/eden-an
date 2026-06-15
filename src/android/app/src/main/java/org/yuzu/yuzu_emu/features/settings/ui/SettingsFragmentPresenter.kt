@@ -30,6 +30,7 @@ import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.FullscreenHelper
+import org.yuzu.yuzu_emu.overlay.OverlayThemePickerDialogFragment
 import androidx.core.content.edit
 import androidx.fragment.app.FragmentActivity
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
@@ -353,6 +354,19 @@ class SettingsFragmentPresenter(
                     descriptionId = R.string.edit_overlay_layout_description,
                     launchIntent = { context ->
                         EmulationActivity.launchForOverlayEdit(context)
+                    }
+                )
+            )
+            add(HeaderSetting(R.string.overlay_theme))
+            add(
+                LaunchableSetting(
+                    titleId = R.string.overlay_theme,
+                    descriptionId = R.string.overlay_theme_description,
+                    onClick = { context ->
+                        OverlayThemePickerDialogFragment().show(
+                            (context as FragmentActivity).supportFragmentManager,
+                            OverlayThemePickerDialogFragment.TAG
+                        )
                     }
                 )
             )

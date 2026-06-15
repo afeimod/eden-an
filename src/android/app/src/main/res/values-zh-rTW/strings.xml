@@ -39,6 +39,24 @@
     <string name="edit_overlay_layout">編輯虛擬按鍵</string>
     <string name="edit_overlay_layout_description">調整虛擬按鍵的位置和大小</string>
 
+    <!-- 自訂虛擬按鍵主題 -->
+    <string name="overlay_theme">自訂虛擬按鍵主題</string>
+    <string name="overlay_theme_description">載入一個包含虛擬按鍵素材的 .zip 檔。background.png 會作為遊戲的背景層顯示在遊戲畫面之後。</string>
+    <string name="overlay_theme_pick">選擇主題…</string>
+    <string name="overlay_theme_clear">恢復為預設</string>
+    <string name="overlay_theme_picker_title">自訂虛擬按鍵主題</string>
+    <string name="overlay_theme_picker_description">選擇一個包含虛擬按鍵素材的 .zip 檔。若其中包含 background.png，將作為遊戲的背景層顯示。</string>
+    <string name="overlay_theme_status_none">未啟用自訂主題</string>
+    <string name="overlay_theme_status_none_detail">正在使用內建的預設素材。</string>
+    <string name="overlay_theme_status_active">已啟用自訂主題</string>
+    <string name="overlay_theme_status_active_detail">已載入 %1$d 個素材檔。背景圖片：%2$s。</string>
+    <string name="overlay_theme_installing">正在安裝…</string>
+    <string name="overlay_theme_install_failed">主題安裝失敗，請檢查 zip 檔是否有效。</string>
+    <string name="overlay_theme_install_ok">主題已安裝（共 %1$d 個檔案）。</string>
+    <string name="overlay_theme_cleared">已恢復為預設主題。</string>
+    <string name="overlay_theme_yes">有</string>
+    <string name="overlay_theme_no">無</string>
+
 
     <!-- Stats Overlay settings -->
     <string name="process_ram">記憶體使用量 %1$d MB</string>

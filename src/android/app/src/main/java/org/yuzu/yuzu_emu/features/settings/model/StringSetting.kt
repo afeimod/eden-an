@@ -13,7 +13,11 @@ enum class StringSetting(override val key: String) : AbstractStringSetting {
     DEVICE_NAME("device_name"),
 
     WEB_TOKEN("eden_token"),
-    WEB_USERNAME("eden_username")
+    WEB_USERNAME("eden_username"),
+
+    // Path (SAF content uri or absolute path) of the currently active
+    // overlay theme zip. Empty means the bundled default assets are used.
+    OVERLAY_THEME_PATH("overlay_theme_path")
     ;
 
     override fun getString(needsGlobal: Boolean): String = NativeConfig.getString(key, needsGlobal)

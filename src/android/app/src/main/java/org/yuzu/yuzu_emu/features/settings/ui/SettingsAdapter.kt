@@ -230,6 +230,13 @@ class SettingsAdapter(
     }
 
     fun onLaunchableClick(item: LaunchableSetting) {
+        // Custom click handlers take precedence: some entries (e.g. the
+        // overlay theme picker) live as DialogFragments and don't have a
+        // meaningful Intent to launch.
+        item.onClick?.let { handler ->
+            handler(context)
+            return
+        }
         val intent = item.launchIntent(context)
         fragment.requireActivity().startActivity(intent)
     }

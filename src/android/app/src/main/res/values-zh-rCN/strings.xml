@@ -39,6 +39,24 @@
     <string name="edit_overlay_layout">编辑触控叠加层布局</string>
     <string name="edit_overlay_layout_description">调整屏上控件的的位置和大小</string>
 
+    <!-- 自定义叠加层主题 -->
+    <string name="overlay_theme">自定义叠加层主题</string>
+    <string name="overlay_theme_description">加载一个包含叠加层素材的 .zip 包。其中 background.png 会作为游戏的背景层显示在游戏画面之后。</string>
+    <string name="overlay_theme_pick">选择主题…</string>
+    <string name="overlay_theme_clear">恢复为默认</string>
+    <string name="overlay_theme_picker_title">自定义叠加层主题</string>
+    <string name="overlay_theme_picker_description">选择一个包含叠加层素材的 .zip 文件。若其中包含 background.png，将作为游戏的背景层显示。</string>
+    <string name="overlay_theme_status_none">未启用自定义主题</string>
+    <string name="overlay_theme_status_none_detail">正在使用内置的默认素材。</string>
+    <string name="overlay_theme_status_active">已启用自定义主题</string>
+    <string name="overlay_theme_status_active_detail">已加载 %1$d 个素材文件。背景图片：%2$s。</string>
+    <string name="overlay_theme_installing">正在安装…</string>
+    <string name="overlay_theme_install_failed">主题安装失败，请检查 zip 文件是否有效。</string>
+    <string name="overlay_theme_install_ok">主题已安装（共 %1$d 个文件）。</string>
+    <string name="overlay_theme_cleared">已恢复为默认主题。</string>
+    <string name="overlay_theme_yes">有</string>
+    <string name="overlay_theme_no">无</string>
+
 
     <!-- Stats Overlay settings -->
     <string name="process_ram">进程内存占用: %1$d MB</string>

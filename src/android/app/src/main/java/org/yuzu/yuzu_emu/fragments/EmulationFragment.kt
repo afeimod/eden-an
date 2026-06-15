@@ -85,6 +85,7 @@ import org.yuzu.yuzu_emu.model.EmulationViewModel
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.overlay.model.OverlayControl
 import org.yuzu.yuzu_emu.overlay.model.OverlayLayout
+import org.yuzu.yuzu_emu.overlay.OverlayThemeManager
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GameHelper
@@ -618,7 +619,62 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentEmulationBinding.inflate(layoutInflater)
+        // Re-apply the previously installed theme (if any) so the button
+        // artwork survives process death, then push the optional
+        // background.png into the static layer behind the rendering surface.
+        // Background.png is intentionally placed *behind* the game surface
+        // and behind the on-screen input overlay, per the design goal.
+        OverlayThemeManager.reapply(requireContext().applicationContext)
+        applyThemeBackground()
         return binding.root
+    }
+
+    private fun applyThemeBackground() {
+        val bg = binding.themeBackground
+        if (OverlayThemeManager.hasBackground(requireContext())) {
+            val file = OverlayThemeManager.backgroundFile(requireContext())
+            if (file != null) {
+                // Decode straight from disk; the file lives in our own
+                // filesDir so we don't need a FileProvider for setImageURI.
+                val opts = android.graphics.BitmapFactory.Options().apply {
+                    inPreferredConfig = android.graphics.Bitmap.Config.RGB_565
+                }
+                val bitmap = android.graphics.BitmapFactory.decodeFile(
+                    file.absolutePath, opts
+                )
+                if (bitmap != null) {
+                    bg.setImageBitmap(bitmap)
+                    bg.visibility = View.VISIBLE
+                    return
+                }
+            }
+        }
+        // No background.png shipped with the active theme: hide the layer
+        // so the user sees the system default.
+        bg.setImageDrawable(null)
+        bg.visibility = View.GONE
+    }
+
+    /**
+     * Re-reads the active theme and rebuilds the input overlay. Called by
+     * the theme picker after a new zip is installed or the user resets
+     * the theme.
+     */
+    fun refreshOverlayTheme() {
+        applyThemeBackground()
+        binding.surfaceInputOverlay.refreshControls()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // If the user installed or reset a theme from the Settings page
+        // while this fragment was paused, pick the changes up here. The
+        // shared StringSetting is the source of truth, so we just re-apply
+        // background + rebuild the overlay.
+        applyThemeBackground()
+        // Rebuild the input overlay so any newly selected theme artwork
+        // shows up. refreshControls() is cheap when the overlay is hidden.
+        binding.surfaceInputOverlay.refreshControls()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

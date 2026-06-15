@@ -14,7 +14,12 @@ class LaunchableSetting(
     titleString: String = "",
     @StringRes descriptionId: Int = 0,
     descriptionString: String = "",
-    val launchIntent: (android.content.Context) -> Intent
+    val launchIntent: (android.content.Context) -> Intent = { Intent() },
+    /**
+     * Optional non-Intent handler (e.g. show a [androidx.fragment.app.DialogFragment]).
+     * Invoked in preference to [launchIntent] when non-null.
+     */
+    val onClick: ((android.content.Context) -> Unit)? = null
 ) : SettingsItem(emptySetting, titleId, titleString, descriptionId, descriptionString) {
     override val type = SettingsItem.TYPE_LAUNCHABLE
 }

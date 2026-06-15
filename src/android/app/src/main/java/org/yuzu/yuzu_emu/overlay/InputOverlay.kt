@@ -1016,6 +1016,50 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         )
 
         /**
+         * Map a drawable resource id to the filename used inside a theme zip
+         * (and in res/drawable-nodpi). Returns null for resources that don't
+         * have a theme equivalent (none right now, but the indirection keeps
+         * the code flexible).
+         */
+        private fun drawableToAssetName(drawableId: Int): String? = when (drawableId) {
+            R.drawable.facebutton_a -> "facebutton_a.png"
+            R.drawable.facebutton_a_depressed -> "facebutton_a_depressed.png"
+            R.drawable.facebutton_b -> "facebutton_b.png"
+            R.drawable.facebutton_b_depressed -> "facebutton_b_depressed.png"
+            R.drawable.facebutton_x -> "facebutton_x.png"
+            R.drawable.facebutton_x_depressed -> "facebutton_x_depressed.png"
+            R.drawable.facebutton_y -> "facebutton_y.png"
+            R.drawable.facebutton_y_depressed -> "facebutton_y_depressed.png"
+            R.drawable.facebutton_plus -> "facebutton_plus.png"
+            R.drawable.facebutton_plus_depressed -> "facebutton_plus_depressed.png"
+            R.drawable.facebutton_minus -> "facebutton_minus.png"
+            R.drawable.facebutton_minus_depressed -> "facebutton_minus_depressed.png"
+            R.drawable.facebutton_home -> "facebutton_home.png"
+            R.drawable.facebutton_home_depressed -> "facebutton_home_depressed.png"
+            R.drawable.facebutton_screenshot -> "facebutton_screenshot.png"
+            R.drawable.facebutton_screenshot_depressed -> "facebutton_screenshot_depressed.png"
+            R.drawable.l_shoulder -> "l_shoulder.png"
+            R.drawable.l_shoulder_depressed -> "l_shoulder_depressed.png"
+            R.drawable.r_shoulder -> "r_shoulder.png"
+            R.drawable.r_shoulder_depressed -> "r_shoulder_depressed.png"
+            R.drawable.zl_trigger -> "zl_trigger.png"
+            R.drawable.zl_trigger_depressed -> "zl_trigger_depressed.png"
+            R.drawable.zr_trigger -> "zr_trigger.png"
+            R.drawable.zr_trigger_depressed -> "zr_trigger_depressed.png"
+            R.drawable.button_l3 -> "button_l3.png"
+            R.drawable.button_l3_depressed -> "button_l3_depressed.png"
+            R.drawable.button_r3 -> "button_r3.png"
+            R.drawable.button_r3_depressed -> "button_r3_depressed.png"
+            R.drawable.joystick -> "joystick.png"
+            R.drawable.joystick_depressed -> "joystick_depressed.png"
+            R.drawable.joystick_range -> "joystick_range.png"
+            R.drawable.dpad_standard -> "dpad_standard.png"
+            R.drawable.dpad_standard_cardinal_depressed -> "dpad_standard_cardinal_depressed.png"
+            R.drawable.dpad_standard_diagonal_depressed -> "dpad_standard_diagonal_depressed.png"
+            else -> null
+        }
+
+        /**
          * Resizes a [Bitmap] by a given scale factor
          *
          * @param context       Context for getting the vector drawable
@@ -1024,9 +1068,17 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
          * @return The scaled [Bitmap]
          */
         private fun getBitmap(context: Context, drawableId: Int, scale: Float): Bitmap {
-            // Drawables are now shipped as PNGs in drawable-nodpi so they keep a
-            // fixed pixel size regardless of screen density. The function still
-            // accepts arbitrary Drawables (e.g. VectorDrawable) for compatibility.
+            // If the user installed a custom theme, prefer the bundled PNG
+            // from the theme directory. It carries the user's artwork but
+            // the rest of the pipeline (sizing, scaling) is unchanged.
+            val themeBitmap = drawableToAssetName(drawableId)?.let { name ->
+                OverlayThemeManager.bitmapFor(context, name)
+            }
+            if (themeBitmap != null) {
+                return scaleBitmap(context, themeBitmap, scale)
+            }
+
+            // Fall back to the bundled drawable resource.
             val drawable = ContextCompat.getDrawable(context, drawableId)
                 ?: error("Overlay drawable not found for id $drawableId")
             // Keep BitmapDrawable's default gravity (CENTER) so the artwork is
@@ -1059,6 +1111,26 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             drawable.setBounds(0, 0, canvas.width, canvas.height)
             drawable.draw(canvas)
             return scaledBitmap
+        }
+
+        /**
+         * Apply the same screen-relative scaling that the bundled pipeline
+         * uses, but starting from a pre-decoded bitmap (theme artwork).
+         * The original aspect ratio is preserved.
+         */
+        private fun scaleBitmap(context: Context, source: Bitmap, scale: Float): Bitmap {
+            val dm = context.resources.displayMetrics
+            val minScreenDimension = min(dm.widthPixels, dm.heightPixels)
+            val maxBitmapDimension = max(source.width, source.height)
+            val bitmapScale = if (maxBitmapDimension == 0) 1f
+                else scale * minScreenDimension / maxBitmapDimension
+
+            return Bitmap.createScaledBitmap(
+                source,
+                (source.width * bitmapScale).toInt().coerceAtLeast(1),
+                (source.height * bitmapScale).toInt().coerceAtLeast(1),
+                true
+            )
         }
 
         /**

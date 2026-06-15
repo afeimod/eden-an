@@ -44,6 +44,24 @@
     <string name="edit_overlay_layout">Edit Overlay Layout</string>
     <string name="edit_overlay_layout_description">Adjust the position and scale of on-screen controls</string>
 
+    <!-- Custom overlay theme -->
+    <string name="overlay_theme">Custom Overlay Theme</string>
+    <string name="overlay_theme_description">Load a .zip of overlay artwork. background.png is drawn behind the game.</string>
+    <string name="overlay_theme_pick">Choose Theme…</string>
+    <string name="overlay_theme_clear">Reset to default</string>
+    <string name="overlay_theme_picker_title">Custom Overlay Theme</string>
+    <string name="overlay_theme_picker_description">Pick a .zip file containing overlay artwork. background.png, if present, becomes the game background layer.</string>
+    <string name="overlay_theme_status_none">No custom theme</string>
+    <string name="overlay_theme_status_none_detail">The bundled default assets are in use.</string>
+    <string name="overlay_theme_status_active">Custom theme active</string>
+    <string name="overlay_theme_status_active_detail">%1$d asset file(s) loaded. Background image: %2$s.</string>
+    <string name="overlay_theme_installing">Installing…</string>
+    <string name="overlay_theme_install_failed">Failed to install theme. Check the zip is valid.</string>
+    <string name="overlay_theme_install_ok">Theme installed (%1$d files).</string>
+    <string name="overlay_theme_cleared">Theme reset to default.</string>
+    <string name="overlay_theme_yes">yes</string>
+    <string name="overlay_theme_no">no</string>
+
 
     <!-- Stats Overlay settings -->
     <string name="process_ram">Process RAM: %1$d MB</string>
