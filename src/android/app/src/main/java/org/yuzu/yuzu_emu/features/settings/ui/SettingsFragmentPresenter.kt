@@ -357,6 +357,20 @@ class SettingsFragmentPresenter(
                     }
                 )
             )
+            add(
+                LaunchableSetting(
+                    titleId = R.string.combo_menu_title,
+                    descriptionId = R.string.combo_menu_description,
+                    onClick = { context ->
+                        org.yuzu.yuzu_emu.overlay.ComboManagerDialogFragment()
+                            .show(
+                                (context as androidx.fragment.app.FragmentActivity)
+                                    .supportFragmentManager,
+                                org.yuzu.yuzu_emu.overlay.ComboManagerDialogFragment.TAG
+                            )
+                    }
+                )
+            )
             add(HeaderSetting(R.string.overlay_theme))
             add(
                 LaunchableSetting(

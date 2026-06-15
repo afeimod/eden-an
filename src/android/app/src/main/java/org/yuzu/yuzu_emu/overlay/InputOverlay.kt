@@ -34,12 +34,15 @@ import kotlin.math.max
 import kotlin.math.min
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.features.input.NativeInput
+import org.yuzu.yuzu_emu.features.input.NativeInput.ButtonState
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.features.input.model.NativeAnalog
 import org.yuzu.yuzu_emu.features.input.model.NativeButton
 import org.yuzu.yuzu_emu.features.input.model.NpadStyleIndex
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
+import org.yuzu.yuzu_emu.overlay.model.ComboPreset
+import org.yuzu.yuzu_emu.overlay.model.ComboStore
 import org.yuzu.yuzu_emu.overlay.model.OverlayControl
 import org.yuzu.yuzu_emu.overlay.model.OverlayControlData
 import org.yuzu.yuzu_emu.overlay.model.OverlayLayout
@@ -55,6 +58,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
     private val overlayButtons: MutableSet<InputOverlayDrawableButton> = HashSet()
     private val overlayDpads: MutableSet<InputOverlayDrawableDpad> = HashSet()
     private val overlayJoysticks: MutableSet<InputOverlayDrawableJoystick> = HashSet()
+    private val overlayCombos: MutableList<InputOverlayDrawableCombo> = mutableListOf()
     private val imeEditable = Editable.Factory.getInstance().newEditable("")
 
     private var inEditMode = false
@@ -62,6 +66,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
     private var buttonBeingConfigured: InputOverlayDrawableButton? = null
     private var dpadBeingConfigured: InputOverlayDrawableDpad? = null
     private var joystickBeingConfigured: InputOverlayDrawableJoystick? = null
+    private var comboBeingConfigured: InputOverlayDrawableCombo? = null
 
     private var scaleDialog: OverlayScaleDialog? = null
     private var touchStartX = 0f
@@ -81,6 +86,16 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
     // External listener for EmulationFragment joypad overlay auto-hide
     var touchEventListener: ((MotionEvent) -> Unit)? = null
+
+    /**
+     * Fired when the user taps (no drag) a combo pad while in edit mode.
+     * The argument is the combo preset id. The host activity can use this
+     * to open the combo editor focused on that combo.
+     */
+    var comboEditTapListener: ((String) -> Unit)? = null
+
+    /** Returns the active combo pads (for the editor to inspect). */
+    fun comboDrawables(): List<InputOverlayDrawableCombo> = overlayCombos.toList()
 
     override fun onCheckIsTextEditor(): Boolean = true
 
@@ -180,6 +195,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         }
         for (joystick in overlayJoysticks) {
             joystick.draw(canvas)
+        }
+        for (combo in overlayCombos) {
+            combo.draw(canvas)
         }
     }
 
@@ -297,6 +315,29 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             shouldUpdateView = true
         }
 
+        for (combo in overlayCombos) {
+            when (combo.updateStatus(event)) {
+                InputOverlayDrawableCombo.ComboPressState.ACTIVATED -> {
+                    NativeInput.onOverlayButtonEvent(
+                        playerIndex,
+                        combo.preset.target,
+                        ButtonState.PRESSED
+                    )
+                    playHaptics(event)
+                    shouldUpdateView = true
+                }
+                InputOverlayDrawableCombo.ComboPressState.DEACTIVATED -> {
+                    NativeInput.onOverlayButtonEvent(
+                        playerIndex,
+                        combo.preset.target,
+                        ButtonState.RELEASED
+                    )
+                    shouldUpdateView = true
+                }
+                InputOverlayDrawableCombo.ComboPressState.NONE -> { /* no change */ }
+            }
+        }
+
         if (shouldUpdateView) {
             invalidate()
         }
@@ -316,7 +357,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         val isActionUp =
             motionEvent == MotionEvent.ACTION_UP || motionEvent == MotionEvent.ACTION_POINTER_UP
 
-        if (isActionDown && !isTouchInputConsumed(pointerId)) {
+        if (isActionDown && !isTouchInputConsumed(pointerId) && !isTouchConsumedByCombo(event)) {
             NativeInput.onTouchPressed(pointerId, xPosition.toFloat(), yPosition.toFloat())
         }
 
@@ -326,11 +367,14 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 if (isTouchInputConsumed(fingerId)) {
                     continue
                 }
+                if (isTouchConsumedByCombo(event)) {
+                    continue
+                }
                 NativeInput.onTouchMoved(fingerId, event.getX(i), event.getY(i))
             }
         }
 
-        if (isActionUp && !isTouchInputConsumed(pointerId)) {
+        if (isActionUp && !isTouchInputConsumed(pointerId) && !isTouchConsumedByCombo(event)) {
             NativeInput.onTouchReleased(pointerId)
         }
 
@@ -365,6 +409,29 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         for (joystick in overlayJoysticks) {
             if (joystick.trackId == track_id) {
                 return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * True if [track_id] is currently captured by any combo pad (so the
+     * screen-touch passthrough should ignore this finger). The combo pad
+     * does not expose its pointer table publicly; we treat any pointer
+     * landing inside a combo pad's bounds as consumed for the purposes
+     * of forwarding to the on-screen touch driver.
+     */
+    private fun isTouchConsumedByCombo(event: MotionEvent): Boolean {
+        if (overlayCombos.isEmpty()) return false
+        val motionEvent = event.actionMasked
+        val isMove = motionEvent == MotionEvent.ACTION_MOVE
+        val start = if (isMove) 0 else event.actionIndex
+        val end = if (isMove) event.pointerCount else start + 1
+        for (i in start until end) {
+            val x = event.getX(i)
+            val y = event.getY(i)
+            for (combo in overlayCombos) {
+                if (combo.boundsRect().contains(x, y)) return true
             }
         }
         return false
@@ -531,6 +598,49 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                         )
                     }
                     joystickBeingConfigured = null
+                }
+            }
+        }
+
+        for (combo in overlayCombos) {
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN,
+                MotionEvent.ACTION_POINTER_DOWN -> if (comboBeingConfigured == null &&
+                    combo.boundsRect().contains(
+                        event.getX(pointerIndex),
+                        event.getY(pointerIndex)
+                    )
+                ) {
+                    comboBeingConfigured = combo
+                    comboBeingConfigured!!.onConfigureTouch(event)
+                    touchStartX = event.getX(pointerIndex)
+                    touchStartY = event.getY(pointerIndex)
+                    hasMoved = false
+                }
+
+                MotionEvent.ACTION_MOVE -> if (comboBeingConfigured != null) {
+                    val moveDistance = kotlin.math.sqrt(
+                        (event.getX(pointerIndex) - touchStartX).let { it * it } +
+                                (event.getY(pointerIndex) - touchStartY).let { it * it }
+                    )
+
+                    if (moveDistance > moveThreshold) {
+                        hasMoved = true
+                        comboBeingConfigured!!.onConfigureTouch(event)
+                        invalidate()
+                    }
+                }
+
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_POINTER_UP -> if (comboBeingConfigured === combo) {
+                    if (hasMoved) {
+                        saveComboPosition(comboBeingConfigured!!, layout)
+                    } else {
+                        // Tap on a combo pad in edit mode - tell listener so the
+                        // editor UI can focus / edit this combo.
+                        comboEditTapListener?.invoke(comboBeingConfigured!!.preset.id)
+                    }
+                    comboBeingConfigured = null
                 }
             }
         }
@@ -802,12 +912,40 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         overlayButtons.clear()
         overlayDpads.clear()
         overlayJoysticks.clear()
+        overlayCombos.clear()
 
         // Add all the enabled overlay items back to the HashSet.
         if (gamelessMode || BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) {
             addOverlayControls(layout)
+            addOverlayCombos(layout)
         }
         invalidate()
+    }
+
+    /**
+     * Load combo presets from [ComboStore] and lay them out on the overlay.
+     * Combos honour their own per-combo `enabled` flag independently of
+     * [BooleanSetting.SHOW_INPUT_OVERLAY].
+     */
+    private fun addOverlayCombos(layout: OverlayLayout) {
+        val windowSize = getSafeScreenSize(context, Pair(measuredWidth, measuredHeight))
+        val min = windowSize.first
+        val max = windowSize.second
+        val presets = ComboStore.load(context)
+        val baseSize = minOf(max.x - min.x, max.y - min.y)
+
+        for (preset in presets) {
+            if (!preset.enabled) continue
+            val drawable = InputOverlayDrawableCombo(resources, preset)
+            val position = preset.positionFromLayout(layout)
+            val scale = (IntSetting.OVERLAY_SCALE.getInt() + 50).toFloat() / 100f
+            val size = (baseSize * 0.12f * scale * preset.individualScale).toInt()
+                .coerceAtLeast(120)
+            val drawableX = (position.first * max.x + min.x).toInt() - size / 2
+            val drawableY = (position.second * max.y + min.y).toInt() - size / 2
+            drawable.setBounds(drawableX, drawableY, drawableX + size, drawableY + size)
+            overlayCombos += drawable
+        }
     }
 
     private fun saveControlPosition(
@@ -836,12 +974,35 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         NativeConfig.setOverlayControlData(overlayControlData)
     }
 
+    /** Persist a combo pad's new position back to [ComboStore]. */
+    private fun saveComboPosition(combo: InputOverlayDrawableCombo, layout: OverlayLayout) {
+        val windowSize = getSafeScreenSize(context, Pair(measuredWidth, measuredHeight))
+        val min = windowSize.first
+        val max = windowSize.second
+        val bounds = combo.boundsRect()
+        val newPosition = Pair(
+            ((bounds.centerX() - min.x).toDouble() / max.x).coerceIn(0.0, 1.0),
+            ((bounds.centerY() - min.y).toDouble() / max.y).coerceIn(0.0, 1.0)
+        )
+        val presets = ComboStore.load(context)
+        val target = presets.firstOrNull { it.id == combo.preset.id } ?: return
+        when (layout) {
+            OverlayLayout.Landscape -> target.landscapePosition = newPosition
+            OverlayLayout.Portrait -> target.portraitPosition = newPosition
+            OverlayLayout.Foldable -> target.foldablePosition = newPosition
+        }
+        ComboStore.save(context, presets)
+        refreshControls()
+    }
+
     fun setIsInEditMode(editMode: Boolean) {
         inEditMode = editMode
         if (!editMode) {
             scaleDialog?.dismiss()
             scaleDialog = null
             gamelessMode = false
+            comboBeingConfigured = null
+            overlayCombos.forEach { it.reset() }
         }
 
         invalidate()
@@ -967,6 +1128,19 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             it.individualScale = OverlayControl.from(it.id)?.defaultIndividualScaleResource!!
         }
         NativeConfig.setOverlayControlData(overlayControlData)
+
+        // Reset combos: keep current presets but reset their layout positions.
+        val combos = ComboStore.load(context)
+        combos.forEach {
+            it.landscapePosition = ComboPreset.BUILT_IN_PRESETS.firstOrNull { p -> p.id == it.id }
+                ?.landscapePosition ?: it.landscapePosition
+            it.portraitPosition = ComboPreset.BUILT_IN_PRESETS.firstOrNull { p -> p.id == it.id }
+                ?.portraitPosition ?: it.portraitPosition
+            it.foldablePosition = ComboPreset.BUILT_IN_PRESETS.firstOrNull { p -> p.id == it.id }
+                ?.foldablePosition ?: it.foldablePosition
+            it.individualScale = 1.0f
+        }
+        ComboStore.save(context, combos)
 
         refreshControls()
     }

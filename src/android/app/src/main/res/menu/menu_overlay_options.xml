@@ -57,4 +57,8 @@
         android:id="@+id/menu_reset_overlay"
         android:title="@string/emulation_touch_overlay_reset" />
 
+    <item
+        android:id="@+id/menu_combos"
+        android:title="@string/combo_menu_title" />
+
 </menu>

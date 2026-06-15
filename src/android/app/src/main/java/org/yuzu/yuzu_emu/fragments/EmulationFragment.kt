@@ -114,7 +114,7 @@ private const val KEY_FREE_LAYOUT_X2 = "free_layout_x2"
 private const val KEY_FREE_LAYOUT_Y2 = "free_layout_y2"
 private const val KEY_FREE_LAYOUT_ENABLED = "free_layout_enabled"
 
-class EmulationFragment : Fragment(), SurfaceHolder.Callback {
+class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialogFragment.RefreshOverlayHost {
     private lateinit var emulationState: EmulationState
     private var emulationActivity: EmulationActivity? = null
 
@@ -1712,6 +1712,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
     }
 
+    /** [ComboManagerDialogFragment.RefreshOverlayHost] - called when combo edits close. */
+    override fun refreshInputOverlay() {
+        _binding?.let { b ->
+            b.surfaceInputOverlay.post { b.surfaceInputOverlay.refreshControls() }
+        }
+    }
+
     @SuppressLint("DefaultLocale")
     private fun updateShowStatsOverlay() {
         val showPerfOverlay = BooleanSetting.SHOW_PERFORMANCE_OVERLAY.getBoolean()
@@ -2336,6 +2343,15 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.id.menu_reset_overlay -> {
                     binding.drawerLayout.close()
                     resetInputOverlay()
+                    true
+                }
+
+                R.id.menu_combos -> {
+                    binding.drawerLayout.close()
+                    ComboManagerDialogFragment().show(
+                        parentFragmentManager,
+                        ComboManagerDialogFragment.TAG
+                    )
                     true
                 }
 
