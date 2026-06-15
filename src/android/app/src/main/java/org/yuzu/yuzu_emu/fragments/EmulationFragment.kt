@@ -665,18 +665,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         binding.surfaceInputOverlay.refreshControls()
     }
 
-    override fun onResume() {
-        super.onResume()
-        // If the user installed or reset a theme from the Settings page
-        // while this fragment was paused, pick the changes up here. The
-        // shared StringSetting is the source of truth, so we just re-apply
-        // background + rebuild the overlay.
-        applyThemeBackground()
-        // Rebuild the input overlay so any newly selected theme artwork
-        // shows up. refreshControls() is cheap when the overlay is hidden.
-        binding.surfaceInputOverlay.refreshControls()
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (requireActivity().isFinishing) {
@@ -1689,6 +1677,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onResume() {
         super.onResume()
+        // If the user installed or reset a theme from the Settings page
+        // while this fragment was paused, pick the changes up here. The
+        // shared StringSetting is the source of truth, so we just re-apply
+        // background + rebuild the overlay.
+        applyThemeBackground()
+        _binding?.surfaceInputOverlay?.refreshControls()
+
         val b = _binding ?: return
         updateStatsPosition(IntSetting.PERF_OVERLAY_POSITION.getInt())
         updateSocPosition(IntSetting.SOC_OVERLAY_POSITION.getInt())
