@@ -13,7 +13,6 @@ import android.graphics.Paint
 import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.VectorDrawable
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -1025,11 +1024,20 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
          * @return The scaled [Bitmap]
          */
         private fun getBitmap(context: Context, drawableId: Int, scale: Float): Bitmap {
-            val vectorDrawable = ContextCompat.getDrawable(context, drawableId) as VectorDrawable
+            // Drawables are now shipped as PNGs in drawable-nodpi so they keep a
+            // fixed pixel size regardless of screen density. The function still
+            // accepts arbitrary Drawables (e.g. VectorDrawable) for compatibility.
+            val drawable = ContextCompat.getDrawable(context, drawableId)
+                ?: error("Overlay drawable not found for id $drawableId")
+            // Keep BitmapDrawable's default gravity (CENTER) so the artwork is
+            // scaled proportionally into the bounds — critical for non-square
+            // resources like the shoulder / trigger pills and the L3/R3 icons.
+            val intrinsicW = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 1
+            val intrinsicH = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 1
 
             val bitmap = Bitmap.createBitmap(
-                (vectorDrawable.intrinsicWidth * scale).toInt(),
-                (vectorDrawable.intrinsicHeight * scale).toInt(),
+                (intrinsicW * scale).toInt().coerceAtLeast(1),
+                (intrinsicH * scale).toInt().coerceAtLeast(1),
                 Bitmap.Config.ARGB_8888
             )
 
@@ -1037,18 +1045,19 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             val minScreenDimension = min(dm.widthPixels, dm.heightPixels)
 
             val maxBitmapDimension = max(bitmap.width, bitmap.height)
-            val bitmapScale = scale * minScreenDimension / maxBitmapDimension
+            val bitmapScale = if (maxBitmapDimension == 0) 1f
+                else scale * minScreenDimension / maxBitmapDimension
 
             val scaledBitmap = Bitmap.createScaledBitmap(
                 bitmap,
-                (bitmap.width * bitmapScale).toInt(),
-                (bitmap.height * bitmapScale).toInt(),
+                (bitmap.width * bitmapScale).toInt().coerceAtLeast(1),
+                (bitmap.height * bitmapScale).toInt().coerceAtLeast(1),
                 true
             )
 
             val canvas = Canvas(scaledBitmap)
-            vectorDrawable.setBounds(0, 0, canvas.width, canvas.height)
-            vectorDrawable.draw(canvas)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
             return scaledBitmap
         }
 
