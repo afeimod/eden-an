@@ -76,7 +76,7 @@ data class ComboPreset(
             ),
             ComboPreset(
                 id = "builtin_minusplus_to_plus",
-                displayName = "Minus + Plus → Plus (long)",
+                displayName = "− + + → +（长按）",
                 triggers = listOf(NativeButton.Minus, NativeButton.Plus),
                 target = NativeButton.Plus,
             ),

@@ -3,27 +3,54 @@
 
 package org.yuzu.yuzu_emu.overlay
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import java.util.UUID
+import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogComboManagerBinding
+import org.yuzu.yuzu_emu.features.input.model.NativeButton
 import org.yuzu.yuzu_emu.overlay.model.ComboPreset
 import org.yuzu.yuzu_emu.overlay.model.ComboStore
 
 /**
- * Top-level combo management UI. Shows a list of all currently saved
- * combos (with on/off toggles), an "Add new" button, and a "Load preset"
- * shortcut for the four built-in combos.
+ * 组合键管理面板：列出全部组合（带显示/隐藏开关），新增自定义组合，
+ * 一键加载 4 个内置预设。点击行进入编辑器；拖动 overlay 上的 pad
+ * 可以调整位置。
  */
 class ComboManagerDialogFragment : BottomSheetDialogFragment() {
     private var _binding: DialogComboManagerBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var adapter: ComboListAdapter
+
+    // Watches our child editor / picker fragments so we re-pull the list
+    // whenever they go away (after the user adds / edits / deletes).
+    private val childLifecycle = object : FragmentManager.FragmentLifecycleCallbacks() {
+        override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
+            if (f is ComboEditorDialogFragment || f is ComboPresetPickerDialogFragment) {
+                reloadList()
+            }
+        }
+
+        override fun onFragmentDestroyed(fm: FragmentManager, f: Fragment) {
+            if (f is ComboEditorDialogFragment || f is ComboPresetPickerDialogFragment) {
+                reloadList()
+                refreshOverlay()
+            }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        parentFragmentManager.registerFragmentLifecycleCallbacks(childLifecycle, false)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,7 +74,7 @@ class ComboManagerDialogFragment : BottomSheetDialogFragment() {
             },
             onClick = { preset ->
                 ComboEditorDialogFragment.newInstance(preset.id)
-                    .show(parentFragmentManager, "combo_editor")
+                    .show(parentFragmentManager, EDITOR_TAG)
             }
         )
 
@@ -58,35 +85,33 @@ class ComboManagerDialogFragment : BottomSheetDialogFragment() {
             val id = "custom_${UUID.randomUUID()}"
             val newCombo = ComboPreset(
                 id = id,
-                displayName = "New combo",
-                triggers = listOf(
-                    org.yuzu.yuzu_emu.features.input.model.NativeButton.L,
-                    org.yuzu.yuzu_emu.features.input.model.NativeButton.R,
-                ),
-                target = org.yuzu.yuzu_emu.features.input.model.NativeButton.ZL,
+                displayName = getString(R.string.combo_default_name),
+                triggers = listOf(NativeButton.L, NativeButton.R),
+                target = NativeButton.ZL,
                 enabled = true,
             )
             val list = ComboStore.load(requireContext())
             list += newCombo
             ComboStore.save(requireContext(), list)
+            reloadList()
             refreshOverlay()
-            adapter.submit(ComboStore.load(requireContext()))
             ComboEditorDialogFragment.newInstance(id)
-                .show(parentFragmentManager, "combo_editor")
+                .show(parentFragmentManager, EDITOR_TAG)
         }
 
         binding.loadPresetButton.setOnClickListener {
-            ComboPresetPickerDialogFragment().show(parentFragmentManager, "combo_presets")
+            ComboPresetPickerDialogFragment().show(parentFragmentManager, PRESETS_TAG)
         }
 
-        adapter.submit(ComboStore.load(requireContext()))
+        reloadList()
     }
 
-    override fun onResume() {
-        super.onResume()
-        // Re-pull in case the editor closed and changed something.
-        adapter.submit(ComboStore.load(requireContext()))
-        refreshOverlay()
+    override fun onDismiss(dialog: DialogInterface) {
+        // Detach lifecycle watcher to avoid leaks.
+        runCatching {
+            parentFragmentManager.unregisterFragmentLifecycleCallbacks(childLifecycle)
+        }
+        super.onDismiss(dialog)
     }
 
     override fun onDestroyView() {
@@ -94,8 +119,12 @@ class ComboManagerDialogFragment : BottomSheetDialogFragment() {
         _binding = null
     }
 
+    private fun reloadList() {
+        if (_binding == null) return
+        adapter.submit(ComboStore.load(requireContext()))
+    }
+
     private fun refreshOverlay() {
-        // Trigger the InputOverlay in the activity to reload combos.
         (activity as? RefreshOverlayHost)?.refreshInputOverlay()
     }
 
@@ -105,5 +134,7 @@ class ComboManagerDialogFragment : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "ComboManagerDialog"
+        private const val EDITOR_TAG = "combo_editor"
+        private const val PRESETS_TAG = "combo_presets"
     }
 }

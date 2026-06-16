@@ -693,6 +693,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
             binding.surfaceInputOverlay.refreshControls(gameless = true)
         }
 
+        // Tap on a combo pad during overlay edit -> open its editor.
+        binding.surfaceInputOverlay.comboEditTapListener = { comboId ->
+            ComboEditorDialogFragment.newInstance(comboId)
+                .show(parentFragmentManager, ComboManagerDialogFragment.TAG + "/editor")
+        }
+
         binding.doneControlConfig.setOnClickListener {
             finishOverlayGamelessEditMode()
         }
