@@ -700,6 +700,21 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
                 .show(parentFragmentManager, ComboManagerDialogFragment.TAG + "/editor")
         }
 
+        // Long-press on a combo pad during overlay edit -> show a small
+        // menu with delete / edit (edit reuses the same editor).
+        binding.surfaceInputOverlay.comboEditLongPressListener = { comboId ->
+            showComboPadLongPressMenu(comboId)
+        }
+
+        // Tap on empty area during overlay edit -> open the combo manager
+        // (from there the user can add new combos).
+        binding.surfaceInputOverlay.overlayEditEmptyTapListener = {
+            ComboManagerDialogFragment().show(
+                parentFragmentManager,
+                ComboManagerDialogFragment.TAG
+            )
+        }
+
         binding.doneControlConfig.setOnClickListener {
             finishOverlayGamelessEditMode()
         }
@@ -2219,6 +2234,37 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
         NativeConfig.reloadGlobalConfig()
     }
 
+    private fun showComboPadLongPressMenu(comboId: String) {
+        val anchor = binding.surfaceInputOverlay
+        val popup = androidx.appcompat.widget.PopupMenu(requireContext(), anchor)
+        val list = org.yuzu.yuzu_emu.overlay.model.ComboStore.load(requireContext())
+        val preset = list.firstOrNull { it.id == comboId }
+        if (preset == null) return
+        val isBuiltIn = org.yuzu.yuzu_emu.overlay.model.ComboPreset.BUILT_IN_PRESETS
+            .any { it.id == comboId }
+        popup.menu.add(0, MENU_COMBO_EDIT, 0, R.string.combo_long_press_edit)
+        if (!isBuiltIn) {
+            popup.menu.add(0, MENU_COMBO_DELETE, 1, R.string.combo_long_press_delete)
+        }
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                MENU_COMBO_EDIT -> {
+                    ComboEditorDialogFragment.newInstance(comboId)
+                        .show(parentFragmentManager, ComboManagerDialogFragment.TAG + "/editor")
+                    true
+                }
+                MENU_COMBO_DELETE -> {
+                    list.removeAll { it.id == comboId }
+                    org.yuzu.yuzu_emu.overlay.model.ComboStore.save(requireContext(), list)
+                    binding.surfaceInputOverlay.post { binding.surfaceInputOverlay.refreshControls() }
+                    true
+                }
+                else -> false
+            }
+        }
+        popup.show()
+    }
+
     private fun showOverlayOptions() {
         val anchor = binding.inGameMenu.findViewById<View>(R.id.menu_overlay_controls)
         val popup = PopupMenu(requireContext(), anchor)
@@ -2822,5 +2868,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
             overlayHiddenByPhysicalController = false
             toggleOverlay(true)
         }
+    }
+
+    companion object {
+        private const val MENU_COMBO_EDIT = 1
+        private const val MENU_COMBO_DELETE = 2
     }
 }

@@ -30,6 +30,26 @@ class ComboEditorDialogFragment : DialogFragment() {
     private var comboId: String? = null
     private val buttons = linkedSetOf<NativeButton>()
     private var lastAutoName: String = ""
+    private var programmaticChange: Boolean = false
+    private var currentKind: ComboPreset.Kind = ComboPreset.Kind.CHORD
+
+    /**
+     * If the displayed name is empty or still the previously auto-generated
+     * one, regenerate it from the current [buttons] selection. The flag
+     * [programmaticChange] prevents re-entering the TextWatcher.
+     */
+    private fun maybeRefreshAutoName(force: Boolean) {
+        if (_binding == null) return
+        val cur = binding.comboNameInput.text?.toString().orEmpty()
+        if (!force && cur.isNotEmpty() && cur != lastAutoName) return
+        val gen = autoName()
+        if (gen == cur) return
+        lastAutoName = gen
+        programmaticChange = true
+        binding.comboNameInput.setText(gen)
+        binding.comboNameInput.setSelection(gen.length)
+        programmaticChange = false
+    }
 
     private val candidates = listOf(
         NativeButton.A, NativeButton.B, NativeButton.X, NativeButton.Y,
@@ -55,27 +75,35 @@ class ComboEditorDialogFragment : DialogFragment() {
             binding.comboEnabledSwitch.isChecked = preset.enabled
             buttons.clear()
             buttons.addAll(preset.buttons)
+            currentKind = preset.kind
         } else {
             binding.comboEnabledSwitch.isChecked = true
             buttons.clear()
             buttons += NativeButton.A
             buttons += NativeButton.B
+            currentKind = ComboPreset.Kind.CHORD
             binding.comboNameInput.setText(autoName())
         }
         lastAutoName = autoName()
+        applyKindToRadio()
 
         bindChips()
         wireButtons(preset != null && isBuiltIn(preset))
 
+        // User switching the kind radio: store it. We don't auto-rewrite
+        // kind when the chips change (otherwise users couldn't keep a
+        // CHORD that happens to include a direction key).
+        binding.kindRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+            currentKind = when (checkedId) {
+                R.id.kindMacro -> ComboPreset.Kind.MACRO
+                else -> ComboPreset.Kind.CHORD
+            }
+        }
+
         // 当用户改动 chip 时刷新自动名（仅当当前名字仍是自动生成时）。
         binding.buttonsChipGroup.setOnCheckedStateChangeListener { _, _ ->
             enforceLimit()
-            val cur = binding.comboNameInput.text?.toString().orEmpty()
-            if (cur.isEmpty() || cur == lastAutoName) {
-                val gen = autoName()
-                lastAutoName = gen
-                binding.comboNameInput.setText(gen)
-            }
+            maybeRefreshAutoName(force = false)
         }
 
         // TextWatcher：用户清空输入框时回填自动名，否则只记录当前自动名。
@@ -83,12 +111,22 @@ class ComboEditorDialogFragment : DialogFragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: android.text.Editable?) {
+                if (programmaticChange) return
                 val cur = s?.toString().orEmpty()
                 if (cur.isEmpty()) {
+                    // Treat empty as a request to regenerate. We schedule a
+                    // post so we never call setText() from inside a text
+                    // watcher (which would re-enter afterTextChanged and
+                    // stack-overflow on some OEM ROMs).
                     val gen = autoName()
                     lastAutoName = gen
-                    binding.comboNameInput.setText(gen)
-                    binding.comboNameInput.setSelection(gen.length)
+                    binding.comboNameInput.post {
+                        if (_binding == null) return@post
+                        programmaticChange = true
+                        binding.comboNameInput.setText(gen)
+                        binding.comboNameInput.setSelection(gen.length)
+                        programmaticChange = false
+                    }
                 } else if (cur == autoName()) {
                     lastAutoName = cur
                 }
@@ -149,6 +187,16 @@ class ComboEditorDialogFragment : DialogFragment() {
         enforceLimit()
     }
 
+    private fun applyKindToRadio() {
+        val id = when (currentKind) {
+            ComboPreset.Kind.MACRO -> R.id.kindMacro
+            ComboPreset.Kind.CHORD -> R.id.kindChord
+        }
+        if (binding.kindRadioGroup.checkedRadioButtonId != id) {
+            binding.kindRadioGroup.check(id)
+        }
+    }
+
     private fun enforceLimit() {
         val group = binding.buttonsChipGroup
         val atMax = buttons.size >= ComboPreset.MAX_TRIGGERS
@@ -190,6 +238,7 @@ class ComboEditorDialogFragment : DialogFragment() {
         val updated = existing.copy(
             displayName = name,
             buttons = chosen,
+            kind = currentKind,
             enabled = binding.comboEnabledSwitch.isChecked,
         )
         val idx = list.indexOfFirst { it.id == id }

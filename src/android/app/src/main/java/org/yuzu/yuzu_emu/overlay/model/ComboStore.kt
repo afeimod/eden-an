@@ -17,10 +17,10 @@ object ComboStore {
     private const val PREFS_NAME = "virtual_combo_prefs"
     private const val KEY_JSON = "combos_json"
     private const val VERSION_KEY = "combos_version"
-    // v2: removed "target" field, "triggers" renamed to "buttons" and now
-    // represents the list of buttons emitted in parallel when the combo
-    // pad is pressed (chord / macro semantics).
-    private const val CURRENT_VERSION = 2
+    // v3: added "kind" field ("CHORD" or "MACRO"). Defaults to CHORD
+    // (parallel press) for old saves; for combos that contain any
+    // directional button the upgrader switches to MACRO.
+    private const val CURRENT_VERSION = 3
 
     // Naive JSON helpers - we don't pull Gson/Moshi in for one tiny model.
     private fun presetsToJson(presets: List<ComboPreset>): String {
@@ -36,7 +36,7 @@ object ComboStore {
                 if (i > 0) sb.append(',')
                 sb.append(t.int)
             }
-            sb.append("],\"landX\":").append(p.landscapePosition.first)
+            sb.append("],\"kind\":\"").append(p.kind.name).append("\",\"landX\":").append(p.landscapePosition.first)
                 .append(",\"landY\":").append(p.landscapePosition.second)
                 .append(",\"portX\":").append(p.portraitPosition.first)
                 .append(",\"portY\":").append(p.portraitPosition.second)
@@ -161,10 +161,16 @@ object ComboStore {
             else -> listOf(NativeButton.A, NativeButton.B)
         }
 
+        val kind = when (map["kind"]?.trim('"')) {
+            "MACRO" -> ComboPreset.Kind.MACRO
+            else -> ComboPreset.Kind.CHORD
+        }
+
         return ComboPreset(
             id = id,
             displayName = name,
             buttons = safeButtons,
+            kind = kind,
             enabled = enabled,
             landscapePosition = land,
             portraitPosition = port,
@@ -181,16 +187,20 @@ object ComboStore {
         val p = prefs(context)
         val version = p.getInt(VERSION_KEY, 0)
         if (version < CURRENT_VERSION) {
-            // First run, or upgrading from v1: clear and seed.
             val seeded = ComboPreset.BUILT_IN_PRESETS.toMutableList()
-            // If the old file exists, preserve any user customizations by
-            // appending them after the built-ins.
             val oldJson = p.getString(KEY_JSON, null)
             if (oldJson != null) {
                 val oldPresets = presetsFromJson(oldJson)
                 for (old in oldPresets) {
                     if (seeded.none { it.id == old.id }) {
-                        seeded += old.copy(id = "${old.id}_imported")
+                        // v2 had no kind; auto-pick MACRO if it includes
+                        // any direction key.
+                        val imported = if (old.hasDirectional) {
+                            old.copy(id = "${old.id}_imported", kind = ComboPreset.Kind.MACRO)
+                        } else {
+                            old.copy(id = "${old.id}_imported")
+                        }
+                        seeded += imported
                     }
                 }
             }

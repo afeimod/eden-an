@@ -1829,5 +1829,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <string name="combo_editor_enabled_label">Enabled (shown on overlay)</string>
     <string name="combo_editor_done">Done</string>
     <string name="combo_preset_picker_title">Pick a built-in combo</string>
+    <string name="combo_long_press_edit">Edit combo</string>
+    <string name="combo_long_press_delete">Delete combo</string>
+    <string name="combo_toast_deleted">Combo deleted</string>
+    <string name="combo_editor_kind_label">Trigger mode</string>
+    <string name="combo_kind_chord">Chord — all buttons pressed together (e.g. A + B)</string>
+    <string name="combo_kind_macro">Macro — buttons pressed in order with a small delay (e.g. ↓ + → + A)</string>
 
 </resources>

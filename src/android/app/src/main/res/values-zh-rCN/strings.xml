@@ -1193,5 +1193,11 @@
     <string name="combo_editor_enabled_label">启用（在 overlay 上显示）</string>
     <string name="combo_editor_done">完成</string>
     <string name="combo_preset_picker_title">选择内置组合</string>
+    <string name="combo_long_press_edit">编辑组合</string>
+    <string name="combo_long_press_delete">删除组合</string>
+    <string name="combo_toast_deleted">已删除组合</string>
+    <string name="combo_editor_kind_label">触发模式</string>
+    <string name="combo_kind_chord">同时按下 —— 全部按键一起生效（如 A + B）</string>
+    <string name="combo_kind_macro">顺序触发 —— 按顺序逐个按下，间隔一小段时间（如 ↓ + → + A）</string>
 
 </resources>

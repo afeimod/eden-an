@@ -34,6 +34,33 @@
         android:layout_marginTop="4dp"
         app:singleSelection="false" />
 
+    <com.google.android.material.textview.MaterialTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/combo_editor_kind_label"
+        android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+    <RadioGroup
+        android:id="@+id/kindRadioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="4dp">
+
+        <RadioButton
+            android:id="@+id/kindChord"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/combo_kind_chord" />
+
+        <RadioButton
+            android:id="@+id/kindMacro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/combo_kind_macro" />
+    </RadioGroup>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

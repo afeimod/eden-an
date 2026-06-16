@@ -74,6 +74,19 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
     private var hasMoved = false
     private val moveThreshold = 20f
 
+    // Long-press state for combo pads in edit mode.
+    private var comboLongPressFired = false
+    private val comboLongPressTimeoutMs = 500L
+    private val comboLongPressRunnable = Runnable {
+        val target = comboBeingConfigured ?: return@Runnable
+        comboLongPressFired = true
+        // Release the gesture so the subsequent ACTION_UP doesn't save
+        // the position or fire the tap listener.
+        comboBeingConfigured = null
+        hasMoved = true
+        comboEditLongPressListener?.invoke(target.preset.id)
+    }
+
     private val gridPaint = Paint().apply {
         color = Color.argb(60, 255, 255, 255)
         strokeWidth = 1f
@@ -93,6 +106,19 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
      * to open the combo editor focused on that combo.
      */
     var comboEditTapListener: ((String) -> Unit)? = null
+
+    /**
+     * Fired when the user long-presses a combo pad while in edit mode.
+     * The host activity can show a delete / edit menu.
+     */
+    var comboEditLongPressListener: ((String) -> Unit)? = null
+
+    /**
+     * Fired when the user taps a free area of the overlay in edit mode
+     * (no combo or button was hit). The host can use this to open the
+     * combo manager for adding a new combo.
+     */
+    var overlayEditEmptyTapListener: (() -> Unit)? = null
 
     /** Returns the active combo pads (for the editor to inspect). */
     fun comboDrawables(): List<InputOverlayDrawableCombo> = overlayCombos.toList()
@@ -318,14 +344,10 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         for (combo in overlayCombos) {
             val actions = combo.updateStatus(event)
             if (actions.isEmpty()) continue
-            for ((button, pressed) in actions) {
-                NativeInput.onOverlayButtonEvent(
-                    playerIndex,
-                    button,
-                    if (pressed) ButtonState.PRESSED else ButtonState.RELEASED,
-                )
-            }
-            // Haptic feedback only on the leading edge of the press.
+            // Haptic feedback on the leading edge of the press. The
+            // drawable itself forwards individual button events to
+            // native via the onButtonEvent callback supplied at
+            // construction time, so we don't have to do that here.
             if (actions.any { it.second }) playHaptics(event)
             shouldUpdateView = true
         }
@@ -402,6 +424,23 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             if (joystick.trackId == track_id) {
                 return true
             }
+        }
+        return false
+    }
+
+    /** Whether (x,y) is inside the bounds of any visible control. */
+    private fun isTouchOnAnyControl(x: Float, y: Float): Boolean {
+        for (button in overlayButtons) {
+            if (button.bounds.contains(x.toInt(), y.toInt())) return true
+        }
+        for (dpad in overlayDpads) {
+            if (dpad.bounds.contains(x.toInt(), y.toInt())) return true
+        }
+        for (joystick in overlayJoysticks) {
+            if (joystick.bounds.contains(x.toInt(), y.toInt())) return true
+        }
+        for (combo in overlayCombos) {
+            if (combo.boundsRect().contains(x, y)) return true
         }
         return false
     }
@@ -608,6 +647,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     touchStartX = event.getX(pointerIndex)
                     touchStartY = event.getY(pointerIndex)
                     hasMoved = false
+                    comboLongPressFired = false
+                    postDelayed(comboLongPressRunnable, comboLongPressTimeoutMs)
                 }
 
                 MotionEvent.ACTION_MOVE -> if (comboBeingConfigured != null) {
@@ -619,13 +660,17 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     if (moveDistance > moveThreshold) {
                         hasMoved = true
                         comboBeingConfigured!!.onConfigureTouch(event)
+                        removeCallbacks(comboLongPressRunnable)
                         invalidate()
                     }
                 }
 
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_POINTER_UP -> if (comboBeingConfigured === combo) {
-                    if (hasMoved) {
+                    removeCallbacks(comboLongPressRunnable)
+                    if (comboLongPressFired) {
+                        // Long press already handled - just reset.
+                    } else if (hasMoved) {
                         saveComboPosition(comboBeingConfigured!!, layout)
                     } else {
                         // Tap on a combo pad in edit mode - tell listener so the
@@ -638,6 +683,21 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     }
                     comboBeingConfigured = null
                 }
+            }
+        }
+
+        // If no control claimed the touch and we're in edit mode, treat a
+        // single tap on empty space as "add new combo".
+        if (event.actionMasked == MotionEvent.ACTION_UP &&
+            comboBeingConfigured == null &&
+            buttonBeingConfigured == null &&
+            dpadBeingConfigured == null &&
+            joystickBeingConfigured == null &&
+            !hasMoved
+        ) {
+            val onControl = isTouchOnAnyControl(event.getX(pointerIndex), event.getY(pointerIndex))
+            if (!onControl) {
+                post { overlayEditEmptyTapListener?.invoke() }
             }
         }
 
@@ -929,10 +989,27 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         val max = windowSize.second
         val presets = ComboStore.load(context)
         val baseSize = minOf(max.x - min.x, max.y - min.y)
+        val playerIndex = when (NativeInput.getStyleIndex(0)) {
+            NpadStyleIndex.Handheld -> 8
+            else -> 0
+        }
 
         for (preset in presets) {
             if (!preset.enabled) continue
-            val drawable = InputOverlayDrawableCombo(resources, preset)
+            val drawable = InputOverlayDrawableCombo(
+                resources,
+                preset,
+                onButtonEvent = { button, pressed ->
+                    // Forward macro / chord steps as they happen. The
+                    // sender is the drawable itself; we just route to
+                    // native here.
+                    NativeInput.onOverlayButtonEvent(
+                        playerIndex,
+                        button,
+                        if (pressed) ButtonState.PRESSED else ButtonState.RELEASED,
+                    )
+                }
+            )
             val position = preset.positionFromLayout(layout)
             val scale = (IntSetting.OVERLAY_SCALE.getInt() + 50).toFloat() / 100f
             // Pad needs to fit the user-defined label; make it wider if
@@ -1006,6 +1083,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             scaleDialog = null
             gamelessMode = false
             comboBeingConfigured = null
+            removeCallbacks(comboLongPressRunnable)
             overlayCombos.forEach { it.reset() }
         }
 
