@@ -56,6 +56,11 @@ class InputOverlayDrawableCombo(
     private val handler = Handler(Looper.getMainLooper())
     private val pendingMacroSteps = ArrayList<Runnable>()
 
+    // Tracks which keys are currently held (PRESSED) for an active macro
+    // so fireRelease() only sends RELEASED for those, not for keys whose
+    // press step was cancelled by an early lift.
+    private val currentlyPressed = LinkedHashSet<NativeButton>()
+
     // --- Visual paints ---
     private val outerRing = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -198,7 +203,11 @@ class InputOverlayDrawableCombo(
     /**
      * Press the combo per its [ComboPreset.Kind]:
      * - CHORD: emit PRESSED for every button this frame.
-     * - MACRO: emit PRESSED for the first button now, schedule the rest.
+     * - MACRO: emit a "press -> hold -> release" sequence where each key
+     *   is held for [MACRO_HOLD_MS] and presses are spaced
+     *   [MACRO_STEP_DELAY_MS] apart, so consecutive keys overlap
+     *   (e.g. "Down + Forward + A" presses ↓, then → with ↓ still held,
+     *   then A with → still held, then releases them in the same order).
      */
     private fun firePress(): List<Pair<NativeButton, Boolean>> {
         val buttons = preset.buttons
@@ -206,17 +215,38 @@ class InputOverlayDrawableCombo(
         return when (preset.kind) {
             ComboPreset.Kind.CHORD -> {
                 buttons.forEach { onButtonEvent(it, true) }
+                currentlyPressed.clear()
+                currentlyPressed.addAll(buttons)
                 buttons.map { it to true }
             }
             ComboPreset.Kind.MACRO -> {
-                // First key immediately, rest scheduled.
-                onButtonEvent(buttons[0], true)
-                for (i in 1 until buttons.size) {
+                currentlyPressed.clear()
+                val step = MACRO_STEP_DELAY_MS
+                val hold = MACRO_HOLD_MS
+                // Press each key at i*step.
+                for (i in buttons.indices) {
                     val btn = buttons[i]
-                    val r = Runnable { onButtonEvent(btn, true) }
+                    val r = Runnable {
+                        onButtonEvent(btn, true)
+                        currentlyPressed.add(btn)
+                    }
                     pendingMacroSteps += r
-                    handler.postDelayed(r, MACRO_STEP_DELAY_MS * i)
+                    handler.postDelayed(r, step * i)
                 }
+                // Release each key at hold + i*step (so the oldest key
+                // is released first, after a full hold window).
+                for (i in buttons.indices) {
+                    val btn = buttons[i]
+                    val r = Runnable {
+                        onButtonEvent(btn, false)
+                        currentlyPressed.remove(btn)
+                    }
+                    pendingMacroSteps += r
+                    handler.postDelayed(r, hold + step * i)
+                }
+                // We only report the first key in this synchronous
+                // frame so the caller can play a haptic; the rest of
+                // the macro is dispatched internally.
                 listOf(buttons[0] to true)
             }
         }
@@ -224,29 +254,24 @@ class InputOverlayDrawableCombo(
 
     /**
      * Release the combo. For MACRO we cancel any unsent steps and
-     * release all currently-held buttons. For CHORD we release
-     * everything.
+     * release only the keys that are still being held in our
+     * [currentlyPressed] set. For CHORD we release everything in the
+     * preset.
      */
     private fun fireRelease(): List<Pair<NativeButton, Boolean>> {
         if (!comboActive) return emptyList()
         comboActive = false
-        // Cancel pending macro presses - they're not in onButtonEvent
-        // history because they haven't been sent yet.
         for (r in pendingMacroSteps) handler.removeCallbacks(r)
         pendingMacroSteps.clear()
-        // We don't track which MACRO keys were already pressed; safest
-        // is to release all and let native side ignore duplicates. The
-        // receiver (InputOverlay) only forwards what we return, so
-        // returning the whole list is what produces a visible RELEASE
-        // for each key that was actually sent as PRESSED.
-        // In the simple MACRO press handler the user lifts off before
-        // the macro finishes, all pending steps are cancelled and we
-        // release everything we've pressed so far. Because we can't
-        // easily know which were pressed, we just release all and
-        // double-RELEASEs are a no-op for native input.
-        val out = preset.buttons.map { it to false }
-        for ((btn, _) in out) onButtonEvent(btn, false)
-        return out
+        val toRelease = when (preset.kind) {
+            ComboPreset.Kind.CHORD -> preset.buttons.toList()
+            ComboPreset.Kind.MACRO -> currentlyPressed.toList()
+        }
+        for (btn in toRelease) {
+            onButtonEvent(btn, false)
+            currentlyPressed.remove(btn)
+        }
+        return toRelease.map { it to false }
     }
 
     val isPressed: Boolean get() = comboActive
@@ -295,5 +320,14 @@ class InputOverlayDrawableCombo(
     companion object {
         /** Delay between sequential macro button presses, in ms. */
         const val MACRO_STEP_DELAY_MS: Long = 60L
+
+        /**
+         * How long each macro key is held (from its own press to its
+         * own release), in ms. Must be greater than
+         * [MACRO_STEP_DELAY_MS] * (n - 1) so that adjacent keys
+         * overlap (which is what fighting games need to recognise
+         * direction segments like "down -> down-forward -> forward").
+         */
+        const val MACRO_HOLD_MS: Long = 120L
     }
 }
