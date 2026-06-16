@@ -1816,19 +1816,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <string name="percent">%1$d%%</string>
 
     <!-- Virtual button combos -->
-    <string name="combo_menu_title">虚拟按键组合</string>
-    <string name="combo_menu_description">配置多键虚拟按键组合（2-8 个子键 → 1 个目标键）。</string>
-    <string name="combo_manager_description">开关、添加自定义组合或加载内置预设。在编辑 overlay 时拖动组合面板可调整位置，点击进入编辑。</string>
-    <string name="combo_manager_load_preset">加载预设</string>
-    <string name="combo_manager_add_new">新增组合</string>
-    <string name="combo_default_name">新组合</string>
+    <string name="combo_menu_title">Virtual button combos</string>
+    <string name="combo_menu_description">Configure multi-key virtual button combos (2-8 child keys → 1 target key).</string>
+    <string name="combo_manager_description">Toggle visibility, add custom combos or load a built-in preset. In the overlay editor, drag a combo pad to reposition; tap it to edit.</string>
+    <string name="combo_manager_load_preset">Load preset</string>
+    <string name="combo_manager_add_new">Add combo</string>
+    <string name="combo_default_name">New combo</string>
     <string name="combo_item_summary_fmt">%1$s → %2$s</string>
-    <string name="combo_editor_title">编辑组合键</string>
-    <string name="combo_editor_name_hint">组合名称</string>
-    <string name="combo_editor_triggers_label">触发子键（选 2-8 个）</string>
-    <string name="combo_editor_target_label">目标键（按下时实际生效的键）</string>
-    <string name="combo_editor_enabled_label">启用（在 overlay 上显示）</string>
-    <string name="combo_editor_done">完成</string>
-    <string name="combo_preset_picker_title">选择内置组合</string>
+    <string name="combo_editor_title">Edit combo</string>
+    <string name="combo_editor_name_hint">Combo name</string>
+    <string name="combo_editor_triggers_label">Child trigger keys (pick 2-8)</string>
+    <string name="combo_editor_target_label">Target key (this is what gets pressed)</string>
+    <string name="combo_editor_enabled_label">Enabled (shown on overlay)</string>
+    <string name="combo_editor_done">Done</string>
+    <string name="combo_preset_picker_title">Pick a built-in combo</string>
 
 </resources>
