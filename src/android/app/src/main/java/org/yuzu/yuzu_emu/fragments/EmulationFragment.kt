@@ -1184,19 +1184,31 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
                 // user sees the game follow the cursor.
                 applyScreenRect(x1, y1, x2, y2)
                 if (confirm) {
-                    // Persist on touch-up. Do NOT auto-exit edit mode; the user keeps
-                    // adjusting until they tap the Done button.
+                    // Persist on touch-up. The free-layout rect is a global
+                    // preference, not per-game, so we explicitly write it to
+                    // the global config: switch to global, write, switch
+                    // back. Otherwise the change would only land in the
+                    // current (per-game) config and be lost on the next
+                    // launch.
+                    NativeConfig.reloadGlobalConfig()
                     NativeConfig.setBoolean(KEY_FREE_LAYOUT_ENABLED, true)
                     NativeConfig.setFloat(KEY_FREE_LAYOUT_X1, x1)
                     NativeConfig.setFloat(KEY_FREE_LAYOUT_Y1, y1)
                     NativeConfig.setFloat(KEY_FREE_LAYOUT_X2, x2)
                     NativeConfig.setFloat(KEY_FREE_LAYOUT_Y2, y2)
                     NativeConfig.saveGlobalConfig()
+                    // Restore whatever config was active before (so per-game
+                    // overrides still work for everything else).
+                    NativeConfig.reloadGlobalConfig()
                 }
             }
         }
 
         // If a previous layout was saved, apply it on the surface immediately.
+        // Make sure we are reading from the global config (where the
+        // rect was saved) and not whatever per-game config happens to
+        // be loaded.
+        NativeConfig.reloadGlobalConfig()
         val (sx1, sy1, sx2, sy2) = readFreeLayoutRectOrDefault()
         editor.setRect(sx1, sy1, sx2, sy2)
         editor.post {
@@ -1268,18 +1280,24 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
         binding.freeLayoutDoneButton.visibility = View.VISIBLE
         binding.freeLayoutDoneButton.setOnClickListener { exitFreeLayoutEditMode() }
 
+        // Mark as enabled in the GLOBAL config (not per-game) so the
+        // toggle survives game-to-game switches.
+        NativeConfig.reloadGlobalConfig()
         NativeConfig.setBoolean(KEY_FREE_LAYOUT_ENABLED, true)
         NativeConfig.saveGlobalConfig()
+        NativeConfig.reloadGlobalConfig()
     }
 
     /** Read the saved normalised rectangle, or [freeLayoutDefault] if it is missing/invalid. */
     private fun readFreeLayoutRectOrDefault(): FloatArray {
-        val enabled = NativeConfig.getBoolean(KEY_FREE_LAYOUT_ENABLED, false)
+        // Read from the global config (not per-game) so the free layout
+        // is shared across all games.
+        val enabled = NativeConfig.getBoolean(KEY_FREE_LAYOUT_ENABLED, true)
         if (!enabled) return freeLayoutDefault
-        val x1 = NativeConfig.getFloat(KEY_FREE_LAYOUT_X1, false)
-        val y1 = NativeConfig.getFloat(KEY_FREE_LAYOUT_Y1, false)
-        val x2 = NativeConfig.getFloat(KEY_FREE_LAYOUT_X2, false)
-        val y2 = NativeConfig.getFloat(KEY_FREE_LAYOUT_Y2, false)
+        val x1 = NativeConfig.getFloat(KEY_FREE_LAYOUT_X1, true)
+        val y1 = NativeConfig.getFloat(KEY_FREE_LAYOUT_Y1, true)
+        val x2 = NativeConfig.getFloat(KEY_FREE_LAYOUT_X2, true)
+        val y2 = NativeConfig.getFloat(KEY_FREE_LAYOUT_Y2, true)
         // -1 means never set; 0/1 are valid edge values but x2<=x1 is not.
         return if (x1 < 0f || y1 < 0f || x2 < 0f || y2 < 0f || x2 <= x1 || y2 <= y1) {
             freeLayoutDefault
@@ -1299,13 +1317,16 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
      * Reset to fullscreen and exit edit mode.
      */
     fun resetFreeLayoutFromMenu() {
-        // Reset both the persisted values and the live surface.
+        // Reset both the persisted values and the live surface. Write to
+        // the GLOBAL config so the reset is permanent.
+        NativeConfig.reloadGlobalConfig()
         NativeConfig.setBoolean(KEY_FREE_LAYOUT_ENABLED, false)
         NativeConfig.setFloat(KEY_FREE_LAYOUT_X1, 0f)
         NativeConfig.setFloat(KEY_FREE_LAYOUT_Y1, 0f)
         NativeConfig.setFloat(KEY_FREE_LAYOUT_X2, 1f)
         NativeConfig.setFloat(KEY_FREE_LAYOUT_Y2, 1f)
         NativeConfig.saveGlobalConfig()
+        NativeConfig.reloadGlobalConfig()
 
         val surface = binding.surfaceEmulation
         val lp = surface.layoutParams as FrameLayout.LayoutParams
