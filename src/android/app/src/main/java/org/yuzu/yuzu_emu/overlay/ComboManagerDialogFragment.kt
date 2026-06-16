@@ -86,8 +86,7 @@ class ComboManagerDialogFragment : BottomSheetDialogFragment() {
             val newCombo = ComboPreset(
                 id = id,
                 displayName = getString(R.string.combo_default_name),
-                triggers = listOf(NativeButton.L, NativeButton.R),
-                target = NativeButton.ZL,
+                buttons = listOf(NativeButton.A, NativeButton.B),
                 enabled = true,
             )
             val list = ComboStore.load(requireContext())

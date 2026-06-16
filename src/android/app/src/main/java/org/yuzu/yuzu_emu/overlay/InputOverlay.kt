@@ -316,26 +316,18 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         }
 
         for (combo in overlayCombos) {
-            when (combo.updateStatus(event)) {
-                InputOverlayDrawableCombo.ComboPressState.ACTIVATED -> {
-                    NativeInput.onOverlayButtonEvent(
-                        playerIndex,
-                        combo.preset.target,
-                        ButtonState.PRESSED
-                    )
-                    playHaptics(event)
-                    shouldUpdateView = true
-                }
-                InputOverlayDrawableCombo.ComboPressState.DEACTIVATED -> {
-                    NativeInput.onOverlayButtonEvent(
-                        playerIndex,
-                        combo.preset.target,
-                        ButtonState.RELEASED
-                    )
-                    shouldUpdateView = true
-                }
-                InputOverlayDrawableCombo.ComboPressState.NONE -> { /* no change */ }
+            val actions = combo.updateStatus(event)
+            if (actions.isEmpty()) continue
+            for ((button, pressed) in actions) {
+                NativeInput.onOverlayButtonEvent(
+                    playerIndex,
+                    button,
+                    if (pressed) ButtonState.PRESSED else ButtonState.RELEASED,
+                )
             }
+            // Haptic feedback only on the leading edge of the press.
+            if (actions.any { it.second }) playHaptics(event)
+            shouldUpdateView = true
         }
 
         if (shouldUpdateView) {
@@ -943,17 +935,14 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             val drawable = InputOverlayDrawableCombo(resources, preset)
             val position = preset.positionFromLayout(layout)
             val scale = (IntSetting.OVERLAY_SCALE.getInt() + 50).toFloat() / 100f
-            // Larger pad for combos with more child keys so 5-8 finger
-            // presses don't crowd each other. 2-3 keys: 14%; 4 keys: 18%;
-            // 5-6 keys: 22%; 7-8 keys: 26% of the smaller screen side.
-            val pct = when {
-                preset.triggers.size <= 3 -> 0.14f
-                preset.triggers.size == 4 -> 0.18f
-                preset.triggers.size <= 6 -> 0.22f
-                else -> 0.26f
-            }
+            // Pad needs to fit the user-defined label; make it wider if
+            // the label is long. Base 14% of the smaller screen side;
+            // grow ~1% per extra character past a baseline of 6.
+            val nameLen = preset.displayName.length.coerceAtLeast(1)
+            val pct = (0.12f + (nameLen - 2).coerceAtLeast(0) * 0.012f)
+                .coerceIn(0.12f, 0.30f)
             val size = (baseSize * pct * scale * preset.individualScale).toInt()
-                .coerceAtLeast(140)
+                .coerceAtLeast(120)
             val drawableX = (position.first * max.x + min.x).toInt() - size / 2
             val drawableY = (position.second * max.y + min.y).toInt() - size / 2
             drawable.setBounds(drawableX, drawableY, drawableX + size, drawableY + size)

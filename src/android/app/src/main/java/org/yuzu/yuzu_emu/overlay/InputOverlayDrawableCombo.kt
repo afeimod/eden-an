@@ -15,13 +15,18 @@ import org.yuzu.yuzu_emu.features.input.model.NativeButton
 import org.yuzu.yuzu_emu.overlay.model.ComboPreset
 
 /**
- * A virtual pad that represents a [ComboPreset]. It is drawn as a single
- * panel split into 2 or 3 sub-key regions; the user must press all of them
- * simultaneously (with one finger per region) for the combo's target key
- * to fire.
+ * A virtual pad that represents a [ComboPreset] (a.k.a. "chord" / "macro"
+ * button).
  *
- * Drag-to-reposition and edit-mode clicks fall back to the same behaviour
- * as a regular overlay button via [onConfigureTouch].
+ * Pressing anywhere inside the pad sends [ComboPreset.buttons] to the
+ * game as a list of *simultaneously held* buttons. Releasing the finger
+ * sends RELEASED for every one of them. This lets a single tap emit a
+ * macro like "Down + Forward + A" used for special moves.
+ *
+ * The pad is rendered as a single rounded panel showing the combo's
+ * user-defined [ComboPreset.displayName] in the centre. Visual layout
+ * is a single hit region, so the user only needs one finger to fire
+ * the combo.
  */
 class InputOverlayDrawableCombo(
     private val res: Resources,
@@ -30,15 +35,15 @@ class InputOverlayDrawableCombo(
     val id: String get() = preset.id
 
     private val bounds = RectF()
-    private var bitmapDefault: Bitmap? = null
-    private var bitmapPressed: Bitmap? = null
     var controlPositionX = 0
+        private set
     var controlPositionY = 0
+        private set
     private var previousTouchX = 0
     private var previousTouchY = 0
 
-    // Currently pressed sub-keys: pointerId (from MotionEvent) -> sub-index
-    private val activePointers = HashMap<Int, Int>()
+    // Pointer that currently holds the pad down (we only ever need one).
+    private var activePointerId: Int = -1
     private var comboActive = false
 
     private val outerRing = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -51,19 +56,14 @@ class InputOverlayDrawableCombo(
         strokeWidth = 6f
         color = Color.argb(255, 80, 200, 80)
     }
-    private val subFill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-        color = Color.argb(80, 255, 255, 255)
-    }
-    private val subFillActive = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-        color = Color.argb(180, 80, 200, 80)
-    }
     private val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
         textAlign = Paint.Align.CENTER
-        textSize = 28f
         isFakeBoldText = true
+    }
+    private val subLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb(200, 220, 220, 220)
+        textAlign = Paint.Align.CENTER
     }
 
     var width: Int = 0
@@ -82,37 +82,39 @@ class InputOverlayDrawableCombo(
     /** Draws the combo pad onto [canvas]. */
     fun draw(canvas: Canvas) {
         if (width <= 0 || height <= 0) return
-        // Background panel (rounded rect approximated by filled rect with alpha).
         val panelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.FILL
-            color = if (comboActive) Color.argb(120, 30, 30, 30) else Color.argb(90, 0, 0, 0)
+            color = if (comboActive) Color.argb(160, 30, 60, 30) else Color.argb(110, 0, 0, 0)
         }
         val radius = (minOf(width, height) * 0.18f).coerceAtLeast(8f)
         canvas.drawRoundRect(bounds, radius, radius, panelPaint)
         val ringPaint = if (comboActive) outerRingActive else outerRing
         canvas.drawRoundRect(bounds, radius, radius, ringPaint)
 
-        // Sub-key hit circles. Shrink drawn radius as N grows so the
-        // panel doesn't become an illegible blob of overlapping circles.
-        val subCenters = computeSubCenters()
-        val drawRadius = when {
-            subCenters.size <= 4 -> bounds.width() * 0.14f
-            subCenters.size == 5 -> bounds.width() * 0.11f
-            else -> bounds.width() * 0.09f
-        }
-        subCenters.forEachIndexed { idx, c ->
-            val fill = if (activePointers.values.contains(idx)) subFillActive else subFill
-            canvas.drawCircle(c.x, c.y, drawRadius, fill)
-        }
-
-        // Centre label = combo target abbreviation.
-        val label = abbreviate(preset.target)
+        // Main label: the user-defined combo name.
+        labelPaint.textSize = (minOf(width, height) * 0.20f).coerceIn(20f, 64f)
+        val name = preset.displayName.ifBlank { autoName() }
         val cx = bounds.centerX()
         val cy = bounds.centerY()
-        canvas.drawText(label, cx, cy + labelPaint.textSize / 3f, labelPaint)
+        canvas.drawText(name, cx, cy + labelPaint.textSize / 3f, labelPaint)
+
+        // Sub-label: "+ A" style short hint of the underlying buttons.
+        if (preset.displayName.isNotBlank() && preset.displayName != autoName()) {
+            subLabelPaint.textSize = labelPaint.textSize * 0.5f
+            canvas.drawText(
+                autoName(),
+                cx,
+                cy + labelPaint.textSize * 1.1f,
+                subLabelPaint
+            )
+        }
     }
 
-    private fun abbreviate(b: NativeButton): String = when (b) {
+    /** "A + B + Capture" form derived from the current selection. */
+    fun autoName(): String =
+        preset.buttons.joinToString(" + ") { buttonLabel(it) }
+
+    private fun buttonLabel(b: NativeButton): String = when (b) {
         NativeButton.A -> "A"
         NativeButton.B -> "B"
         NativeButton.X -> "X"
@@ -123,90 +125,29 @@ class InputOverlayDrawableCombo(
         NativeButton.ZR -> "ZR"
         NativeButton.Plus -> "+"
         NativeButton.Minus -> "-"
-        NativeButton.Home -> "⌂"
-        NativeButton.Capture -> "▣"
+        NativeButton.Home -> "Home"
+        NativeButton.Capture -> "Capture"
         NativeButton.DUp -> "↑"
         NativeButton.DDown -> "↓"
         NativeButton.DLeft -> "←"
         NativeButton.DRight -> "→"
-        NativeButton.LStick -> "LS"
-        NativeButton.RStick -> "RS"
-        else -> "?"
+        NativeButton.LStick -> "L Stick"
+        NativeButton.RStick -> "R Stick"
+        else -> b.name
     }
 
-    private fun computeSubCenters(): List<PointF> {
-        val n = preset.triggers.size
-        val cx = bounds.centerX()
-        val cy = bounds.centerY()
-        // Larger pad to accommodate more child keys; cap the radius so the
-        // sub-circles stay inside the panel.
-        val r = (bounds.width() * 0.32f).coerceAtMost(bounds.width() * 0.4f)
-        return when (n) {
-            2 -> listOf(
-                PointF(cx - r, cy),
-                PointF(cx + r, cy),
-            )
-            3 -> listOf(
-                PointF(cx, cy - r),
-                PointF(cx - r * 0.866f, cy + r * 0.5f),
-                PointF(cx + r * 0.866f, cy + r * 0.5f),
-            )
-            4 -> listOf(
-                PointF(cx - r, cy - r),
-                PointF(cx + r, cy - r),
-                PointF(cx - r, cy + r),
-                PointF(cx + r, cy + r),
-            )
-            else -> {
-                // 5-8: equally spaced around a circle, starting at top.
-                val out = ArrayList<PointF>(n)
-                val startAngle = -Math.PI / 2.0
-                for (i in 0 until n) {
-                    val theta = startAngle + (2.0 * Math.PI * i) / n
-                    out += PointF(
-                        cx + (r * Math.cos(theta)).toFloat(),
-                        cy + (r * Math.sin(theta)).toFloat()
-                    )
-                }
-                out
-            }
-        }
-    }
-
-    /** True if [x,y] is inside one of the sub-key hit circles. */
-    private fun hitSubIndex(x: Float, y: Float): Int? {
-        val centers = computeSubCenters()
-        if (centers.isEmpty()) return null
-        // For >=5 children, shrink the per-key hit radius so they don't overlap.
-        val n = centers.size
-        val baseRadius = bounds.width() * 0.14f
-        val tol = when {
-            n <= 4 -> 1.5f
-            n == 5 -> 1.25f
-            else -> 1.15f
-        }
-        val r = baseRadius * tol
-        centers.forEachIndexed { idx, c ->
-            val dx = c.x - x
-            val dy = c.y - y
-            if (dx * dx + dy * dy <= r * r) return idx
-        }
-        return null
-    }
-
-    /** Whether (x,y) is anywhere inside the pad rect (used to claim pointers). */
     private fun containsPoint(x: Float, y: Float): Boolean = bounds.contains(x, y)
 
     /**
-     * Feed a [MotionEvent] to the combo pad. The pad only reacts to
-     * pointers that started inside its bounds.
+     * Feed a [MotionEvent] to the combo pad. The pad reacts to a single
+     * pointer that lands inside its bounds; additional pointers are
+     * ignored (the combo is a one-finger gesture).
      *
-     * @return ComboPressState describing whether the combo fired / released
-     *         this event, plus the relevant target key. Caller is
-     *         responsible for forwarding the synthesized button event to
-     *         native.
+     * @return A list of button actions the caller should forward to
+     *         NativeInput.onOverlayButtonEvent, paired with the
+     *         [NativeButton] to emit. Empty list means no change.
      */
-    fun updateStatus(event: MotionEvent): ComboPressState {
+    fun updateStatus(event: MotionEvent): List<Pair<NativeButton, Boolean>> {
         val motionEvent = event.actionMasked
         val pointerIndex = event.actionIndex
         val pointerId = event.getPointerId(pointerIndex)
@@ -215,75 +156,58 @@ class InputOverlayDrawableCombo(
 
         when (motionEvent) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
-                if (!containsPoint(x, y)) return ComboPressState.NONE
-                val subIdx = hitSubIndex(x, y) ?: return ComboPressState.NONE
-                activePointers[pointerId] = subIdx
-                return evaluate()
+                if (comboActive) return emptyList()
+                if (!containsPoint(x, y)) return emptyList()
+                // If a different finger is already active, ignore this
+                // pointer (one-finger gesture semantics).
+                if (activePointerId != -1) return emptyList()
+                activePointerId = pointerId
+                comboActive = true
+                return preset.buttons.map { it to true }
             }
 
             MotionEvent.ACTION_MOVE -> {
-                // Sync each still-down pointer to its current sub-key (a finger
-                // may have drifted). Remove any pointer that left the pad.
-                val toRemove = mutableListOf<Int>()
-                for ((pid, _) in activePointers) {
-                    val pi = event.findPointerIndex(pid)
-                    if (pi < 0) { toRemove += pid; continue }
-                    val mx = event.getX(pi)
-                    val my = event.getY(pi)
-                    if (!containsPoint(mx, my)) {
-                        toRemove += pid
-                    } else {
-                        val newIdx = hitSubIndex(mx, my)
-                        if (newIdx != null) activePointers[pid] = newIdx
+                // If the active finger left the pad, release the combo.
+                if (activePointerId == -1) return emptyList()
+                val pi = event.findPointerIndex(activePointerId)
+                if (pi < 0) return emptyList()
+                if (!containsPoint(event.getX(pi), event.getY(pi))) {
+                    activePointerId = -1
+                    if (comboActive) {
+                        comboActive = false
+                        return preset.buttons.map { it to false }
                     }
                 }
-                toRemove.forEach { activePointers.remove(it) }
-                return evaluate()
+                return emptyList()
             }
 
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP,
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_POINTER_UP,
             MotionEvent.ACTION_CANCEL -> {
-                if (activePointers.remove(pointerId) != null) {
-                    return evaluate()
+                if (activePointerId != pointerId) return emptyList()
+                activePointerId = -1
+                if (comboActive) {
+                    comboActive = false
+                    return preset.buttons.map { it to false }
                 }
+                return emptyList()
             }
         }
-        return ComboPressState.NONE
+        return emptyList()
     }
 
-    /** Returns the combo's current state - PRESS if all triggers satisfied, RELEASE otherwise. */
-    private fun evaluate(): ComboPressState {
-        val activeSubs = activePointers.values.toSet()
-        val need = preset.triggers.indices.toSet()
-        val allSatisfied = need.all { it in activeSubs }
-        return when {
-            allSatisfied && !comboActive -> {
-                comboActive = true
-                ComboPressState.ACTIVATED
-            }
-            !allSatisfied && comboActive -> {
-                comboActive = false
-                ComboPressState.DEACTIVATED
-            }
-            else -> ComboPressState.NONE
-        }
-    }
+    /** True while the combo is currently held (PRESSED). */
+    val isPressed: Boolean get() = comboActive
 
-    /** True while at least one pointer is inside the pad. */
-    fun hasActivePointer(): Boolean = activePointers.isNotEmpty()
-
-    /** Reset internal state. Call when the activity is destroyed. */
+    /** Reset internal state. Call when the activity is destroyed / reconfigured. */
     fun reset() {
-        activePointers.clear()
+        activePointerId = -1
         comboActive = false
     }
 
     // ----- Edit-mode drag support, mirrors InputOverlayDrawableButton.onConfigureTouch -----
 
     fun onConfigureTouch(event: MotionEvent): Boolean {
-        // For ACTION_MOVE, actionIndex is undefined; use 0 (the primary
-        // pointer that started the gesture). For ACTION_DOWN/POINTER_DOWN
-        // actionIndex points at the new pointer.
         val pointerIndex = when (event.actionMasked) {
             MotionEvent.ACTION_MOVE -> 0
             else -> event.actionIndex
@@ -298,9 +222,6 @@ class InputOverlayDrawableCombo(
                 previousTouchY = fingerPositionY
                 controlPositionX = fingerPositionX - width / 2
                 controlPositionY = fingerPositionY - height / 2
-                // Immediately push the new bounds so the first frame after
-                // DOWN already draws the pad in its new spot (and so that
-                // boundsRect() reflects the touched location).
                 configureLayout(controlPositionX, controlPositionY, width, height)
             }
 
@@ -321,7 +242,7 @@ class InputOverlayDrawableCombo(
     /** Public read-only bounds for hit-testing by the parent overlay. */
     fun boundsRect(): RectF = RectF(bounds)
 
-    val isPressed: Boolean get() = comboActive
+    fun computeSubCenters(): List<PointF> = emptyList()
 
-    enum class ComboPressState { NONE, ACTIVATED, DEACTIVATED }
+    fun hitSubIndex(x: Float, y: Float): Int? = null
 }

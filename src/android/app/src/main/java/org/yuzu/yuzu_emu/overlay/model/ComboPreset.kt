@@ -8,19 +8,22 @@ import org.yuzu.yuzu_emu.features.input.model.NativeButton
 /**
  * A user-defined (or built-in) virtual button combo.
  *
- * Pressing [triggers] (2 or 3 child keys, held simultaneously) inside the
- * combo pad's bounding rect will synthesize [target] as if the user had
- * pressed the corresponding host button.
+ * Pressing the combo pad on the overlay sends [buttons] to the game as if
+ * the user had physically held each one down at the same time. This lets
+ * a single tap emit a "macro" / "chord" like "Down + Forward + A" used
+ * for special moves in fighting games.
+ *
+ * [displayName] is the user-facing label rendered both in the manager
+ * list and directly on the combo pad above the game surface.
  *
  * Stored position / scale follow the same screen-relative convention as
- * the regular overlay controls so that the user can drag the combo pad
+ * the regular overlay controls so the user can drag the combo pad
  * around just like a normal button.
  */
 data class ComboPreset(
     val id: String,
     val displayName: String,
-    val triggers: List<NativeButton>,
-    val target: NativeButton,
+    val buttons: List<NativeButton>,
     var enabled: Boolean = true,
     var landscapePosition: Pair<Double, Double> = Pair(0.85, 0.7),
     var portraitPosition: Pair<Double, Double> = Pair(0.85, 0.7),
@@ -28,11 +31,11 @@ data class ComboPreset(
     var individualScale: Float = 1.0f,
 ) {
     init {
-        require(triggers.size in MIN_TRIGGERS..MAX_TRIGGERS) {
-            "ComboPreset requires $MIN_TRIGGERS-$MAX_TRIGGERS child triggers (got ${triggers.size})"
+        require(buttons.size in MIN_TRIGGERS..MAX_TRIGGERS) {
+            "ComboPreset requires $MIN_TRIGGERS-$MAX_TRIGGERS buttons (got ${buttons.size})"
         }
-        require(triggers.distinct().size == triggers.size) {
-            "ComboPreset triggers must be distinct"
+        require(buttons.distinct().size == buttons.size) {
+            "ComboPreset buttons must be distinct"
         }
     }
 
@@ -43,42 +46,34 @@ data class ComboPreset(
     }
 
     companion object {
-        /** Minimum number of child trigger keys per combo. */
+        /** Minimum number of buttons per combo. */
         const val MIN_TRIGGERS = 2
-        /** Maximum number of child trigger keys per combo. */
+        /** Maximum number of buttons per combo. */
         const val MAX_TRIGGERS = 8
 
         /**
          * Built-in presets surfaced by "Load preset" in the combo editor.
-         *
-         * Each one is a (displayName, triggers, target) triple. The id is
-         * stable so that user-saved customizations won't collide with
-         * future renames.
          */
         val BUILT_IN_PRESETS: List<ComboPreset> = listOf(
             ComboPreset(
-                id = "builtin_lr_to_zl",
-                displayName = "L + R → ZL",
-                triggers = listOf(NativeButton.L, NativeButton.R),
-                target = NativeButton.ZL,
+                id = "builtin_ab",
+                displayName = "AB",
+                buttons = listOf(NativeButton.A, NativeButton.B),
             ),
             ComboPreset(
-                id = "builtin_zlzr_to_home",
-                displayName = "ZL + ZR → Home",
-                triggers = listOf(NativeButton.ZL, NativeButton.ZR),
-                target = NativeButton.Home,
+                id = "builtin_lr",
+                displayName = "LR",
+                buttons = listOf(NativeButton.L, NativeButton.R),
             ),
             ComboPreset(
-                id = "builtin_ab_to_capture",
-                displayName = "A + B → Capture",
-                triggers = listOf(NativeButton.A, NativeButton.B),
-                target = NativeButton.Capture,
+                id = "builtin_zlzr",
+                displayName = "ZLZR",
+                buttons = listOf(NativeButton.ZL, NativeButton.ZR),
             ),
             ComboPreset(
-                id = "builtin_minusplus_to_plus",
-                displayName = "− + + → +（长按）",
-                triggers = listOf(NativeButton.Minus, NativeButton.Plus),
-                target = NativeButton.Plus,
+                id = "builtin_dfa",
+                displayName = "下前A",
+                buttons = listOf(NativeButton.DDown, NativeButton.DRight, NativeButton.A),
             ),
         )
     }

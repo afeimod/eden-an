@@ -34,14 +34,11 @@ class ComboListAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val preset = items[position]
         val ctx = holder.itemView.context
+        // 主标题：用户自定义名字（如“下前A”）
         holder.binding.comboItemName.text = preset.displayName
-        // Compact "A + B → Capture" form. NativeButton.name is an enum
-        // identifier; we map it to a short user-facing label.
-        holder.binding.comboItemSummary.text = ctx.getString(
-            org.yuzu.yuzu_emu.R.string.combo_item_summary_fmt,
-            preset.triggers.joinToString(" + ") { abbreviate(it) },
-            abbreviate(preset.target),
-        )
+        // 副标题：按下的键组合（“↓ + → + A”），让用户记得这个组合干了什么
+        holder.binding.comboItemSummary.text =
+            preset.buttons.joinToString(" + ") { abbreviate(it) }
         holder.binding.comboItemVisible.setOnCheckedChangeListener(null)
         holder.binding.comboItemVisible.isChecked = preset.enabled
         holder.binding.comboItemVisible.setOnCheckedChangeListener { _, checked ->

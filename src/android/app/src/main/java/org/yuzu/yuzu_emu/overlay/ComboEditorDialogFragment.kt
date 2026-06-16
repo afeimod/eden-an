@@ -15,33 +15,29 @@ import org.yuzu.yuzu_emu.overlay.model.ComboPreset
 import org.yuzu.yuzu_emu.overlay.model.ComboStore
 
 /**
- * 编辑单条组合键的弹窗。UI 风格与普通按键编辑一致：名称、触发键
- * chips（2-8 个）、目标键 chips、显示/隐藏、删除。
+ * 编辑单条组合键的弹窗。
  *
- * 名字默认按 "A + B → ZL" 这种模式生成，用户可以在输入框覆盖。
+ * - 名称：用户自由输入；选中按钮后自动按 "A + B + A" 这种形式填入，
+ *   用户可覆盖。已起过名后不再覆盖。
+ * - 按钮 chips（2-8 个）：选中的 chip 即「按下 combo pad 时一起生效的按键」。
+ *
+ * 没有「目标键」——因为这条组合的语义就是「同时按下选中的所有键」。
  */
 class ComboEditorDialogFragment : DialogFragment() {
     private var _binding: DialogComboEditorBinding? = null
     private val binding get() = _binding!!
 
     private var comboId: String? = null
-    private val triggerButtons = linkedSetOf<NativeButton>()
-    private var targetButton: NativeButton? = null
+    private val buttons = linkedSetOf<NativeButton>()
+    private var lastAutoName: String = ""
 
-    private val triggerCandidates = listOf(
+    private val candidates = listOf(
         NativeButton.A, NativeButton.B, NativeButton.X, NativeButton.Y,
         NativeButton.L, NativeButton.R, NativeButton.ZL, NativeButton.ZR,
         NativeButton.Plus, NativeButton.Minus,
         NativeButton.DUp, NativeButton.DDown, NativeButton.DLeft, NativeButton.DRight,
         NativeButton.LStick, NativeButton.RStick,
-    )
-
-    private val targetCandidates = listOf(
-        NativeButton.A, NativeButton.B, NativeButton.X, NativeButton.Y,
-        NativeButton.L, NativeButton.R, NativeButton.ZL, NativeButton.ZR,
-        NativeButton.Plus, NativeButton.Minus,
         NativeButton.Home, NativeButton.Capture,
-        NativeButton.DUp, NativeButton.DDown, NativeButton.DLeft, NativeButton.DRight,
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,72 +53,61 @@ class ComboEditorDialogFragment : DialogFragment() {
         if (preset != null) {
             binding.comboNameInput.setText(preset.displayName)
             binding.comboEnabledSwitch.isChecked = preset.enabled
-            triggerButtons.clear()
-            triggerButtons.addAll(preset.triggers)
-            targetButton = preset.target
+            buttons.clear()
+            buttons.addAll(preset.buttons)
         } else {
             binding.comboEnabledSwitch.isChecked = true
-            triggerButtons.clear()
-            triggerButtons += NativeButton.L
-            triggerButtons += NativeButton.R
-            targetButton = NativeButton.ZL
-            // Auto-generate the default name from the selection.
+            buttons.clear()
+            buttons += NativeButton.A
+            buttons += NativeButton.B
             binding.comboNameInput.setText(autoName())
         }
+        lastAutoName = autoName()
 
-        bindTriggerChips()
-        bindTargetChips()
+        bindChips()
         wireButtons(preset != null && isBuiltIn(preset))
 
-        // Live-update default name as the user changes the trigger / target
-        // selection, but only if the field still equals the previously
-        // generated name (so user-edited names aren't overwritten).
-        val autoNameListener = object : android.text.TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: android.text.Editable?) {
-                val current = s?.toString().orEmpty()
-                if (current.isEmpty() || current == lastAutoName) {
-                    val gen = autoName()
-                    lastAutoName = gen
-                    binding.comboNameInput.setText(gen)
-                    binding.comboNameInput.setSelection(binding.comboNameInput.text?.length ?: 0)
-                }
-            }
-        }
-        // Auto-name refresh when chips toggle:
-        val chipWatcher: () -> Unit = {
-            val gen = autoName()
-            lastAutoName = gen
+        // 当用户改动 chip 时刷新自动名（仅当当前名字仍是自动生成时）。
+        binding.buttonsChipGroup.setOnCheckedStateChangeListener { _, _ ->
+            enforceLimit()
             val cur = binding.comboNameInput.text?.toString().orEmpty()
-            if (cur.isEmpty()) {
+            if (cur.isEmpty() || cur == lastAutoName) {
+                val gen = autoName()
+                lastAutoName = gen
                 binding.comboNameInput.setText(gen)
             }
         }
-        binding.comboNameInput.addTextChangedListener(autoNameListener)
-        binding.triggersChipGroup.setOnCheckedStateChangeListener { _, _ ->
-            enforceTriggerLimit()
-            chipWatcher()
-        }
-        binding.targetChipGroup.setOnCheckedStateChangeListener { _, _ -> chipWatcher() }
+
+        // TextWatcher：用户清空输入框时回填自动名，否则只记录当前自动名。
+        binding.comboNameInput.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                val cur = s?.toString().orEmpty()
+                if (cur.isEmpty()) {
+                    val gen = autoName()
+                    lastAutoName = gen
+                    binding.comboNameInput.setText(gen)
+                    binding.comboNameInput.setSelection(gen.length)
+                } else if (cur == autoName()) {
+                    lastAutoName = cur
+                }
+            }
+        })
 
         return AlertDialog.Builder(requireContext())
             .setTitle(R.string.combo_editor_title)
             .setView(binding.root)
-            .setPositiveButton(R.string.combo_editor_done) { _, _ ->
-                saveCurrent(close = true)
-            }
+            .setPositiveButton(R.string.combo_editor_done) { _, _ -> saveCurrent(close = true) }
             .setNegativeButton(android.R.string.cancel, null)
             .create()
     }
 
-    private var lastAutoName: String = ""
+    private fun isBuiltIn(p: ComboPreset): Boolean =
+        ComboPreset.BUILT_IN_PRESETS.any { it.id == p.id }
 
-    private fun autoName(): String {
-        val left = triggerButtons.joinToString(" + ") { buttonLabel(it) }
-        val right = targetButton?.let { buttonLabel(it) } ?: "?"
-        return "$left → $right"
-    }
+    private fun autoName(): String =
+        buttons.joinToString(" + ") { buttonLabel(it) }
 
     private fun buttonLabel(b: NativeButton): String = when (b) {
         NativeButton.A -> "A"
@@ -146,31 +131,27 @@ class ComboEditorDialogFragment : DialogFragment() {
         else -> b.name
     }
 
-    private fun isBuiltIn(p: ComboPreset): Boolean =
-        ComboPreset.BUILT_IN_PRESETS.any { it.id == p.id }
-
-    private fun bindTriggerChips() {
-        val group = binding.triggersChipGroup
+    private fun bindChips() {
+        val group = binding.buttonsChipGroup
         group.removeAllViews()
-        triggerCandidates.forEach { btn ->
+        candidates.forEach { btn ->
             val chip = Chip(requireContext()).apply {
-                text = btn.name
+                text = buttonLabel(btn)
                 isCheckable = true
-                isChecked = btn in triggerButtons
+                isChecked = btn in buttons
                 setOnCheckedChangeListener { _, checked ->
-                    if (checked) triggerButtons += btn else triggerButtons -= btn
-                    enforceTriggerLimit()
+                    if (checked) buttons += btn else buttons -= btn
+                    enforceLimit()
                 }
             }
             group.addView(chip)
         }
-        enforceTriggerLimit()
+        enforceLimit()
     }
 
-    /** Cap trigger count at MAX_TRIGGERS; disable the remaining unchecked chips. */
-    private fun enforceTriggerLimit() {
-        val group = binding.triggersChipGroup
-        val atMax = triggerButtons.size >= ComboPreset.MAX_TRIGGERS
+    private fun enforceLimit() {
+        val group = binding.buttonsChipGroup
+        val atMax = buttons.size >= ComboPreset.MAX_TRIGGERS
         for (i in 0 until group.childCount) {
             val chip = group.getChildAt(i) as? Chip ?: continue
             if (!chip.isChecked && atMax) {
@@ -180,23 +161,6 @@ class ComboEditorDialogFragment : DialogFragment() {
                 chip.isEnabled = true
                 chip.alpha = 1f
             }
-        }
-    }
-
-    private fun bindTargetChips() {
-        val group = binding.targetChipGroup
-        group.removeAllViews()
-        targetCandidates.forEach { btn ->
-            val chip = Chip(requireContext()).apply {
-                text = btn.name
-                isCheckable = true
-                isChecked = btn == targetButton
-                setOnCheckedChangeListener { _, checked ->
-                    if (checked) targetButton = btn
-                    else if (targetButton == btn) targetButton = null
-                }
-            }
-            group.addView(chip)
         }
     }
 
@@ -219,15 +183,13 @@ class ComboEditorDialogFragment : DialogFragment() {
         val list = ComboStore.load(requireContext())
         val existing = list.firstOrNull { it.id == id } ?: return
         val typed = binding.comboNameInput.text?.toString()?.trim().orEmpty()
-        val name = if (typed.isNotEmpty() && typed != autoName()) typed else autoName()
-        val trig = triggerButtons.toList()
+        val name = if (typed.isNotEmpty()) typed else autoName()
+        val chosen = buttons.toList()
             .takeIf { it.size in ComboPreset.MIN_TRIGGERS..ComboPreset.MAX_TRIGGERS }
-            ?: existing.triggers
-        val tgt = targetButton ?: existing.target
+            ?: existing.buttons
         val updated = existing.copy(
             displayName = name,
-            triggers = trig,
-            target = tgt,
+            buttons = chosen,
             enabled = binding.comboEnabledSwitch.isChecked,
         )
         val idx = list.indexOfFirst { it.id == id }

@@ -1181,16 +1181,15 @@
 
     <!-- Virtual button combos -->
     <string name="combo_menu_title">虚拟按键组合</string>
-    <string name="combo_menu_description">配置多键虚拟按键组合（2-8 个子键 → 1 个目标键）。</string>
+    <string name="combo_menu_description">添加同时按下 2-8 个按键的组合 / 宏面板。</string>
     <string name="combo_manager_description">开关、添加自定义组合或加载内置预设。在编辑 overlay 时拖动组合面板可调整位置，点击进入编辑。</string>
     <string name="combo_manager_load_preset">加载预设</string>
     <string name="combo_manager_add_new">新增组合</string>
     <string name="combo_default_name">新组合</string>
-    <string name="combo_item_summary_fmt">%1$s → %2$s</string>
+    <string name="combo_item_summary_fmt">%1$s</string>
     <string name="combo_editor_title">编辑组合键</string>
-    <string name="combo_editor_name_hint">组合名称</string>
-    <string name="combo_editor_triggers_label">触发子键（选 2-8 个）</string>
-    <string name="combo_editor_target_label">目标键（按下时实际生效的键）</string>
+    <string name="combo_editor_name_hint">显示名称（会画在组合面板上）</string>
+    <string name="combo_editor_buttons_label">同时按下的按键（选 2-8 个）</string>
     <string name="combo_editor_enabled_label">启用（在 overlay 上显示）</string>
     <string name="combo_editor_done">完成</string>
     <string name="combo_preset_picker_title">选择内置组合</string>

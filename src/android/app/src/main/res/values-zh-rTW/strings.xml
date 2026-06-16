@@ -973,16 +973,15 @@
 
     <!-- Virtual button combos -->
     <string name="combo_menu_title">虛擬按鍵組合</string>
-    <string name="combo_menu_description">配置多鍵虛擬按鍵組合（2-8 個子鍵 → 1 個目標鍵）。</string>
+    <string name="combo_menu_description">添加同時按下 2-8 個按鍵的組合 / 巨集面板。</string>
     <string name="combo_manager_description">開關、新增自訂組合或載入內建預設。在編輯 overlay 時拖動組合面板可調整位置，點擊進入編輯。</string>
     <string name="combo_manager_load_preset">載入預設</string>
     <string name="combo_manager_add_new">新增組合</string>
     <string name="combo_default_name">新組合</string>
-    <string name="combo_item_summary_fmt">%1$s → %2$s</string>
+    <string name="combo_item_summary_fmt">%1$s</string>
     <string name="combo_editor_title">編輯組合鍵</string>
-    <string name="combo_editor_name_hint">組合名稱</string>
-    <string name="combo_editor_triggers_label">觸發子鍵（選 2-8 個）</string>
-    <string name="combo_editor_target_label">目標鍵（按下時實際生效的鍵）</string>
+    <string name="combo_editor_name_hint">顯示名稱（會畫在組合面板上）</string>
+    <string name="combo_editor_buttons_label">同時按下的按鍵（選 2-8 個）</string>
     <string name="combo_editor_enabled_label">啟用（在 overlay 上顯示）</string>
     <string name="combo_editor_done">完成</string>
     <string name="combo_preset_picker_title">選擇內建組合</string>

@@ -17,7 +17,10 @@ object ComboStore {
     private const val PREFS_NAME = "virtual_combo_prefs"
     private const val KEY_JSON = "combos_json"
     private const val VERSION_KEY = "combos_version"
-    private const val CURRENT_VERSION = 1
+    // v2: removed "target" field, "triggers" renamed to "buttons" and now
+    // represents the list of buttons emitted in parallel when the combo
+    // pad is pressed (chord / macro semantics).
+    private const val CURRENT_VERSION = 2
 
     // Naive JSON helpers - we don't pull Gson/Moshi in for one tiny model.
     private fun presetsToJson(presets: List<ComboPreset>): String {
@@ -28,9 +31,8 @@ object ComboStore {
             sb.append("\"id\":").append(jsonStr(p.id)).append(',')
             sb.append("\"name\":").append(jsonStr(p.displayName)).append(',')
             sb.append("\"enabled\":").append(p.enabled).append(',')
-            sb.append("\"target\":").append(p.target.int).append(',')
-            sb.append("\"triggers\":[")
-            p.triggers.forEachIndexed { i, t ->
+            sb.append("\"buttons\":[")
+            p.buttons.forEachIndexed { i, t ->
                 if (i > 0) sb.append(',')
                 sb.append(t.int)
             }
@@ -60,12 +62,10 @@ object ComboStore {
     private fun presetsFromJson(json: String): MutableList<ComboPreset> {
         val list = mutableListOf<ComboPreset>()
         try {
-            // Object entries: between '{' and matching '}' at depth 0.
             var i = 0
             while (i < json.length) {
                 val open = json.indexOf('{', i)
                 if (open < 0) break
-                // Find matching '}' by scanning depth.
                 var depth = 0
                 var close = -1
                 var j = open
@@ -94,21 +94,16 @@ object ComboStore {
     }
 
     private fun parseObject(obj: String): ComboPreset {
-        // Very small parser - extract each "key":value at top level.
-        // Values may be number, string, or [n,n,n].
         val map = linkedMapOf<String, String>()
         var i = 0
         while (i < obj.length) {
-            // find "key"
             val k1 = obj.indexOf('"', i)
             if (k1 < 0) break
             val k2 = obj.indexOf('"', k1 + 1)
             if (k2 < 0) break
             val key = obj.substring(k1 + 1, k2)
-            // colon
             val colon = obj.indexOf(':', k2 + 1)
             if (colon < 0) break
-            // value: read until ',' at depth 0 (or '}' at depth 0)
             var depth = 0
             var v = colon + 1
             var inStr = false
@@ -135,11 +130,12 @@ object ComboStore {
         val id = map["id"]?.trim('"') ?: error("missing id")
         val name = map["name"]?.trim('"') ?: id
         val enabled = map["enabled"]?.toBooleanStrictOrNull() ?: true
-        val target = NativeButton.from(map["target"]?.toIntOrNull() ?: NativeButton.A.int)
 
-        val triggersRaw = map["triggers"]?.trim().orEmpty()
-        val triggers = if (triggersRaw.startsWith("[") && triggersRaw.endsWith("]")) {
-            triggersRaw.substring(1, triggersRaw.length - 1)
+        // v2 schema uses "buttons"; v1 used "triggers". We accept both.
+        val rawList = map["buttons"] ?: map["triggers"]
+        val buttonsRaw = rawList?.trim().orEmpty()
+        val parsed = if (buttonsRaw.startsWith("[") && buttonsRaw.endsWith("]")) {
+            buttonsRaw.substring(1, buttonsRaw.length - 1)
                 .split(',')
                 .mapNotNull { it.trim().toIntOrNull() }
                 .map { NativeButton.from(it) }
@@ -160,17 +156,15 @@ object ComboStore {
         )
         val scale = map["scale"]?.toFloatOrNull() ?: 1.0f
 
-        // Validate triggers; fall back to 2-key ZL if invalid.
-        val safeTriggers = when {
-            triggers.size in ComboPreset.MIN_TRIGGERS..ComboPreset.MAX_TRIGGERS -> triggers
-            else -> listOf(NativeButton.L, NativeButton.R)
+        val safeButtons = when {
+            parsed.size in ComboPreset.MIN_TRIGGERS..ComboPreset.MAX_TRIGGERS -> parsed
+            else -> listOf(NativeButton.A, NativeButton.B)
         }
 
         return ComboPreset(
             id = id,
             displayName = name,
-            triggers = safeTriggers,
-            target = target,
+            buttons = safeButtons,
             enabled = enabled,
             landscapePosition = land,
             portraitPosition = port,
@@ -182,13 +176,24 @@ object ComboStore {
     private fun prefs(context: Context): SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    /** Load combos; on first run, seed with the 4 built-in presets. */
+    /** Load combos; on first run, seed with the built-in presets. */
     fun load(context: Context): MutableList<ComboPreset> {
         val p = prefs(context)
         val version = p.getInt(VERSION_KEY, 0)
         if (version < CURRENT_VERSION) {
-            // first run: seed
+            // First run, or upgrading from v1: clear and seed.
             val seeded = ComboPreset.BUILT_IN_PRESETS.toMutableList()
+            // If the old file exists, preserve any user customizations by
+            // appending them after the built-ins.
+            val oldJson = p.getString(KEY_JSON, null)
+            if (oldJson != null) {
+                val oldPresets = presetsFromJson(oldJson)
+                for (old in oldPresets) {
+                    if (seeded.none { it.id == old.id }) {
+                        seeded += old.copy(id = "${old.id}_imported")
+                    }
+                }
+            }
             save(context, seeded)
             p.edit().putInt(VERSION_KEY, CURRENT_VERSION).apply()
             return seeded
