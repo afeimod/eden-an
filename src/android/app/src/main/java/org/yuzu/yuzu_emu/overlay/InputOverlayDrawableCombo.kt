@@ -51,10 +51,14 @@ class InputOverlayDrawableCombo(
     private var activePointerId: Int = -1
     private var comboActive = false
 
-    // Pending macro press / release runnables so we can cancel them on
-    // early release.
+    // Pending macro runnables; we keep press and release queues
+    // separate so that lifting off the pad cancels only the *presses*
+    // that haven't fired yet, while the queued *releases* continue to
+    // run on schedule (this is what lets a short tap on the pad still
+    // complete a "down -> down-forward -> A" macro).
     private val handler = Handler(Looper.getMainLooper())
-    private val pendingMacroSteps = ArrayList<Runnable>()
+    private val pendingPresses = ArrayList<Runnable>()
+    private val pendingReleases = ArrayList<Runnable>()
 
     // Tracks which keys are currently held (PRESSED) for an active macro
     // so fireRelease() only sends RELEASED for those, not for keys whose
@@ -203,8 +207,8 @@ class InputOverlayDrawableCombo(
     /**
      * Press the combo per its [ComboPreset.Kind]:
      * - CHORD: emit PRESSED for every button this frame.
-     * - MACRO: emit a "press -> hold -> release" sequence where each key
-     *   is held for [MACRO_HOLD_MS] and presses are spaced
+     * - MACRO: queue a "press -> hold -> release" sequence where each
+     *   key is held for [MACRO_HOLD_MS] and presses are spaced
      *   [MACRO_STEP_DELAY_MS] apart, so consecutive keys overlap
      *   (e.g. "Down + Forward + A" presses ↓, then → with ↓ still held,
      *   then A with → still held, then releases them in the same order).
@@ -223,26 +227,30 @@ class InputOverlayDrawableCombo(
                 currentlyPressed.clear()
                 val step = MACRO_STEP_DELAY_MS
                 val hold = MACRO_HOLD_MS
-                // Press each key at i*step.
+                // Schedule each key's PRESS at i*step. Each press runnable
+                // is paired with its matching release via a shared "fired"
+                // flag so a release that fires after a cancelled press
+                // doesn't end up sending RELEASED for a key we never
+                // actually pressed (this can happen if the user lifts off
+                // very early, before the early press runnables have run).
                 for (i in buttons.indices) {
                     val btn = buttons[i]
+                    val pressed = booleanArrayOf(false)
                     val r = Runnable {
                         onButtonEvent(btn, true)
                         currentlyPressed.add(btn)
+                        pressed[0] = true
                     }
-                    pendingMacroSteps += r
+                    pendingPresses += r
                     handler.postDelayed(r, step * i)
-                }
-                // Release each key at hold + i*step (so the oldest key
-                // is released first, after a full hold window).
-                for (i in buttons.indices) {
-                    val btn = buttons[i]
-                    val r = Runnable {
-                        onButtonEvent(btn, false)
-                        currentlyPressed.remove(btn)
+                    val rr = Runnable {
+                        if (pressed[0]) {
+                            onButtonEvent(btn, false)
+                            currentlyPressed.remove(btn)
+                        }
                     }
-                    pendingMacroSteps += r
-                    handler.postDelayed(r, hold + step * i)
+                    pendingReleases += rr
+                    handler.postDelayed(rr, hold + step * i)
                 }
                 // We only report the first key in this synchronous
                 // frame so the caller can play a haptic; the rest of
@@ -253,32 +261,57 @@ class InputOverlayDrawableCombo(
     }
 
     /**
-     * Release the combo. For MACRO we cancel any unsent steps and
-     * release only the keys that are still being held in our
-     * [currentlyPressed] set. For CHORD we release everything in the
-     * preset.
+     * Release the combo:
+     * - CHORD: release all preset buttons immediately.
+     * - MACRO: cancel any *presses* that haven't fired yet (so we
+     *   don't end up pressing things the user didn't really mean to
+     *   press), but let the already-scheduled *releases* continue to
+     *   run on their normal timeline. If the user holds long enough
+     *   for the whole macro to play out, this is a no-op.
      */
     private fun fireRelease(): List<Pair<NativeButton, Boolean>> {
         if (!comboActive) return emptyList()
         comboActive = false
-        for (r in pendingMacroSteps) handler.removeCallbacks(r)
-        pendingMacroSteps.clear()
-        val toRelease = when (preset.kind) {
-            ComboPreset.Kind.CHORD -> preset.buttons.toList()
-            ComboPreset.Kind.MACRO -> currentlyPressed.toList()
+        val out = when (preset.kind) {
+            ComboPreset.Kind.CHORD -> {
+                // CHORD: cancel everything in-flight and release now.
+                for (r in pendingPresses) handler.removeCallbacks(r)
+                for (r in pendingReleases) handler.removeCallbacks(r)
+                pendingPresses.clear()
+                pendingReleases.clear()
+                val toRelease = preset.buttons.toList()
+                for (btn in toRelease) {
+                    onButtonEvent(btn, false)
+                    currentlyPressed.remove(btn)
+                }
+                toRelease.map { it to false }
+            }
+            ComboPreset.Kind.MACRO -> {
+                // For MACRO: we keep the queued presses and releases
+                // running so a quick tap still completes the full
+                // sequence (e.g. "down -> forward -> A" still plays
+                // out even if the user only tapped for 30ms). The
+                // individual key releases are still tied to their
+                // own hold timers, so the combo's total length is
+                // bounded regardless of how long the user actually
+                // holds the pad.
+                val toRelease = currentlyPressed.toList()
+                currentlyPressed.clear()
+                for (btn in toRelease) onButtonEvent(btn, false)
+                toRelease.map { it to false }
+            }
         }
-        for (btn in toRelease) {
-            onButtonEvent(btn, false)
-            currentlyPressed.remove(btn)
-        }
-        return toRelease.map { it to false }
+        return out
     }
 
     val isPressed: Boolean get() = comboActive
 
     fun reset() {
-        for (r in pendingMacroSteps) handler.removeCallbacks(r)
-        pendingMacroSteps.clear()
+        for (r in pendingPresses) handler.removeCallbacks(r)
+        for (r in pendingReleases) handler.removeCallbacks(r)
+        pendingPresses.clear()
+        pendingReleases.clear()
+        currentlyPressed.clear()
         activePointerId = -1
         comboActive = false
     }
@@ -318,16 +351,21 @@ class InputOverlayDrawableCombo(
     fun boundsRect(): RectF = RectF(bounds)
 
     companion object {
-        /** Delay between sequential macro button presses, in ms. */
-        const val MACRO_STEP_DELAY_MS: Long = 60L
+        /**
+         * Delay between sequential macro key presses, in ms. The gap
+         * between consecutive keys is also the "overlap" window where
+         * the previous key is still held - this is what makes the
+         * game register e.g. "down -> down-forward" as a single
+         * direction segment. 100ms comfortably covers a fighting
+         * game's input buffer.
+         */
+        const val MACRO_STEP_DELAY_MS: Long = 100L
 
         /**
          * How long each macro key is held (from its own press to its
          * own release), in ms. Must be greater than
-         * [MACRO_STEP_DELAY_MS] * (n - 1) so that adjacent keys
-         * overlap (which is what fighting games need to recognise
-         * direction segments like "down -> down-forward -> forward").
+         * [MACRO_STEP_DELAY_MS] so adjacent keys overlap.
          */
-        const val MACRO_HOLD_MS: Long = 120L
+        const val MACRO_HOLD_MS: Long = 200L
     }
 }
