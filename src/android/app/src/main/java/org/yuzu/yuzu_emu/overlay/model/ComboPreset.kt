@@ -9,16 +9,20 @@ import org.yuzu.yuzu_emu.features.input.model.NativeButton
  * A user-defined (or built-in) virtual button combo.
  *
  * Pressing the combo pad on the overlay sends [buttons] to the game as if
- * the user had physically held each one down at the same time. This lets
- * a single tap emit a "macro" / "chord" like "Down + Forward + A" used
- * for special moves in fighting games.
+ * the user had physically held each one down at the same time. The exact
+ * emission style depends on [kind]:
+ *
+ * - [Kind.CHORD] (default): all buttons are sent PRESSED in the same
+ *   frame, all RELEASED in the same frame when the user lifts off.
+ *   Suitable for face / shoulder buttons (e.g. A+B).
+ *
+ * - [Kind.MACRO]: buttons are sent PRESSED one by one in array order
+ *   with a small delay between them, then all RELEASED together after a
+ *   short hold. Used to emulate special-move style input (e.g.
+ *   "Down + Forward + A" → ↓ → → + A).
  *
  * [displayName] is the user-facing label rendered both in the manager
  * list and directly on the combo pad above the game surface.
- *
- * Stored position / scale follow the same screen-relative convention as
- * the regular overlay controls so the user can drag the combo pad
- * around just like a normal button.
  */
 data class ComboPreset(
     val id: String,
@@ -32,37 +36,19 @@ data class ComboPreset(
     var individualScale: Float = 1.0f,
 ) {
 
-    /**
-     * How [buttons] are emitted when the combo is pressed.
-     *
-     * - [CHORD] (default): all buttons are sent PRESSED in the same
-     *   frame, all RELEASED in the same frame when the user lifts off.
-     *   Suitable for face / shoulder buttons (e.g. A+B).
-     *
-     * - [MACRO]: buttons are sent PRESSED one by one in array order
-     *   with a small delay between them, then all RELEASED together
-     *   after a short hold. Used to emulate special-move style input
-     *   (e.g. "Down + Forward + A" → ↓ → → + A).
-     */
+    /** How [buttons] are emitted when the combo is pressed. */
     enum class Kind { CHORD, MACRO }
 
-    /**
-     * Returns true if this combo contains any direction / stick button
-     * (d-pad or analog stick). Used by the editor to pick a sensible
-     * default [Kind]: combos that are pure direction inputs should be
-     * macros, combos that are pure face/shoulder buttons should be
-     * chords.
-     */
+    /** True if this combo contains any direction / stick button. */
     val hasDirectional: Boolean
         get() = buttons.any { isDirectional(it) }
 
-    companion object {
-        fun isDirectional(b: NativeButton): Boolean = when (b) {
-            NativeButton.DUp, NativeButton.DDown,
-            NativeButton.DLeft, NativeButton.DRight,
-            NativeButton.LStick, NativeButton.RStick -> true
-            else -> false
-        }
+    fun positionFromLayout(layout: OverlayLayout): Pair<Double, Double> = when (layout) {
+        OverlayLayout.Landscape -> landscapePosition
+        OverlayLayout.Portrait -> portraitPosition
+        OverlayLayout.Foldable -> foldablePosition
+    }
+
     init {
         require(buttons.size in MIN_TRIGGERS..MAX_TRIGGERS) {
             "ComboPreset requires $MIN_TRIGGERS-$MAX_TRIGGERS buttons (got ${buttons.size})"
@@ -72,17 +58,19 @@ data class ComboPreset(
         }
     }
 
-    fun positionFromLayout(layout: OverlayLayout): Pair<Double, Double> = when (layout) {
-        OverlayLayout.Landscape -> landscapePosition
-        OverlayLayout.Portrait -> portraitPosition
-        OverlayLayout.Foldable -> foldablePosition
-    }
-
     companion object {
         /** Minimum number of buttons per combo. */
         const val MIN_TRIGGERS = 2
+
         /** Maximum number of buttons per combo. */
         const val MAX_TRIGGERS = 8
+
+        fun isDirectional(b: NativeButton): Boolean = when (b) {
+            NativeButton.DUp, NativeButton.DDown,
+            NativeButton.DLeft, NativeButton.DRight,
+            NativeButton.LStick, NativeButton.RStick -> true
+            else -> false
+        }
 
         /**
          * Built-in presets surfaced by "Load preset" in the combo editor.

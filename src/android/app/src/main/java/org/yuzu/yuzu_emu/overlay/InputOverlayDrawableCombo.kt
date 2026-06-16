@@ -4,33 +4,39 @@
 package org.yuzu.yuzu_emu.overlay
 
 import android.content.res.Resources
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.PointF
 import android.graphics.RectF
+import android.os.Handler
+import android.os.Looper
 import android.view.MotionEvent
 import org.yuzu.yuzu_emu.features.input.model.NativeButton
 import org.yuzu.yuzu_emu.overlay.model.ComboPreset
 
 /**
- * A virtual pad that represents a [ComboPreset] (a.k.a. "chord" / "macro"
- * button).
+ * A virtual pad that represents a [ComboPreset].
  *
- * Pressing anywhere inside the pad sends [ComboPreset.buttons] to the
- * game as a list of *simultaneously held* buttons. Releasing the finger
- * sends RELEASED for every one of them. This lets a single tap emit a
- * macro like "Down + Forward + A" used for special moves.
+ * Two emission modes are supported:
+ *
+ * - [ComboPreset.Kind.CHORD] (default): all [ComboPreset.buttons] are
+ *   sent PRESSED in the same frame, all RELEASED in the same frame when
+ *   the user lifts off. Suitable for face / shoulder buttons
+ *   (e.g. A+B).
+ *
+ * - [ComboPreset.Kind.MACRO]: buttons are sent PRESSED one by one in
+ *   array order with a small delay between them, then all RELEASED
+ *   together after a short hold. Used to emulate special-move style
+ *   input (e.g. "Down + Forward + A" → ↓ → → + A).
  *
  * The pad is rendered as a single rounded panel showing the combo's
- * user-defined [ComboPreset.displayName] in the centre. Visual layout
- * is a single hit region, so the user only needs one finger to fire
- * the combo.
+ * user-defined [ComboPreset.displayName] in the centre. Only one
+ * finger is needed to fire the combo.
  */
 class InputOverlayDrawableCombo(
     private val res: Resources,
     val preset: ComboPreset,
+    private val onButtonEvent: (NativeButton, Boolean) -> Unit,
 ) {
     val id: String get() = preset.id
 
@@ -42,10 +48,15 @@ class InputOverlayDrawableCombo(
     private var previousTouchX = 0
     private var previousTouchY = 0
 
-    // Pointer that currently holds the pad down (we only ever need one).
     private var activePointerId: Int = -1
     private var comboActive = false
 
+    // Pending macro press / release runnables so we can cancel them on
+    // early release.
+    private val handler = Handler(Looper.getMainLooper())
+    private val pendingMacroSteps = ArrayList<Runnable>()
+
+    // --- Visual paints ---
     private val outerRing = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = 4f
@@ -65,6 +76,12 @@ class InputOverlayDrawableCombo(
         color = Color.argb(200, 220, 220, 220)
         textAlign = Paint.Align.CENTER
     }
+    private val macroBadgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb(220, 255, 200, 80)
+        textSize = 28f
+        textAlign = Paint.Align.LEFT
+        isFakeBoldText = true
+    }
 
     var width: Int = 0
         private set
@@ -79,7 +96,6 @@ class InputOverlayDrawableCombo(
         controlPositionY = y
     }
 
-    /** Draws the combo pad onto [canvas]. */
     fun draw(canvas: Canvas) {
         if (width <= 0 || height <= 0) return
         val panelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -91,28 +107,23 @@ class InputOverlayDrawableCombo(
         val ringPaint = if (comboActive) outerRingActive else outerRing
         canvas.drawRoundRect(bounds, radius, radius, ringPaint)
 
-        // Main label: the user-defined combo name.
         labelPaint.textSize = (minOf(width, height) * 0.20f).coerceIn(20f, 64f)
         val name = preset.displayName.ifBlank { autoName() }
         val cx = bounds.centerX()
         val cy = bounds.centerY()
         canvas.drawText(name, cx, cy + labelPaint.textSize / 3f, labelPaint)
 
-        // Sub-label: "+ A" style short hint of the underlying buttons.
-        if (preset.displayName.isNotBlank() && preset.displayName != autoName()) {
-            subLabelPaint.textSize = labelPaint.textSize * 0.5f
-            canvas.drawText(
-                autoName(),
-                cx,
-                cy + labelPaint.textSize * 1.1f,
-                subLabelPaint
-            )
+        if (preset.kind == ComboPreset.Kind.MACRO) {
+            // Small "⟳" marker so the user can tell at a glance that
+            // this combo is a sequential macro.
+            val badge = "⟳"
+            val pad = (minOf(width, height) * 0.08f).coerceAtLeast(8f)
+            canvas.drawText(badge, bounds.left + pad, bounds.top + pad + macroBadgePaint.textSize,
+                macroBadgePaint)
         }
     }
 
-    /** "A + B + Capture" form derived from the current selection. */
-    fun autoName(): String =
-        preset.buttons.joinToString(" + ") { buttonLabel(it) }
+    fun autoName(): String = preset.buttons.joinToString(" + ") { buttonLabel(it) }
 
     private fun buttonLabel(b: NativeButton): String = when (b) {
         NativeButton.A -> "A"
@@ -139,13 +150,10 @@ class InputOverlayDrawableCombo(
     private fun containsPoint(x: Float, y: Float): Boolean = bounds.contains(x, y)
 
     /**
-     * Feed a [MotionEvent] to the combo pad. The pad reacts to a single
-     * pointer that lands inside its bounds; additional pointers are
-     * ignored (the combo is a one-finger gesture).
-     *
-     * @return A list of button actions the caller should forward to
-     *         NativeInput.onOverlayButtonEvent, paired with the
-     *         [NativeButton] to emit. Empty list means no change.
+     * Feed a [MotionEvent]. Returns the list of button events to emit
+     * **in this same frame** (typically empty for MACRO: only the first
+     * key arrives here; the rest are scheduled internally). The pair is
+     * (button, pressed).
      */
     fun updateStatus(event: MotionEvent): List<Pair<NativeButton, Boolean>> {
         val motionEvent = event.actionMasked
@@ -154,53 +162,98 @@ class InputOverlayDrawableCombo(
         val x = event.getX(pointerIndex)
         val y = event.getY(pointerIndex)
 
-        when (motionEvent) {
+        return when (motionEvent) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                 if (comboActive) return emptyList()
                 if (!containsPoint(x, y)) return emptyList()
-                // If a different finger is already active, ignore this
-                // pointer (one-finger gesture semantics).
                 if (activePointerId != -1) return emptyList()
                 activePointerId = pointerId
                 comboActive = true
-                return preset.buttons.map { it to true }
+                firePress()
             }
 
             MotionEvent.ACTION_MOVE -> {
-                // If the active finger left the pad, release the combo.
                 if (activePointerId == -1) return emptyList()
                 val pi = event.findPointerIndex(activePointerId)
                 if (pi < 0) return emptyList()
                 if (!containsPoint(event.getX(pi), event.getY(pi))) {
+                    // Finger left the pad - treat as release.
+                    val out = fireRelease()
                     activePointerId = -1
-                    if (comboActive) {
-                        comboActive = false
-                        return preset.buttons.map { it to false }
-                    }
-                }
-                return emptyList()
+                    out
+                } else emptyList()
             }
 
-            MotionEvent.ACTION_UP,
-            MotionEvent.ACTION_POINTER_UP,
-            MotionEvent.ACTION_CANCEL -> {
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_CANCEL -> {
                 if (activePointerId != pointerId) return emptyList()
+                val out = fireRelease()
                 activePointerId = -1
-                if (comboActive) {
-                    comboActive = false
-                    return preset.buttons.map { it to false }
-                }
-                return emptyList()
+                out
             }
+
+            else -> emptyList()
         }
-        return emptyList()
     }
 
-    /** True while the combo is currently held (PRESSED). */
+    /**
+     * Press the combo per its [ComboPreset.Kind]:
+     * - CHORD: emit PRESSED for every button this frame.
+     * - MACRO: emit PRESSED for the first button now, schedule the rest.
+     */
+    private fun firePress(): List<Pair<NativeButton, Boolean>> {
+        val buttons = preset.buttons
+        if (buttons.isEmpty()) return emptyList()
+        return when (preset.kind) {
+            ComboPreset.Kind.CHORD -> {
+                buttons.forEach { onButtonEvent(it, true) }
+                buttons.map { it to true }
+            }
+            ComboPreset.Kind.MACRO -> {
+                // First key immediately, rest scheduled.
+                onButtonEvent(buttons[0], true)
+                for (i in 1 until buttons.size) {
+                    val btn = buttons[i]
+                    val r = Runnable { onButtonEvent(btn, true) }
+                    pendingMacroSteps += r
+                    handler.postDelayed(r, MACRO_STEP_DELAY_MS * i)
+                }
+                listOf(buttons[0] to true)
+            }
+        }
+    }
+
+    /**
+     * Release the combo. For MACRO we cancel any unsent steps and
+     * release all currently-held buttons. For CHORD we release
+     * everything.
+     */
+    private fun fireRelease(): List<Pair<NativeButton, Boolean>> {
+        if (!comboActive) return emptyList()
+        comboActive = false
+        // Cancel pending macro presses - they're not in onButtonEvent
+        // history because they haven't been sent yet.
+        for (r in pendingMacroSteps) handler.removeCallbacks(r)
+        pendingMacroSteps.clear()
+        // We don't track which MACRO keys were already pressed; safest
+        // is to release all and let native side ignore duplicates. The
+        // receiver (InputOverlay) only forwards what we return, so
+        // returning the whole list is what produces a visible RELEASE
+        // for each key that was actually sent as PRESSED.
+        // In the simple MACRO press handler the user lifts off before
+        // the macro finishes, all pending steps are cancelled and we
+        // release everything we've pressed so far. Because we can't
+        // easily know which were pressed, we just release all and
+        // double-RELEASEs are a no-op for native input.
+        val out = preset.buttons.map { it to false }
+        for ((btn, _) in out) onButtonEvent(btn, false)
+        return out
+    }
+
     val isPressed: Boolean get() = comboActive
 
-    /** Reset internal state. Call when the activity is destroyed / reconfigured. */
     fun reset() {
+        for (r in pendingMacroSteps) handler.removeCallbacks(r)
+        pendingMacroSteps.clear()
         activePointerId = -1
         comboActive = false
     }
@@ -216,15 +269,13 @@ class InputOverlayDrawableCombo(
         val fingerPositionY = event.getY(pointerIndex).toInt()
 
         when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN,
-            MotionEvent.ACTION_POINTER_DOWN -> {
+            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                 previousTouchX = fingerPositionX
                 previousTouchY = fingerPositionY
                 controlPositionX = fingerPositionX - width / 2
                 controlPositionY = fingerPositionY - height / 2
                 configureLayout(controlPositionX, controlPositionY, width, height)
             }
-
             MotionEvent.ACTION_MOVE -> {
                 controlPositionX += fingerPositionX - previousTouchX
                 controlPositionY += fingerPositionY - previousTouchY
@@ -239,10 +290,10 @@ class InputOverlayDrawableCombo(
     fun setBounds(left: Int, top: Int, right: Int, bottom: Int) =
         configureLayout(left, top, right - left, bottom - top)
 
-    /** Public read-only bounds for hit-testing by the parent overlay. */
     fun boundsRect(): RectF = RectF(bounds)
 
-    fun computeSubCenters(): List<PointF> = emptyList()
-
-    fun hitSubIndex(x: Float, y: Float): Int? = null
+    companion object {
+        /** Delay between sequential macro button presses, in ms. */
+        const val MACRO_STEP_DELAY_MS: Long = 60L
+    }
 }

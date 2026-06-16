@@ -2745,6 +2745,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
             arrayOf("application/octet-stream", "application/x-binary", "*/*")
         private val perfStatsUpdateHandler = Handler(Looper.myLooper()!!)
         private val socUpdateHandler = Handler(Looper.myLooper()!!)
+
+        // Menu item ids for the combo pad long-press popup.
+        private const val MENU_COMBO_EDIT = 1
+        private const val MENU_COMBO_DELETE = 2
     }
 
     private fun startOverlayAutoHideTimer(seconds: Int) {
@@ -2868,10 +2872,5 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
             overlayHiddenByPhysicalController = false
             toggleOverlay(true)
         }
-    }
-
-    companion object {
-        private const val MENU_COMBO_EDIT = 1
-        private const val MENU_COMBO_DELETE = 2
     }
 }
