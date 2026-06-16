@@ -27,13 +27,6 @@ data class ComboPreset(
     var foldablePosition: Pair<Double, Double> = Pair(0.85, 0.7),
     var individualScale: Float = 1.0f,
 ) {
-    companion object {
-        /** Minimum number of child trigger keys per combo. */
-        const val MIN_TRIGGERS = 2
-        /** Maximum number of child trigger keys per combo. */
-        const val MAX_TRIGGERS = 8
-    }
-
     init {
         require(triggers.size in MIN_TRIGGERS..MAX_TRIGGERS) {
             "ComboPreset requires $MIN_TRIGGERS-$MAX_TRIGGERS child triggers (got ${triggers.size})"
@@ -50,6 +43,11 @@ data class ComboPreset(
     }
 
     companion object {
+        /** Minimum number of child trigger keys per combo. */
+        const val MIN_TRIGGERS = 2
+        /** Maximum number of child trigger keys per combo. */
+        const val MAX_TRIGGERS = 8
+
         /**
          * Built-in presets surfaced by "Load preset" in the combo editor.
          *
