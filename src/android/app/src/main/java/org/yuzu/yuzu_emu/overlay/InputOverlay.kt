@@ -638,7 +638,11 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     } else {
                         // Tap on a combo pad in edit mode - tell listener so the
                         // editor UI can focus / edit this combo.
-                        comboEditTapListener?.invoke(comboBeingConfigured!!.preset.id)
+                        // Post to avoid re-entering refreshControls() (which
+                        // clears overlayCombos) while we are still iterating
+                        // the list inside the current onTouch call.
+                        val tappedId = comboBeingConfigured!!.preset.id
+                        post { comboEditTapListener?.invoke(tappedId) }
                     }
                     comboBeingConfigured = null
                 }
@@ -1001,7 +1005,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             OverlayLayout.Foldable -> target.foldablePosition = newPosition
         }
         ComboStore.save(context, presets)
-        refreshControls()
+        // Defer refresh so we don't mutate overlayCombos while still inside
+        // the onTouch iteration that called us.
+        post { refreshControls() }
     }
 
     fun setIsInEditMode(editMode: Boolean) {

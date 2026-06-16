@@ -281,16 +281,27 @@ class InputOverlayDrawableCombo(
     // ----- Edit-mode drag support, mirrors InputOverlayDrawableButton.onConfigureTouch -----
 
     fun onConfigureTouch(event: MotionEvent): Boolean {
-        val pointerIndex = event.actionIndex
+        // For ACTION_MOVE, actionIndex is undefined; use 0 (the primary
+        // pointer that started the gesture). For ACTION_DOWN/POINTER_DOWN
+        // actionIndex points at the new pointer.
+        val pointerIndex = when (event.actionMasked) {
+            MotionEvent.ACTION_MOVE -> 0
+            else -> event.actionIndex
+        }
         val fingerPositionX = event.getX(pointerIndex).toInt()
         val fingerPositionY = event.getY(pointerIndex).toInt()
 
         when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> {
+            MotionEvent.ACTION_DOWN,
+            MotionEvent.ACTION_POINTER_DOWN -> {
                 previousTouchX = fingerPositionX
                 previousTouchY = fingerPositionY
                 controlPositionX = fingerPositionX - width / 2
                 controlPositionY = fingerPositionY - height / 2
+                // Immediately push the new bounds so the first frame after
+                // DOWN already draws the pad in its new spot (and so that
+                // boundsRect() reflects the touched location).
+                configureLayout(controlPositionX, controlPositionY, width, height)
             }
 
             MotionEvent.ACTION_MOVE -> {
