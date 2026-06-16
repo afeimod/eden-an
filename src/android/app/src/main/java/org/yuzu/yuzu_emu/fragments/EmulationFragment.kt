@@ -1229,9 +1229,20 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
 
     /**
      * Quick-settings toggle handler.
+     *
+     * Toggling ON enters edit mode (so the user can adjust the rectangle);
+     * toggling OFF exits edit mode AND clears the saved free-layout rect
+     * so the surface returns to its default fullscreen layout.
      */
     fun toggleFreeLayoutFromMenu(enabled: Boolean) {
-        if (enabled) enterFreeLayoutEditMode() else exitFreeLayoutEditMode()
+        if (enabled) {
+            enterFreeLayoutEditMode()
+        } else {
+            exitFreeLayoutEditMode()
+            // Also clear the saved rect so the surface goes back to its
+            // default aspect ratio / fullscreen on the next launch.
+            resetFreeLayoutFromMenu()
+        }
     }
 
     /**
@@ -1425,7 +1436,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
             quickSettings.addDivider(container)
             quickSettings.addHeader(container, R.string.free_layout)
 
-            val freeLayoutEnabled = isFreeLayoutEditMode
+            // The toggle should reflect whether a saved free layout is in
+            // effect (read from NativeConfig), not just the transient
+            // "editor overlay visible" flag, otherwise the user sees the
+            // toggle flip off every time they exit edit mode and thinks
+            // their layout wasn't saved.
+            val freeLayoutEnabled = NativeConfig.getBoolean(KEY_FREE_LAYOUT_ENABLED, false)
             quickSettings.addCustomToggle(
                 R.string.free_layout,
                 freeLayoutEnabled,
