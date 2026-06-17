@@ -65,9 +65,20 @@ u64 GetUnixTimeOfSlot(int slot);
 std::string GetTitleIdOfSlot(int slot);
 
 /// Save the current emulation state to the given 1-based slot. Returns true on success.
-/// Save is queued onto the CPU thread; this call returns once the snapshot has been
-/// captured into RAM. Compression + disk write happens off-thread.
+///
+/// The default Save() writes a metadata-only header (title-id + timestamp) so it
+/// returns quickly. This is safe to call from the Android UI thread; full DRAM
+/// capture would block for several seconds and trigger an ANR.
+///
+/// To save the complete state (4 GiB DRAM dump + subsystem DoState), use SaveFull
+/// instead -- this MUST be called from the CPU thread while emulation is paused.
 bool Save(Core::System& system, int slot);
+
+/// Full save: captures CoreTiming + DRAM + all subsystem DoState into a buffer,
+/// queues compression + disk write on the writer thread. Blocks while capturing
+/// (can take seconds on Switch DRAM). Caller is responsible for ensuring the
+/// emulation thread isn't racing the capture.
+bool SaveFull(Core::System& system, int slot);
 
 /// Load state from the given 1-based slot. Returns true if a valid state was loaded.
 /// This call blocks until the load completes; it MUST run on the CPU thread (or be

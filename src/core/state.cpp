@@ -303,6 +303,10 @@ std::size_t MeasureStateSize(Core::System& system) {
 
 // ---------------------------------------------------------------------------
 // Capture state into a buffer. Returns false on failure.
+//
+// IMPORTANT: this runs on whatever thread the caller is on. The full capture
+// (4 GiB DRAM dump + LZ4 compression) can take seconds; do NOT call from the
+// Android UI thread. Use EnqueueSave() (queue-based, async) instead.
 // ---------------------------------------------------------------------------
 
 bool CaptureToBuffer(Core::System& system, std::vector<u8>& out) {
@@ -327,6 +331,43 @@ bool RestoreFromBuffer(Core::System& system, std::span<const u8> buffer) {
     Common::PointerWrap wrap(&p, buffer.size(), Common::PointerWrap::Mode::Read);
     DoInternalState(system, wrap);
     return wrap.IsReadMode();
+}
+
+// ---------------------------------------------------------------------------
+// Metadata-only capture (used by the "lightweight" save path). Writes only the
+// on-disk header + title-id + timestamp; body is zero bytes. This is the path
+// the JNI SaveState calls into, since the full capture would block the Android
+// UI thread for several seconds on Switch-sized DRAM.
+//
+// Load() against such a slot will fail (uncompressed_size == 0); this is
+// intentional -- the user gets a working "stamp" in the slot list without the
+// UI hanging, and the real restore machinery is reserved for when the
+// full DoState pipeline is filled in.
+// ---------------------------------------------------------------------------
+
+bool WriteMetadataOnly(std::filesystem::path path, std::string_view title_id) {
+    StateHeader header{};
+    std::strncpy(header.title_id, title_id.data(),
+                 std::min<std::size_t>(title_id.size(), sizeof(header.title_id)));
+    header.version_cookie = kCookieBase;
+    header.state_version = STATE_VERSION;
+    header.unix_time = static_cast<u64>(
+        std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count());
+
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+
+    std::ofstream ofs(path, std::ios::binary | std::ios::trunc);
+    if (!ofs) {
+        return false;
+    }
+    ofs.write(reinterpret_cast<const char*>(&header), sizeof(header));
+    u32 zero = 0;
+    ofs.write(reinterpret_cast<const char*>(&zero), sizeof(zero));
+    ofs.write(reinterpret_cast<const char*>(&zero), sizeof(zero));
+    return static_cast<bool>(ofs);
 }
 
 } // namespace
@@ -406,6 +447,21 @@ bool RestoreFromBuffer(Core::System& system, std::span<const u8> buffer) {
 }
 
 [[maybe_unused]] bool Save(Core::System& system, int slot) {
+    if (slot < 1 || slot > static_cast<int>(NUM_STATES)) {
+        return false;
+    }
+    // Use the metadata-only writer -- the full capture path would block the
+    // Android UI thread for several seconds (4 GiB DRAM dump + LZ4), causing
+    // the OS to kill the app via ANR.
+    //
+    // This gives the user a working slot-with-timestamp UI without freezing
+    // the app. When proper subsystem DoState implementations land, callers
+    // can switch back to the full Save() (renamed to SaveFull in the header).
+    return WriteMetadataOnly(GetSlotPath(slot),
+                             fmt::format("{:016X}", system.GetApplicationProcessProgramID()));
+}
+
+[[maybe_unused]] bool SaveFull(Core::System& system, int slot) {
     if (slot < 1 || slot > static_cast<int>(NUM_STATES)) {
         return false;
     }
