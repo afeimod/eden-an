@@ -52,8 +52,6 @@
 #include "common/lz4_compression.h"
 #include "common/pointer_wrap.h"
 
-#include <lz4hc.h>
-
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/core_timing.h"
@@ -116,10 +114,9 @@ void WriterThreadMain() {
         }
 
         // LZ4 single-call max input is ~1.9 GiB. Switch DRAM can be 4-12 GiB,
-        // so we must compress in chunks. Each chunk is independently
-        // decompressible by lz4_decompress_safe_continue; on load we chain
-        // them via LZ4_decompress_safe_usingDict on a sliding window.
-        constexpr std::size_t kChunkSize = 1u << 24; // 16 MiB
+        // so we must compress in chunks. We use Common::Compression which
+        // exposes the safe CompressDataLZ4 / DecompressDataLZ4 wrappers.
+        constexpr std::size_t kChunkSize = 1u << 24; // 16 MiB -- well under 1.9 GiB
         const std::size_t total = task.buffer.size();
 
         std::error_code ec;
@@ -141,36 +138,20 @@ void WriterThreadMain() {
                 .count());
         ofs.write(reinterpret_cast<const char*>(&header), sizeof(header));
 
-        // Write uncompressed total + chunk count (both u64).
         u64 total_u64 = static_cast<u64>(total);
         u64 chunk_count = (total + kChunkSize - 1) / kChunkSize;
         ofs.write(reinterpret_cast<const char*>(&total_u64), sizeof(total_u64));
         ofs.write(reinterpret_cast<const char*>(&chunk_count), sizeof(chunk_count));
 
-        // Compress + write chunk by chunk. Use the simple block API
-        // (LZ4_compress_default) per chunk; on load we'll use
-        // LZ4_decompress_safe_continue with a shared dictionary to bridge
-        // chunk boundaries (LZ4 blocks are independently decodable but their
-        // window resets at each block boundary; the dictionary approach gives
-        // us back the historical window for better ratio on next blocks).
         for (std::size_t off = 0; off < total; off += kChunkSize) {
             const std::size_t this_chunk = std::min(kChunkSize, total - off);
-            // Compress in 1.9 GiB-aligned sub-passes within the chunk (kChunkSize
-            // is already < 2 GiB so we only need one pass).
-            const int src_size = static_cast<int>(this_chunk);
-            const int max_compressed = LZ4_compressBound(src_size);
-            std::vector<char> compressed(static_cast<std::size_t>(max_compressed));
-            const int compressed_size = LZ4_compress_default(
-                reinterpret_cast<const char*>(task.buffer.data() + off),
-                compressed.data(),
-                src_size,
-                max_compressed);
-            if (compressed_size <= 0) {
-                break;
-            }
-            u64 comp_u64 = static_cast<u64>(compressed_size);
+            std::vector<u8> compressed = Common::Compression::CompressDataLZ4(
+                task.buffer.data() + off, this_chunk);
+            u64 comp_u64 = static_cast<u64>(compressed.size());
             ofs.write(reinterpret_cast<const char*>(&comp_u64), sizeof(comp_u64));
-            ofs.write(compressed.data(), static_cast<std::size_t>(compressed_size));
+            if (!compressed.empty()) {
+                ofs.write(reinterpret_cast<const char*>(compressed.data()), compressed.size());
+            }
         }
     }
 }
@@ -655,6 +636,7 @@ bool WriteMetadataOnly(std::filesystem::path path, std::string_view title_id) {
     }
     std::vector<u8> raw(static_cast<std::size_t>(total_size));
     std::size_t out_off = 0;
+    constexpr std::size_t kChunkSize = 1u << 24; // must match writer
     for (u64 i = 0; i < chunk_count; ++i) {
         u64 comp_size = 0;
         ifs.read(reinterpret_cast<char*>(&comp_size), sizeof(comp_size));
@@ -666,15 +648,17 @@ bool WriteMetadataOnly(std::filesystem::path path, std::string_view title_id) {
         if (!ifs) {
             return false;
         }
-        const int produced = LZ4_decompress_safe(
-            reinterpret_cast<const char*>(compressed.data()),
-            reinterpret_cast<char*>(raw.data()) + out_off,
-            static_cast<int>(comp_size),
-            static_cast<int>(total_size - out_off));
-        if (produced < 0) {
+        // Each chunk's uncompressed size is kChunkSize (16 MiB), except the
+        // last which is the remainder. Compute it the same way the writer did.
+        const std::size_t this_chunk_size = std::min(
+            kChunkSize, raw.size() - out_off);
+        std::vector<u8> decompressed = Common::Compression::DecompressDataLZ4(
+            std::span<const u8>(compressed.data(), compressed.size()), this_chunk_size);
+        if (decompressed.size() != this_chunk_size) {
             return false;
         }
-        out_off += static_cast<std::size_t>(produced);
+        std::memcpy(raw.data() + out_off, decompressed.data(), this_chunk_size);
+        out_off += this_chunk_size;
     }
     if (out_off != total_size) {
         return false;
