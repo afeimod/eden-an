@@ -52,7 +52,7 @@
 #include "common/lz4_compression.h"
 #include "common/pointer_wrap.h"
 
-#include <lz4.h>
+#include <lz4hc.h>
 
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
