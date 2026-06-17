@@ -15,14 +15,13 @@
         android:paddingBottom="12dp"
         tools:text="@string/emulation_save_state" />
 
+    <!-- Slot 1 -->
     <LinearLayout
-        android:id="@+id/slot_row_1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:gravity="center_vertical"
-        android:background="?attr/selectableItemBackground">
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/slot_label_1"
@@ -30,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            tools:text="Slot 1 - 5 min ago" />
+            tools:text="Slot 1 — 5 min ago" />
 
         <Button
             android:id="@+id/slot_save_button_1"
@@ -45,16 +44,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/emulation_load" />
+
+        <Button
+            android:id="@+id/slot_delete_button_1"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/emulation_delete_state"
+            app:icon="@drawable/ic_delete"
+            xmlns:app="http://schemas.android.com/apk/res-auto" />
     </LinearLayout>
 
+    <!-- Slot 2 -->
     <LinearLayout
-        android:id="@+id/slot_row_2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:gravity="center_vertical"
-        android:background="?attr/selectableItemBackground">
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/slot_label_2"
@@ -62,7 +69,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            tools:text="Slot 2 - empty" />
+            tools:text="Slot 2 — empty" />
 
         <Button
             android:id="@+id/slot_save_button_2"
@@ -77,16 +84,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/emulation_load" />
+
+        <Button
+            android:id="@+id/slot_delete_button_2"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/emulation_delete_state"
+            app:icon="@drawable/ic_delete"
+            xmlns:app="http://schemas.android.com/apk/res-auto" />
     </LinearLayout>
 
+    <!-- Slot 3 -->
     <LinearLayout
-        android:id="@+id/slot_row_3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:gravity="center_vertical"
-        android:background="?attr/selectableItemBackground">
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/slot_label_3"
@@ -94,7 +109,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            tools:text="Slot 3 - empty" />
+            tools:text="Slot 3 — empty" />
 
         <Button
             android:id="@+id/slot_save_button_3"
@@ -109,6 +124,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/emulation_load" />
+
+        <Button
+            android:id="@+id/slot_delete_button_3"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/emulation_delete_state"
+            app:icon="@drawable/ic_delete"
+            xmlns:app="http://schemas.android.com/apk/res-auto" />
     </LinearLayout>
 
 </LinearLayout>

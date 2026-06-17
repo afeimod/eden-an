@@ -350,7 +350,9 @@ bool WriteMetadataOnly(std::filesystem::path path, std::string_view title_id) {
     std::strncpy(header.title_id, title_id.data(),
                  std::min<std::size_t>(title_id.size(), sizeof(header.title_id)));
     header.version_cookie = kCookieBase;
-    header.state_version = STATE_VERSION;
+    // Tag the file as a metadata-only save so Load() can refuse cleanly instead
+    // of returning an opaque "header mismatch" failure.
+    header.state_version = STATE_VERSION_METADATA_ONLY;
     header.unix_time = static_cast<u64>(
         std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch())
@@ -428,6 +430,28 @@ bool WriteMetadataOnly(std::filesystem::path path, std::string_view title_id) {
         return {};
     }
     return std::string(header.title_id, strnlen(header.title_id, sizeof(header.title_id)));
+}
+
+[[maybe_unused]] bool IsLoadable(int slot) {
+    if (slot < 1 || slot > static_cast<int>(NUM_STATES)) {
+        return false;
+    }
+    std::error_code ec;
+    auto path = GetSlotPath(slot);
+    if (!std::filesystem::exists(path, ec)) {
+        return false;
+    }
+    std::ifstream ifs(path, std::ios::binary);
+    if (!ifs) {
+        return false;
+    }
+    StateHeader header{};
+    ifs.read(reinterpret_cast<char*>(&header), sizeof(header));
+    if (header.version_cookie != kCookieBase) {
+        return false;
+    }
+    // Metadata-only slots can't be restored to a real state.
+    return header.state_version == STATE_VERSION;
 }
 
 [[maybe_unused]] bool Exists(int slot) {

@@ -1649,6 +1649,16 @@ Java_org_yuzu_yuzu_1emu_NativeLibrary_deleteStateSlot([[maybe_unused]] JNIEnv* e
     return State::Delete(static_cast<int>(slot)) ? JNI_TRUE : JNI_FALSE;
 }
 
+JNIEXPORT jboolean JNICALL
+Java_org_yuzu_yuzu_1emu_NativeLibrary_isStateSlotLoadable([[maybe_unused]] JNIEnv* env,
+                                                           [[maybe_unused]] jobject obj,
+                                                           jint slot) {
+    if (slot < 1 || slot > static_cast<jint>(State::NUM_STATES)) {
+        return JNI_FALSE;
+    }
+    return State::IsLoadable(static_cast<int>(slot)) ? JNI_TRUE : JNI_FALSE;
+}
+
 JNIEXPORT void JNICALL
 Java_org_yuzu_yuzu_1emu_NativeLibrary_initSaveStates([[maybe_unused]] JNIEnv* env,
                                                      [[maybe_unused]] jobject obj) {

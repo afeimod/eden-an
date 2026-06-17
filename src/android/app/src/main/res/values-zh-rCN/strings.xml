@@ -923,6 +923,13 @@
     <string name="emulation_state_slot_empty_msg">该槽位为空</string>
     <string name="emulation_state_slot_empty">槽 %1$d — 空</string>
     <string name="emulation_state_slot_time">槽 %1$d — %2$s</string>
+    <string name="emulation_state_slot_marker">槽 %1$d — 仅标记</string>
+    <string name="emulation_state_load_marker_msg">该槽位仅为存档标记，不含可恢复状态</string>
+    <string name="emulation_state_deleted">已删除</string>
+    <string name="emulation_state_delete_failed">删除失败</string>
+    <string name="emulation_delete_state">删除存档</string>
+    <string name="emulation_delete_state_confirm">确定删除该存档？删除后不可恢复。</string>
+    <string name="emulation_delete">删除</string>
     <string name="touchscreen">触摸屏</string>
     <string name="lock_drawer">锁定侧边栏</string>
     <string name="unlock_drawer">解锁侧边栏</string>

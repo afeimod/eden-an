@@ -666,6 +666,9 @@ object NativeLibrary {
     /** Delete the given [slot]. Returns true on success. */
     external fun deleteStateSlot(slot: Int): Boolean
 
+    /** Returns true if [slot] exists and contains a full, recoverable state. */
+    external fun isStateSlotLoadable(slot: Int): Boolean
+
     /**
      * Checks if all necessary keys are present for decryption
      */

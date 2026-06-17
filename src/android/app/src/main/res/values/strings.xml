@@ -948,6 +948,13 @@
     <string name="emulation_state_slot_empty_msg">Slot is empty</string>
     <string name="emulation_state_slot_empty">Slot %1$d — empty</string>
     <string name="emulation_state_slot_time">Slot %1$d — %2$s</string>
+    <string name="emulation_state_slot_marker">Slot %1$d — marker only</string>
+    <string name="emulation_state_load_marker_msg">This slot is a save marker, not a recoverable state</string>
+    <string name="emulation_state_deleted">State deleted</string>
+    <string name="emulation_state_delete_failed">Failed to delete state</string>
+    <string name="emulation_delete_state">Delete state</string>
+    <string name="emulation_delete_state_confirm">Delete this save state? This cannot be undone.</string>
+    <string name="emulation_delete">Delete</string>
     <string name="touchscreen">Touchscreen</string>
     <string name="lock_drawer">Lock drawer</string>
     <string name="unlock_drawer">Unlock drawer</string>

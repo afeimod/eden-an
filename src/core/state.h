@@ -41,6 +41,13 @@ inline constexpr u32 NUM_STATES = 3;
 /// become unloadable; users must delete them.
 inline constexpr u32 STATE_VERSION = 1;
 
+/// Sentinel value written into `state_version` by the metadata-only Save()
+/// path. Such files hold a valid header + timestamp but no actual emulation
+/// state (body is zero bytes). Load() rejects this value so the frontend can
+/// present a clear "this slot is only a marker, not a recoverable state"
+/// message instead of an opaque failure.
+inline constexpr u32 STATE_VERSION_METADATA_ONLY = 0xFFFFFFFE;
+
 /// On-disk header size (matches StateHeader struct below).
 inline constexpr std::size_t STATE_HEADER_SIZE = 24;
 
@@ -63,6 +70,11 @@ u64 GetUnixTimeOfSlot(int slot);
 
 /// Returns the title-id stored in the slot, or empty string if empty/invalid.
 std::string GetTitleIdOfSlot(int slot);
+
+/// Returns true if the slot exists AND contains a recoverable full state
+/// (i.e. not a metadata-only save). The frontend uses this to decide whether
+/// the [Load] button should be enabled.
+bool IsLoadable(int slot);
 
 /// Save the current emulation state to the given 1-based slot. Returns true on success.
 ///

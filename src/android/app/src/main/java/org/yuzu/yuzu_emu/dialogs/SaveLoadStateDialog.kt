@@ -18,23 +18,23 @@ import org.yuzu.yuzu_emu.R
 /**
  * 3-slot save/load state picker shown from the in-game drawer.
  *
- * Each row contains a slot label (with relative time of last save) and two buttons:
- *   [Save] overwrites the slot for the running game.
- *   [Load] restores from the slot. We pause emulation before issuing the native
- *          load, then resume (or stay paused, depending on prior state) after.
+ * Each row contains a slot label (with relative time of last save) and three buttons:
+ *   [Save]  overwrites the slot for the running game.
+ *   [Load]  restores from the slot. Disabled if the slot is empty or holds only a
+ *           metadata marker (created by the lightweight Save path).
+ *   [Delete] removes the slot file. Disabled when the slot is empty.
  *
- * NOTE: Native load is destructive to live CPU state. The caller is expected to
- * already have the drawer open (i.e. emulation may or may not be paused). For
- * safety we always force-pause before load and resume after success.
+ * Load pauses emulation before issuing the native load, then resumes after success.
  */
 class SaveLoadStateDialog : DialogFragment() {
 
-    private enum class Action { SAVE, LOAD }
+    private enum class Action { SAVE, LOAD, DELETE }
 
     private data class SlotViews(
         val label: TextView,
         val saveButton: Button,
-        val loadButton: Button
+        val loadButton: Button,
+        val deleteButton: Button
     )
 
     private var contentView: View? = null
@@ -44,17 +44,20 @@ class SaveLoadStateDialog : DialogFragment() {
             SlotViews(
                 view.findViewById(R.id.slot_label_1),
                 view.findViewById(R.id.slot_save_button_1),
-                view.findViewById(R.id.slot_load_button_1)
+                view.findViewById(R.id.slot_load_button_1),
+                view.findViewById(R.id.slot_delete_button_1)
             ),
             SlotViews(
                 view.findViewById(R.id.slot_label_2),
                 view.findViewById(R.id.slot_save_button_2),
-                view.findViewById(R.id.slot_load_button_2)
+                view.findViewById(R.id.slot_load_button_2),
+                view.findViewById(R.id.slot_delete_button_2)
             ),
             SlotViews(
                 view.findViewById(R.id.slot_label_3),
                 view.findViewById(R.id.slot_save_button_3),
-                view.findViewById(R.id.slot_load_button_3)
+                view.findViewById(R.id.slot_load_button_3),
+                view.findViewById(R.id.slot_delete_button_3)
             )
         )
     }
@@ -83,6 +86,9 @@ class SaveLoadStateDialog : DialogFragment() {
                 slot.loadButton.setOnClickListener {
                     handleAction(oneBasedSlot, Action.LOAD)
                 }
+                slot.deleteButton.setOnClickListener {
+                    confirmDelete(oneBasedSlot)
+                }
             }
         }
 
@@ -97,18 +103,25 @@ class SaveLoadStateDialog : DialogFragment() {
     private fun refreshSlot(zeroBasedIndex: Int, views: SlotViews) {
         val oneBased = zeroBasedIndex + 1
         val creationTimeMs = NativeLibrary.getUnixTimeOfStateSlot(oneBased) * 1000L
-        views.label.text = if (creationTimeMs > 0L) {
-            val rel = DateUtils.getRelativeTimeSpanString(
-                creationTimeMs,
-                System.currentTimeMillis(),
-                DateUtils.MINUTE_IN_MILLIS
-            )
-            getString(R.string.emulation_state_slot_time, oneBased, rel)
-        } else {
-            getString(R.string.emulation_state_slot_empty, oneBased)
+        val exists = creationTimeMs > 0L
+        val loadable = exists && NativeLibrary.isStateSlotLoadable(oneBased)
+
+        views.label.text = when {
+            !exists -> getString(R.string.emulation_state_slot_empty, oneBased)
+            !loadable -> getString(R.string.emulation_state_slot_marker, oneBased)
+            else -> {
+                val rel = DateUtils.getRelativeTimeSpanString(
+                    creationTimeMs,
+                    System.currentTimeMillis(),
+                    DateUtils.MINUTE_IN_MILLIS
+                )
+                getString(R.string.emulation_state_slot_time, oneBased, rel)
+            }
         }
-        // Disable Load when slot is empty.
-        views.loadButton.isEnabled = creationTimeMs > 0L
+        // Load button: enabled only for full save states.
+        views.loadButton.isEnabled = loadable
+        // Delete button: enabled whenever the slot exists on disk.
+        views.deleteButton.isEnabled = exists
     }
 
     private fun handleAction(slot: Int, action: Action) {
@@ -125,7 +138,10 @@ class SaveLoadStateDialog : DialogFragment() {
                     showToast(R.string.emulation_state_slot_empty_msg)
                     return
                 }
-                // Pause first so the load isn't racing against the CPU thread.
+                if (!NativeLibrary.isStateSlotLoadable(slot)) {
+                    showToast(R.string.emulation_state_load_marker_msg)
+                    return
+                }
                 val wasPaused = NativeLibrary.isPaused()
                 if (!wasPaused) {
                     NativeLibrary.pauseEmulation()
@@ -142,7 +158,25 @@ class SaveLoadStateDialog : DialogFragment() {
                     // Stay paused on failure so the user can investigate.
                 }
             }
+            Action.DELETE -> { /* routed through confirmDelete */ }
         }
+    }
+
+    private fun confirmDelete(slot: Int) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.emulation_delete_state)
+            .setMessage(R.string.emulation_delete_state_confirm)
+            .setPositiveButton(R.string.emulation_delete) { _, _ ->
+                val ok = NativeLibrary.deleteStateSlot(slot)
+                if (ok) {
+                    showToast(R.string.emulation_state_deleted)
+                    slots.getOrNull(slot - 1)?.let { refreshSlot(slot - 1, it) }
+                } else {
+                    showToast(R.string.emulation_state_delete_failed)
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun showToast(resId: Int) {
