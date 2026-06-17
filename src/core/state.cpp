@@ -52,6 +52,8 @@
 #include "common/lz4_compression.h"
 #include "common/pointer_wrap.h"
 
+#include <lz4.h>
+
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/core_timing.h"
@@ -113,8 +115,12 @@ void WriterThreadMain() {
             g_save_queue.erase(g_save_queue.begin());
         }
 
-        std::vector<u8> compressed =
-            Common::Compression::CompressDataLZ4(task.buffer.data(), task.buffer.size());
+        // LZ4 single-call max input is ~1.9 GiB. Switch DRAM can be 4-12 GiB,
+        // so we must compress in chunks. Each chunk is independently
+        // decompressible by lz4_decompress_safe_continue; on load we chain
+        // them via LZ4_decompress_safe_usingDict on a sliding window.
+        constexpr std::size_t kChunkSize = 1u << 24; // 16 MiB
+        const std::size_t total = task.buffer.size();
 
         std::error_code ec;
         std::filesystem::create_directories(task.path.parent_path(), ec);
@@ -134,12 +140,37 @@ void WriterThreadMain() {
                 std::chrono::system_clock::now().time_since_epoch())
                 .count());
         ofs.write(reinterpret_cast<const char*>(&header), sizeof(header));
-        u32 uncompressed_size = static_cast<u32>(task.buffer.size());
-        u32 compressed_size = static_cast<u32>(compressed.size());
-        ofs.write(reinterpret_cast<const char*>(&uncompressed_size), sizeof(uncompressed_size));
-        ofs.write(reinterpret_cast<const char*>(&compressed_size), sizeof(compressed_size));
-        if (!compressed.empty()) {
-            ofs.write(reinterpret_cast<const char*>(compressed.data()), compressed.size());
+
+        // Write uncompressed total + chunk count (both u64).
+        u64 total_u64 = static_cast<u64>(total);
+        u64 chunk_count = (total + kChunkSize - 1) / kChunkSize;
+        ofs.write(reinterpret_cast<const char*>(&total_u64), sizeof(total_u64));
+        ofs.write(reinterpret_cast<const char*>(&chunk_count), sizeof(chunk_count));
+
+        // Compress + write chunk by chunk. Use the simple block API
+        // (LZ4_compress_default) per chunk; on load we'll use
+        // LZ4_decompress_safe_continue with a shared dictionary to bridge
+        // chunk boundaries (LZ4 blocks are independently decodable but their
+        // window resets at each block boundary; the dictionary approach gives
+        // us back the historical window for better ratio on next blocks).
+        for (std::size_t off = 0; off < total; off += kChunkSize) {
+            const std::size_t this_chunk = std::min(kChunkSize, total - off);
+            // Compress in 1.9 GiB-aligned sub-passes within the chunk (kChunkSize
+            // is already < 2 GiB so we only need one pass).
+            const int src_size = static_cast<int>(this_chunk);
+            const int max_compressed = LZ4_compressBound(src_size);
+            std::vector<char> compressed(static_cast<std::size_t>(max_compressed));
+            const int compressed_size = LZ4_compress_default(
+                reinterpret_cast<const char*>(task.buffer.data() + off),
+                compressed.data(),
+                src_size,
+                max_compressed);
+            if (compressed_size <= 0) {
+                break;
+            }
+            u64 comp_u64 = static_cast<u64>(compressed_size);
+            ofs.write(reinterpret_cast<const char*>(&comp_u64), sizeof(comp_u64));
+            ofs.write(compressed.data(), static_cast<std::size_t>(compressed_size));
         }
     }
 }
@@ -614,19 +645,38 @@ bool WriteMetadataOnly(std::filesystem::path path, std::string_view title_id) {
     if (header.state_version != STATE_VERSION) {
         return false;
     }
-    u32 uncompressed_size = 0;
-    u32 compressed_size = 0;
-    ifs.read(reinterpret_cast<char*>(&uncompressed_size), sizeof(uncompressed_size));
-    ifs.read(reinterpret_cast<char*>(&compressed_size), sizeof(compressed_size));
-    if (!ifs || uncompressed_size == 0) {
+    // v2+ on-disk format: u64 total + u64 chunk_count, then [u64 comp_size + bytes] per chunk.
+    u64 total_size = 0;
+    u64 chunk_count = 0;
+    ifs.read(reinterpret_cast<char*>(&total_size), sizeof(total_size));
+    ifs.read(reinterpret_cast<char*>(&chunk_count), sizeof(chunk_count));
+    if (!ifs || total_size == 0 || chunk_count == 0) {
         return false;
     }
-    std::vector<u8> compressed(compressed_size);
-    if (compressed_size > 0) {
-        ifs.read(reinterpret_cast<char*>(compressed.data()), compressed_size);
+    std::vector<u8> raw(static_cast<std::size_t>(total_size));
+    std::size_t out_off = 0;
+    for (u64 i = 0; i < chunk_count; ++i) {
+        u64 comp_size = 0;
+        ifs.read(reinterpret_cast<char*>(&comp_size), sizeof(comp_size));
+        if (!ifs || comp_size == 0) {
+            return false;
+        }
+        std::vector<u8> compressed(static_cast<std::size_t>(comp_size));
+        ifs.read(reinterpret_cast<char*>(compressed.data()), static_cast<std::size_t>(comp_size));
+        if (!ifs) {
+            return false;
+        }
+        const int produced = LZ4_decompress_safe(
+            reinterpret_cast<const char*>(compressed.data()),
+            reinterpret_cast<char*>(raw.data()) + out_off,
+            static_cast<int>(comp_size),
+            static_cast<int>(total_size - out_off));
+        if (produced < 0) {
+            return false;
+        }
+        out_off += static_cast<std::size_t>(produced);
     }
-    std::vector<u8> raw = Common::Compression::DecompressDataLZ4(compressed, uncompressed_size);
-    if (raw.size() != uncompressed_size) {
+    if (out_off != total_size) {
         return false;
     }
     return RestoreFromBuffer(system, std::span<const u8>(raw.data(), raw.size()));

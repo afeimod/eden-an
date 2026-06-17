@@ -30,7 +30,7 @@ inline constexpr u32 NUM_STATES = 3;
 
 /// Bumped whenever the DoState body layout changes. Old savestates become
 /// unloadable; bump STATE_VERSION_COOKIE_BASE's complement when changing this.
-inline constexpr u32 STATE_VERSION = 2;
+inline constexpr u32 STATE_VERSION = 3;
 
 /// On-disk header size (matches StateHeader struct below).
 inline constexpr std::size_t STATE_HEADER_SIZE = 24;
