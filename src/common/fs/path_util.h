@@ -29,6 +29,7 @@ enum class EdenPath {
     ScreenshotsDir, // Where yuzu screenshots are stored.
     SDMCDir,        // Where the emulated SDMC is stored.
     ShaderDir,      // Where shaders are stored.
+    StatesDir,      // Where emulator save states are stored.
     TASDir,         // Where TAS scripts are stored.
     IconsDir,       // Where Icons for Windows shortcuts are stored.
 };

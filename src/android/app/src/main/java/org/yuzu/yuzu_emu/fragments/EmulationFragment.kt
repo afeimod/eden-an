@@ -72,6 +72,7 @@ import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.DialogOverlayAdjustBinding
 import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
 import org.yuzu.yuzu_emu.dialogs.QuickSettings
+import org.yuzu.yuzu_emu.dialogs.SaveLoadStateDialog
 import org.yuzu.yuzu_emu.features.input.NativeInput
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
@@ -893,6 +894,16 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
                 }
 
                 R.id.menu_load_amiibo -> handleLoadAmiiboSelection()
+
+                R.id.menu_save_load_state -> {
+                    if (!emulationState.isRunning) {
+                        return@setNavigationItemSelectedListener false
+                    }
+                    SaveLoadStateDialog.newInstance()
+                        .show(parentFragmentManager, SaveLoadStateDialog.TAG)
+                    binding.drawerLayout.closeDrawer(binding.inGameMenu)
+                    true
+                }
 
                 R.id.menu_controls -> {
                     val action = HomeNavigationDirections.actionGlobalSettingsActivity(

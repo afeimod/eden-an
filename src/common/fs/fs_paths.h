@@ -23,6 +23,7 @@
 #define NAND_DIR "nand"
 #define PLAY_TIME_DIR "play_time"
 #define SCREENSHOTS_DIR "screenshots"
+#define STATES_DIR "states"
 #define SDMC_DIR "sdmc"
 #define SHADER_DIR "shader"
 #define TAS_DIR "tas"

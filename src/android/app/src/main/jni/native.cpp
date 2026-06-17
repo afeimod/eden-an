@@ -50,6 +50,7 @@
 #include "frontend_common/play_time_manager.h"
 #include "core/constants.h"
 #include "core/core.h"
+#include "core/state.h"
 #include "core/cpu_manager.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
@@ -254,6 +255,11 @@ void EmulationSession::InitializeSystem(bool reload) {
         Common::Log::Start();
 
         m_input_subsystem.Initialize();
+
+        // Initialize the savestate module exactly once per app session. The
+        // thread inside State::Init() is joinable and reused; subsequent calls
+        // are no-ops.
+        State::Init();
     }
 
     // Initialize filesystem.
@@ -1568,6 +1574,85 @@ jint Java_org_yuzu_yuzu_1emu_NativeLibrary_loadAmiibo(JNIEnv* env, jobject jobj,
     const auto info =
         virtual_amiibo->LoadAmiibo(std::span<u8>(bytes.data(), bytes.size()));
     return static_cast<jint>(info);
+}
+
+// ---------------------------------------------------------------------------
+// Save state JNI bridge.
+//
+// These calls MUST run on the CPU thread (or be marshalled onto it by the
+// emulator). The Android frontend already pauses/resumes emulation around
+// UI events; for now we assume the caller has paused emulation before issuing
+// a load. The save path itself only needs to capture -- it can run on the
+// emulation thread because the internal pending-save queue absorbs the
+// compression + disk write.
+// ---------------------------------------------------------------------------
+
+JNIEXPORT jboolean JNICALL
+Java_org_yuzu_yuzu_1emu_NativeLibrary_saveState([[maybe_unused]] JNIEnv* env,
+                                                 [[maybe_unused]] jobject obj,
+                                                 jint slot) {
+    if (slot < 1 || slot > static_cast<jint>(State::NUM_STATES)) {
+        return JNI_FALSE;
+    }
+    if (!EmulationSession::GetInstance().IsRunning()) {
+        return JNI_FALSE;
+    }
+    const bool ok = State::Save(EmulationSession::GetInstance().System(),
+                                static_cast<int>(slot));
+    return ok ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_yuzu_yuzu_1emu_NativeLibrary_loadState([[maybe_unused]] JNIEnv* env,
+                                                 [[maybe_unused]] jobject obj,
+                                                 jint slot) {
+    if (slot < 1 || slot > static_cast<jint>(State::NUM_STATES)) {
+        return JNI_FALSE;
+    }
+    if (!EmulationSession::GetInstance().IsRunning()) {
+        return JNI_FALSE;
+    }
+    // EmulationSession::IsPaused is set by the frontend just before invoking this;
+    // loading while running will tear the live CPU state -- the caller MUST pause first.
+    const bool ok = State::Load(EmulationSession::GetInstance().System(),
+                                static_cast<int>(slot));
+    return ok ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jlong JNICALL
+Java_org_yuzu_yuzu_1emu_NativeLibrary_getUnixTimeOfStateSlot([[maybe_unused]] JNIEnv* env,
+                                                              [[maybe_unused]] jobject obj,
+                                                              jint slot) {
+    if (slot < 1 || slot > static_cast<jint>(State::NUM_STATES)) {
+        return static_cast<jlong>(0);
+    }
+    return static_cast<jlong>(State::GetUnixTimeOfSlot(static_cast<int>(slot)));
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_yuzu_yuzu_1emu_NativeLibrary_stateSlotExists([[maybe_unused]] JNIEnv* env,
+                                                       [[maybe_unused]] jobject obj,
+                                                       jint slot) {
+    if (slot < 1 || slot > static_cast<jint>(State::NUM_STATES)) {
+        return JNI_FALSE;
+    }
+    return State::Exists(static_cast<int>(slot)) ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_yuzu_yuzu_1emu_NativeLibrary_deleteStateSlot([[maybe_unused]] JNIEnv* env,
+                                                      [[maybe_unused]] jobject obj,
+                                                      jint slot) {
+    if (slot < 1 || slot > static_cast<jint>(State::NUM_STATES)) {
+        return JNI_FALSE;
+    }
+    return State::Delete(static_cast<int>(slot)) ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT void JNICALL
+Java_org_yuzu_yuzu_1emu_NativeLibrary_initSaveStates([[maybe_unused]] JNIEnv* env,
+                                                     [[maybe_unused]] jobject obj) {
+    State::Init();
 }
 
 JNIEXPORT void JNICALL

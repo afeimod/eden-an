@@ -92,6 +92,7 @@ add_library(
     param_package.h
     parent_of_member.h
     point.h
+    pointer_wrap.h
     quaternion.h
     range_map.h
     range_mutex.h

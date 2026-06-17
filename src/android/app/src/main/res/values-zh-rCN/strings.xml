@@ -913,6 +913,16 @@
     <string name="emulation_unpause">继续模拟</string>
     <string name="emulation_input_overlay">触控叠加层选项</string>
     <string name="load_amiibo">加载 Amiibo</string>
+    <string name="emulation_save_load_state">存档 / 读档</string>
+    <string name="emulation_save">存档</string>
+    <string name="emulation_load">读档</string>
+    <string name="emulation_state_saved">已存档</string>
+    <string name="emulation_state_loaded">已读档</string>
+    <string name="emulation_state_save_failed">存档失败</string>
+    <string name="emulation_state_load_failed">读档失败</string>
+    <string name="emulation_state_slot_empty_msg">该槽位为空</string>
+    <string name="emulation_state_slot_empty">槽 %1$d — 空</string>
+    <string name="emulation_state_slot_time">槽 %1$d — %2$s</string>
     <string name="touchscreen">触摸屏</string>
     <string name="lock_drawer">锁定侧边栏</string>
     <string name="unlock_drawer">解锁侧边栏</string>

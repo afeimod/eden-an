@@ -43,6 +43,11 @@
         android:icon="@drawable/ic_nfc"
         android:title="@string/load_amiibo" />
 
+    <item
+        android:id="@+id/menu_save_load_state"
+        android:icon="@drawable/ic_save"
+        android:title="@string/emulation_save_load_state" />
+
 
     <item
         android:id="@+id/menu_overlay_controls"

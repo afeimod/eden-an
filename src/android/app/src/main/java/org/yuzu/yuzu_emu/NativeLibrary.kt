@@ -636,6 +636,36 @@ object NativeLibrary {
      */
     external fun loadAmiibo(data: ByteArray): Int
 
+    // -----------------------------------------------------------------------
+    // Save state API.
+    //
+    // Slots are 1-based (1..NUM_STATES). Callers are expected to pause the
+    // emulation before invoking [loadState] -- loading while running is
+    // destructive. [saveState] can run on the live emulation thread; the
+    // actual disk write happens asynchronously.
+    // -----------------------------------------------------------------------
+
+    /** Number of save state slots exposed to the user. */
+    const val NUM_STATES = 3
+
+    /** Initialize the save-state subsystem. Idempotent. */
+    external fun initSaveStates()
+
+    /** Save the current emulation state to the given 1-based [slot]. */
+    external fun saveState(slot: Int): Boolean
+
+    /** Load savestate from the given 1-based [slot]. Caller must pause first. */
+    external fun loadState(slot: Int): Boolean
+
+    /** Returns the unix-time (seconds) when [slot] was last saved, or 0 if empty. */
+    external fun getUnixTimeOfStateSlot(slot: Int): Long
+
+    /** Returns true if [slot] exists and is valid. */
+    external fun stateSlotExists(slot: Int): Boolean
+
+    /** Delete the given [slot]. Returns true on success. */
+    external fun deleteStateSlot(slot: Int): Boolean
+
     /**
      * Checks if all necessary keys are present for decryption
      */

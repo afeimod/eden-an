@@ -164,6 +164,7 @@ public:
         GenerateEdenPath(EdenPath::ScreenshotsDir, eden_path / SCREENSHOTS_DIR);
         GenerateEdenPath(EdenPath::SDMCDir, eden_path / SDMC_DIR);
         GenerateEdenPath(EdenPath::ShaderDir, eden_path / SHADER_DIR);
+        GenerateEdenPath(EdenPath::StatesDir, eden_path / STATES_DIR);
         GenerateEdenPath(EdenPath::TASDir, eden_path / TAS_DIR);
         GenerateEdenPath(EdenPath::IconsDir, eden_path / ICONS_DIR);
 

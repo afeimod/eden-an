@@ -938,6 +938,16 @@
     <string name="emulation_unpause">Unpause emulation</string>
     <string name="emulation_input_overlay">Overlay options</string>
     <string name="load_amiibo">Load Amiibo</string>
+    <string name="emulation_save_load_state">Save / Load state</string>
+    <string name="emulation_save">Save</string>
+    <string name="emulation_load">Load</string>
+    <string name="emulation_state_saved">State saved</string>
+    <string name="emulation_state_loaded">State loaded</string>
+    <string name="emulation_state_save_failed">Failed to save state</string>
+    <string name="emulation_state_load_failed">Failed to load state</string>
+    <string name="emulation_state_slot_empty_msg">Slot is empty</string>
+    <string name="emulation_state_slot_empty">Slot %1$d — empty</string>
+    <string name="emulation_state_slot_time">Slot %1$d — %2$s</string>
     <string name="touchscreen">Touchscreen</string>
     <string name="lock_drawer">Lock drawer</string>
     <string name="unlock_drawer">Unlock drawer</string>

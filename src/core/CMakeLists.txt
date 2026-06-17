@@ -1166,6 +1166,8 @@ add_library(core STATIC
     perf_stats.h
     reporter.cpp
     reporter.h
+    state.cpp
+    state.h
     tools/freezer.cpp
     tools/freezer.h
     tools/renderdoc.cpp

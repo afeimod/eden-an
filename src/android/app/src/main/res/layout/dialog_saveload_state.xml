@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="?attr/colorSurface">
+
+    <TextView
+        android:id="@+id/dialog_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:paddingBottom="12dp"
+        tools:text="@string/emulation_save_state" />
+
+    <LinearLayout
+        android:id="@+id/slot_row_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center_vertical"
+        android:background="?attr/selectableItemBackground">
+
+        <TextView
+            android:id="@+id/slot_label_1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            tools:text="Slot 1 - 5 min ago" />
+
+        <Button
+            android:id="@+id/slot_save_button_1"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/emulation_save" />
+
+        <Button
+            android:id="@+id/slot_load_button_1"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/emulation_load" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/slot_row_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center_vertical"
+        android:background="?attr/selectableItemBackground">
+
+        <TextView
+            android:id="@+id/slot_label_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            tools:text="Slot 2 - empty" />
+
+        <Button
+            android:id="@+id/slot_save_button_2"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/emulation_save" />
+
+        <Button
+            android:id="@+id/slot_load_button_2"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/emulation_load" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/slot_row_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center_vertical"
+        android:background="?attr/selectableItemBackground">
+
+        <TextView
+            android:id="@+id/slot_label_3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            tools:text="Slot 3 - empty" />
+
+        <Button
+            android:id="@+id/slot_save_button_3"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/emulation_save" />
+
+        <Button
+            android:id="@+id/slot_load_button_3"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/emulation_load" />
+    </LinearLayout>
+
+</LinearLayout>
