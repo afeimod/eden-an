@@ -62,6 +62,25 @@ class SaveLoadStateDialog : DialogFragment() {
         )
     }
 
+    private val pollHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val pollRunnable = object : Runnable {
+        override fun run() {
+            if (!NativeLibrary.isStateOperationPending()) {
+                // Operation done -- refresh all slot labels.
+                slots.forEachIndexed { idx, slot -> refreshSlot(idx, slot) }
+                updateButtonsEnabled(true)
+                return
+            }
+            pollHandler.postDelayed(this, 250)
+        }
+    }
+
+    private fun updateButtonsEnabled(enabled: Boolean) {
+        slots.forEach { it.saveButton.isEnabled = enabled && !NativeLibrary.isStateOperationPending() }
+        slots.forEach { it.loadButton.isEnabled = enabled }
+        slots.forEach { it.deleteButton.isEnabled = enabled }
+    }
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = requireActivity().layoutInflater.inflate(
             R.layout.dialog_saveload_state, null, false
@@ -93,6 +112,11 @@ class SaveLoadStateDialog : DialogFragment() {
         }
 
         return dialog
+    }
+
+    override fun onDismiss(dialog: android.content.DialogInterface) {
+        pollHandler.removeCallbacks(pollRunnable)
+        super.onDismiss(dialog)
     }
 
     override fun onDestroyView() {
@@ -127,15 +151,11 @@ class SaveLoadStateDialog : DialogFragment() {
     private fun handleAction(slot: Int, action: Action) {
         when (action) {
             Action.SAVE -> {
-                // Full save pauses emulation for several seconds while it
-                // dumps DRAM. We do this synchronously so the resulting file
-                // is consistent.
                 showToast(R.string.emulation_state_saving)
-                val ok = NativeLibrary.saveState(slot)
-                showToast(if (ok) R.string.emulation_state_saved else R.string.emulation_state_save_failed)
-                if (ok) {
-                    slots.getOrNull(slot - 1)?.let { refreshSlot(slot - 1, it) }
-                }
+                updateButtonsEnabled(false)
+                NativeLibrary.saveState(slot)
+                pollHandler.removeCallbacks(pollRunnable)
+                pollHandler.postDelayed(pollRunnable, 250)
             }
             Action.LOAD -> {
                 if (!NativeLibrary.stateSlotExists(slot)) {
@@ -146,21 +166,11 @@ class SaveLoadStateDialog : DialogFragment() {
                     showToast(R.string.emulation_state_load_marker_msg)
                     return
                 }
-                val wasPaused = NativeLibrary.isPaused()
-                if (!wasPaused) {
-                    NativeLibrary.pauseEmulation()
-                }
-                val ok = NativeLibrary.loadState(slot)
-                if (ok) {
-                    showToast(R.string.emulation_state_loaded)
-                    if (!wasPaused) {
-                        NativeLibrary.unpauseEmulation()
-                    }
-                    dismissAllowingStateLoss()
-                } else {
-                    showToast(R.string.emulation_state_load_failed)
-                    // Stay paused on failure so the user can investigate.
-                }
+                showToast(R.string.emulation_state_loading)
+                updateButtonsEnabled(false)
+                NativeLibrary.loadState(slot)
+                pollHandler.removeCallbacks(pollRunnable)
+                pollHandler.postDelayed(pollRunnable, 250)
             }
             Action.DELETE -> { /* routed through confirmDelete */ }
         }

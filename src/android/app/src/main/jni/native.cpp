@@ -387,6 +387,53 @@ void EmulationSession::HaltEmulation() {
     m_cv.notify_one();
 }
 
+void EmulationSession::RequestSaveState(int slot) {
+    if (slot < 1 || slot > State::NUM_STATES) {
+        return;
+    }
+    m_state_request_done.store(false, std::memory_order_release);
+    m_state_request_ok.store(false, std::memory_order_release);
+    m_pending_state_slot.store(slot, std::memory_order_release);
+    m_pending_state_kind.store(1, std::memory_order_release);
+    // Wake the emulation thread so it picks the request up promptly rather
+    // than waiting up to 800ms on the cv.
+    {
+        std::scoped_lock lock(m_mutex);
+        m_cv.notify_all();
+    }
+}
+
+void EmulationSession::RequestLoadState(int slot) {
+    if (slot < 1 || slot > State::NUM_STATES) {
+        return;
+    }
+    m_state_request_done.store(false, std::memory_order_release);
+    m_state_request_ok.store(false, std::memory_order_release);
+    m_pending_state_slot.store(slot, std::memory_order_release);
+    m_pending_state_kind.store(2, std::memory_order_release);
+    {
+        std::scoped_lock lock(m_mutex);
+        m_cv.notify_all();
+    }
+}
+
+bool EmulationSession::HasPendingStateRequest() const {
+    return m_pending_state_slot.load(std::memory_order_acquire) != 0 &&
+           !m_state_request_done.load(std::memory_order_acquire);
+}
+
+bool EmulationSession::ConsumeStateRequestResult() {
+    return m_state_request_ok.exchange(false, std::memory_order_acq_rel);
+}
+
+int EmulationSession::ConsumeStateRequestSlot() {
+    return m_pending_state_slot.exchange(0, std::memory_order_acq_rel);
+}
+
+int EmulationSession::ConsumeStateRequestKind() {
+    return m_pending_state_kind.exchange(0, std::memory_order_acq_rel);
+}
+
 void EmulationSession::RunEmulation() {
     {
         std::scoped_lock lock(m_mutex);
@@ -414,6 +461,37 @@ void EmulationSession::RunEmulation() {
                               [&]() { return !m_is_running; })) {
                 // Emulation halted.
                 break;
+            }
+        }
+
+        // Process any pending save/load request. We do this OUTSIDE the lock
+        // so the UI thread can keep queuing requests while we're working.
+        // The capture path is several seconds (4 GiB DRAM dump + LZ4); if we
+        // did it on the UI thread, the binder call would block long enough
+        // to trigger an ANR. By running on this thread (which is the native
+        // emulation thread, idle while CPU jthreads do their work), we get
+        // a clean snapshot window after pausing the CPU threads.
+        if (HasPendingStateRequest()) {
+            const int slot = m_pending_state_slot.load(std::memory_order_acquire);
+            const int kind = m_pending_state_kind.load(std::memory_order_acquire);
+
+            // Pause CPU threads so the snapshot is consistent. The pause is
+            // synchronous and blocks until all cores stop.
+            m_system.Pause();
+
+            bool ok = false;
+            if (kind == 1) {
+                ok = State::Save(m_system, slot);
+            } else if (kind == 2) {
+                ok = State::Load(m_system, slot);
+            }
+
+            m_state_request_ok.store(ok, std::memory_order_release);
+            m_state_request_done.store(true, std::memory_order_release);
+
+            // Resume emulation unless the user explicitly paused before this.
+            if (!m_is_paused) {
+                m_system.Run();
             }
         }
     }
@@ -1597,20 +1675,31 @@ Java_org_yuzu_yuzu_1emu_NativeLibrary_saveState([[maybe_unused]] JNIEnv* env,
     if (!EmulationSession::GetInstance().IsRunning()) {
         return JNI_FALSE;
     }
+    // Async: enqueue and let the emulation thread do the heavy work. Returns
+    // immediately so the UI thread doesn't ANR on the 4 GiB DRAM dump.
+    EmulationSession::GetInstance().RequestSaveState(static_cast<int>(slot));
+    return JNI_TRUE;
+}
 
-    // Pause emulation before capturing DoState. System::Pause() blocks the
-    // caller until the CPU thread is fully quiesced, so once it returns we
-    // have a stable snapshot window.
-    auto& session = EmulationSession::GetInstance();
-    const bool was_paused = session.IsPaused();
-    if (!was_paused) {
-        session.PauseEmulation();
+JNIEXPORT jboolean JNICALL
+Java_org_yuzu_yuzu_1emu_NativeLibrary_loadState([[maybe_unused]] JNIEnv* env,
+                                                 [[maybe_unused]] jobject obj,
+                                                 jint slot) {
+    if (slot < 1 || slot > static_cast<jint>(State::NUM_STATES)) {
+        return JNI_FALSE;
     }
-    const bool ok = State::Save(session.System(), static_cast<int>(slot));
-    if (!was_paused) {
-        session.UnPauseEmulation();
+    if (!EmulationSession::GetInstance().IsRunning()) {
+        return JNI_FALSE;
     }
-    return ok ? JNI_TRUE : JNI_FALSE;
+    // Async: the emulation thread will pause, load, then resume.
+    EmulationSession::GetInstance().RequestLoadState(static_cast<int>(slot));
+    return JNI_TRUE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_yuzu_yuzu_1emu_NativeLibrary_isStateOperationPending([[maybe_unused]] JNIEnv* env,
+                                                               [[maybe_unused]] jobject obj) {
+    return EmulationSession::GetInstance().HasPendingStateRequest() ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT jboolean JNICALL
@@ -1625,23 +1714,6 @@ Java_org_yuzu_yuzu_1emu_NativeLibrary_saveStateMetadataOnly([[maybe_unused]] JNI
     }
     const bool ok = State::SaveMetadataOnly(EmulationSession::GetInstance().System(),
                                             static_cast<int>(slot));
-    return ok ? JNI_TRUE : JNI_FALSE;
-}
-
-JNIEXPORT jboolean JNICALL
-Java_org_yuzu_yuzu_1emu_NativeLibrary_loadState([[maybe_unused]] JNIEnv* env,
-                                                 [[maybe_unused]] jobject obj,
-                                                 jint slot) {
-    if (slot < 1 || slot > static_cast<jint>(State::NUM_STATES)) {
-        return JNI_FALSE;
-    }
-    if (!EmulationSession::GetInstance().IsRunning()) {
-        return JNI_FALSE;
-    }
-    // EmulationSession::IsPaused is set by the frontend just before invoking this;
-    // loading while running will tear the live CPU state -- the caller MUST pause first.
-    const bool ok = State::Load(EmulationSession::GetInstance().System(),
-                                static_cast<int>(slot));
     return ok ? JNI_TRUE : JNI_FALSE;
 }
 

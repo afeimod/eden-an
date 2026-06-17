@@ -677,6 +677,14 @@ object NativeLibrary {
     external fun isStateSlotLoadable(slot: Int): Boolean
 
     /**
+     * Returns true while a save/load operation requested via [saveState] or
+     * [loadState] is still being processed on the emulation thread. The
+     * UI uses this to disable the dialog buttons until the operation
+     * completes (typically 2-5 seconds).
+     */
+    external fun isStateOperationPending(): Boolean
+
+    /**
      * Checks if all necessary keys are present for decryption
      */
     external fun areKeysPresent(): Boolean

@@ -564,6 +564,7 @@ bool WriteMetadataOnly(std::filesystem::path path, std::string_view title_id) {
     if (slot < 1 || slot > static_cast<int>(NUM_STATES)) {
         return false;
     }
+    // Full DoState capture. Callers MUST have paused emulation first.
     std::vector<u8> buffer;
     if (!CaptureToBuffer(system, buffer)) {
         return false;
@@ -579,6 +580,14 @@ bool WriteMetadataOnly(std::filesystem::path path, std::string_view title_id) {
     }
     g_save_queue_cv.notify_one();
     return true;
+}
+
+[[maybe_unused]] bool SaveMetadataOnly(Core::System& system, int slot) {
+    if (slot < 1 || slot > static_cast<int>(NUM_STATES)) {
+        return false;
+    }
+    return WriteMetadataOnly(GetSlotPath(slot),
+                             fmt::format("{:016X}", system.GetApplicationProcessProgramID()));
 }
 
 [[maybe_unused]] bool SaveMetadataOnly(Core::System& system, int slot) {

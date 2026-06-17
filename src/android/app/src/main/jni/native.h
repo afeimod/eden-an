@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <atomic>
+
 class EmulationSession final {
 public:
     explicit EmulationSession();
@@ -56,6 +58,29 @@ public:
                                                  const std::size_t program_index,
                                                  const bool frontend_initiated);
 
+    /// Queue a savestate request. The emulation thread will pick it up
+    /// within ~800ms and execute State::Save() there. Thread-safe.
+    /// @param slot 1..NUM_STATES
+    void RequestSaveState(int slot);
+
+    /// Queue a loadstate request. The emulation thread will pick it up
+    /// within ~800ms, pause the CPU threads, execute State::Load(), and
+    /// resume. Thread-safe.
+    /// @param slot 1..NUM_STATES
+    void RequestLoadState(int slot);
+
+    /// True iff a Save/Load request is currently pending.
+    bool HasPendingStateRequest() const;
+
+    /// True iff the previous pending request completed successfully.
+    bool ConsumeStateRequestResult();
+
+    /// 1-based slot of the last completed request, or 0.
+    int ConsumeStateRequestSlot();
+
+    /// "Save"/"Load" tag for the completed request, or 0 for none.
+    int ConsumeStateRequestKind();
+
     Common::Android::SoftwareKeyboard::AndroidKeyboard* SoftwareKeyboard();
 
     static void OnEmulationStarted();
@@ -92,6 +117,16 @@ private:
     // Synchronization
     std::condition_variable_any m_cv;
     mutable std::mutex m_mutex;
+
+    // Pending save/load request -- written by any thread (typically the UI
+    // thread via JNI), read and cleared by the emulation thread in
+    // RunEmulation's wait loop. The synchronization is intentionally
+    // minimal because m_mutex is already held by the emulation thread when
+    // it reads, and the atomic stores happen-before the m_cv.notify_one().
+    std::atomic<int> m_pending_state_slot{0};   // 1..NUM_STATES or 0 = none
+    std::atomic<int> m_pending_state_kind{0};   // 1 = save, 2 = load
+    std::atomic<bool> m_state_request_done{false};
+    std::atomic<bool> m_state_request_ok{false};
 
     // Program index for next boot
     std::atomic<s32> m_next_program_index = -1;
