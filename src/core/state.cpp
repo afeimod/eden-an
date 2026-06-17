@@ -590,14 +590,6 @@ bool WriteMetadataOnly(std::filesystem::path path, std::string_view title_id) {
                              fmt::format("{:016X}", system.GetApplicationProcessProgramID()));
 }
 
-[[maybe_unused]] bool SaveMetadataOnly(Core::System& system, int slot) {
-    if (slot < 1 || slot > static_cast<int>(NUM_STATES)) {
-        return false;
-    }
-    return WriteMetadataOnly(GetSlotPath(slot),
-                             fmt::format("{:016X}", system.GetApplicationProcessProgramID()));
-}
-
 [[maybe_unused]] bool Load(Core::System& system, int slot) {
     if (slot < 1 || slot > static_cast<int>(NUM_STATES)) {
         return false;
