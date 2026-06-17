@@ -654,6 +654,13 @@ object NativeLibrary {
     /** Save the current emulation state to the given 1-based [slot]. */
     external fun saveState(slot: Int): Boolean
 
+    /**
+     * Save a metadata-only marker (no DoState body). Useful for testing the
+     * UI/persistence path without freezing the emulation thread for several
+     * seconds. The slot will appear in the UI but cannot be loaded.
+     */
+    external fun saveStateMetadataOnly(slot: Int): Boolean
+
     /** Load savestate from the given 1-based [slot]. Caller must pause first. */
     external fun loadState(slot: Int): Boolean
 

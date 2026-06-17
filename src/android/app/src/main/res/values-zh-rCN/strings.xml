@@ -917,6 +917,7 @@
     <string name="emulation_save">存档</string>
     <string name="emulation_load">读档</string>
     <string name="emulation_state_saved">已存档</string>
+    <string name="emulation_state_saving">正在存档（可能冻结几秒）…</string>
     <string name="emulation_state_loaded">已读档</string>
     <string name="emulation_state_save_failed">存档失败</string>
     <string name="emulation_state_load_failed">读档失败</string>

@@ -127,6 +127,10 @@ class SaveLoadStateDialog : DialogFragment() {
     private fun handleAction(slot: Int, action: Action) {
         when (action) {
             Action.SAVE -> {
+                // Full save pauses emulation for several seconds while it
+                // dumps DRAM. We do this synchronously so the resulting file
+                // is consistent.
+                showToast(R.string.emulation_state_saving)
                 val ok = NativeLibrary.saveState(slot)
                 showToast(if (ok) R.string.emulation_state_saved else R.string.emulation_state_save_failed)
                 if (ok) {

@@ -942,6 +942,7 @@
     <string name="emulation_save">Save</string>
     <string name="emulation_load">Load</string>
     <string name="emulation_state_saved">State saved</string>
+    <string name="emulation_state_saving">Saving state (may freeze for a few seconds)…</string>
     <string name="emulation_state_loaded">State loaded</string>
     <string name="emulation_state_save_failed">Failed to save state</string>
     <string name="emulation_state_load_failed">Failed to load state</string>

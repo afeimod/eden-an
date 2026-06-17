@@ -1597,8 +1597,34 @@ Java_org_yuzu_yuzu_1emu_NativeLibrary_saveState([[maybe_unused]] JNIEnv* env,
     if (!EmulationSession::GetInstance().IsRunning()) {
         return JNI_FALSE;
     }
-    const bool ok = State::Save(EmulationSession::GetInstance().System(),
-                                static_cast<int>(slot));
+
+    // Pause emulation before capturing DoState. System::Pause() blocks the
+    // caller until the CPU thread is fully quiesced, so once it returns we
+    // have a stable snapshot window.
+    auto& session = EmulationSession::GetInstance();
+    const bool was_paused = session.IsPaused();
+    if (!was_paused) {
+        session.PauseEmulation();
+    }
+    const bool ok = State::Save(session.System(), static_cast<int>(slot));
+    if (!was_paused) {
+        session.UnPauseEmulation();
+    }
+    return ok ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_yuzu_yuzu_1emu_NativeLibrary_saveStateMetadataOnly([[maybe_unused]] JNIEnv* env,
+                                                              [[maybe_unused]] jobject obj,
+                                                              jint slot) {
+    if (slot < 1 || slot > static_cast<jint>(State::NUM_STATES)) {
+        return JNI_FALSE;
+    }
+    if (!EmulationSession::GetInstance().IsRunning()) {
+        return JNI_FALSE;
+    }
+    const bool ok = State::SaveMetadataOnly(EmulationSession::GetInstance().System(),
+                                            static_cast<int>(slot));
     return ok ? JNI_TRUE : JNI_FALSE;
 }
 
