@@ -7,8 +7,8 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
-#include <cstring>
 #include <cstddef>
+#include <cstring>
 #include <filesystem>
 #include <fmt/format.h>
 #include <fstream>
@@ -329,11 +329,17 @@ bool RestoreFromBuffer(Core::System& system, std::span<const u8> buffer) {
     return wrap.IsReadMode();
 }
 
+} // namespace
+
 // ---------------------------------------------------------------------------
 // Public API
+//
+// Each public function is annotated with [[maybe_unused]] to silence
+// -Werror=unused-function: these are referenced from JNI/native.cpp via
+// header declaration, but the C++ compiler doesn't see those references.
 // ---------------------------------------------------------------------------
 
-void Init() {
+[[maybe_unused]] void Init() {
     if (g_writer_thread.joinable()) {
         return;
     }
@@ -341,7 +347,7 @@ void Init() {
     g_writer_thread = std::thread(WriterThreadMain);
 }
 
-u64 GetUnixTimeOfSlot(int slot) {
+[[maybe_unused]] u64 GetUnixTimeOfSlot(int slot) {
     if (slot < 1 || slot > static_cast<int>(NUM_STATES)) {
         return 0;
     }
@@ -362,7 +368,7 @@ u64 GetUnixTimeOfSlot(int slot) {
     return header.unix_time;
 }
 
-std::string GetTitleIdOfSlot(int slot) {
+[[maybe_unused]] std::string GetTitleIdOfSlot(int slot) {
     if (slot < 1 || slot > static_cast<int>(NUM_STATES)) {
         return {};
     }
@@ -383,7 +389,7 @@ std::string GetTitleIdOfSlot(int slot) {
     return std::string(header.title_id, strnlen(header.title_id, sizeof(header.title_id)));
 }
 
-bool Exists(int slot) {
+[[maybe_unused]] bool Exists(int slot) {
     if (slot < 1 || slot > static_cast<int>(NUM_STATES)) {
         return false;
     }
@@ -391,7 +397,7 @@ bool Exists(int slot) {
     return std::filesystem::exists(GetSlotPath(slot), ec);
 }
 
-bool Delete(int slot) {
+[[maybe_unused]] bool Delete(int slot) {
     if (slot < 1 || slot > static_cast<int>(NUM_STATES)) {
         return false;
     }
@@ -399,7 +405,7 @@ bool Delete(int slot) {
     return std::filesystem::remove(GetSlotPath(slot), ec);
 }
 
-bool Save(Core::System& system, int slot) {
+[[maybe_unused]] bool Save(Core::System& system, int slot) {
     if (slot < 1 || slot > static_cast<int>(NUM_STATES)) {
         return false;
     }
@@ -420,7 +426,7 @@ bool Save(Core::System& system, int slot) {
     return true;
 }
 
-bool Load(Core::System& system, int slot) {
+[[maybe_unused]] bool Load(Core::System& system, int slot) {
     if (slot < 1 || slot > static_cast<int>(NUM_STATES)) {
         return false;
     }
@@ -459,5 +465,4 @@ bool Load(Core::System& system, int slot) {
     return RestoreFromBuffer(system, std::span<const u8>(raw.data(), raw.size()));
 }
 
-} // namespace
 } // namespace State
