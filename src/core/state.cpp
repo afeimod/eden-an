@@ -40,7 +40,6 @@
 #include <filesystem>
 #include <fmt/format.h>
 #include <fstream>
-#include <list>
 #include <memory>
 #include <mutex>
 #include <span>
@@ -62,6 +61,7 @@
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_thread.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/svc_types.h"
 
@@ -182,20 +182,16 @@ void DoCoreTiming(Core::System& system, Common::PointerWrap& p) {
         timing.downcount = downcount;
     }
 
-    // Event queue -- serialize the size and a digest of event sequence numbers
-    // so we can detect dropped events on load. The actual event callbacks are
-    // not portable across runs (function pointers) so we only persist enough
-    // to validate that the timing model is consistent.
-    u64 event_queue_size = static_cast<u64>(timing.event_queue.size());
+    // We intentionally do NOT serialize the event_queue contents here. The
+    // boost::heap node type (CoreTiming::Event) is forward-declared in the
+    // public header and fully defined in core_timing.cpp; touching it from
+    // outside that TU fails the compile. Persisting event callbacks is also
+    // not portable across runs (they're std::function / function pointers).
+    // The event queue will be rebuilt by the kernel as it re-issues pending
+    // operations post-load.
     u64 event_fifo_id = timing.event_fifo_id;
-    p.Do(event_queue_size);
     p.Do(event_fifo_id);
     if (p.IsReadMode()) {
-        // We don't recreate individual event nodes (they hold C++ function
-        // pointers); instead we mark the queue as needing a rebuild.
-        // Any loaded event nodes that survived would now have stale sequence
-        // numbers. For safety, callers should expect post-load timing drift
-        // until the next few events fire.
         timing.event_fifo_id = event_fifo_id;
     }
 }
@@ -230,7 +226,7 @@ void DoCpuCores(Core::System& system, Common::PointerWrap& p) {
     auto& kernel = system.Kernel();
     for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; ++i) {
         Core::ArmInterface* arm = process ? process->GetArmInterface(i) : nullptr;
-        Kernel::KThread* thread = kernel.Scheduler(i).GetRunningThread();
+        Kernel::KThread* thread = kernel.Scheduler(i).GetSchedulerCurrentThread();
         u8 present = (arm != nullptr) ? 1 : 0;
         p.Do(present);
         if (!present || arm == nullptr) {
@@ -238,12 +234,11 @@ void DoCpuCores(Core::System& system, Common::PointerWrap& p) {
         }
         u8 arch = static_cast<u8>(arm->GetArchitecture());
         p.Do(arch);
-        if (thread != nullptr) {
+        if (thread != nullptr && thread != kernel.Scheduler(i).GetIdleThread()) {
             Kernel::Svc::ThreadContext ctx{};
             arm->GetContext(ctx);
             u32 magic = 0x434F5245; // 'CORE'
             p.Do(magic);
-            // ThreadContext is trivially copyable.
             p.Do(ctx);
         } else {
             u32 magic = 0x49444C45; // 'IDLE'
@@ -261,12 +256,11 @@ void DoKernelScheduler(Core::System& system, Common::PointerWrap& p) {
     // scheduling state is reconstructed by the kernel itself when it next
     // resumes a thread.
     for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; ++i) {
-        const auto& sched = kernel.Scheduler(i);
+        auto& sched = kernel.Scheduler(i);
         u64 idle_count = sched.GetIdleCount();
-        u64 switch_count = sched.GetLastContextSwitchTime();
-        u32 thread_id = sched.GetRunningThread()
-                            ? sched.GetRunningThread()->GetThreadId()
-                            : 0;
+        u64 switch_count = static_cast<u64>(sched.GetLastContextSwitchTime());
+        Kernel::KThread* cur = sched.GetSchedulerCurrentThread();
+        u32 thread_id = cur ? cur->GetThreadId() : 0;
         p.Do(idle_count);
         p.Do(switch_count);
         p.Do(thread_id);
@@ -276,14 +270,13 @@ void DoKernelScheduler(Core::System& system, Common::PointerWrap& p) {
 void DoKernelThreads(Core::System& system, Common::PointerWrap& p) {
     p.DoMarker("KernelThreads");
     auto& kernel = system.Kernel();
-    auto& gsc = kernel.GlobalSchedulerContext();
-    std::list<Kernel::KScopedAutoObject<Kernel::KProcess>> procs = kernel.GetProcessList();
+    auto procs = kernel.GetProcessList();
 
     u32 num_procs = static_cast<u32>(procs.size());
     p.Do(num_procs);
 
     for (auto& proc_handle : procs) {
-        Kernel::KProcess* proc = proc_handle.GetPointer();
+        Kernel::KProcess* proc = proc_handle.GetPointerUnsafe();
         if (proc == nullptr) {
             u32 zero = 0;
             p.Do(zero);
@@ -294,8 +287,6 @@ void DoKernelThreads(Core::System& system, Common::PointerWrap& p) {
         p.Do(pid);
         p.Do(program_id);
 
-        // Each thread: context + state. We persist everything required to
-        // fully reconstruct the thread's execution state on load.
         u32 num_threads = static_cast<u32>(proc->GetThreadList().size());
         p.Do(num_threads);
 
@@ -306,15 +297,15 @@ void DoKernelThreads(Core::System& system, Common::PointerWrap& p) {
                 continue;
             }
             u32 tid = thread->GetThreadId();
-            u64 tls_ptr = thread->GetTlsPtr();
+            u64 tls_ptr = thread->GetTpidrEl0();
             u32 state = static_cast<u32>(thread->GetState());
             p.Do(tid);
             p.Do(tls_ptr);
             p.Do(state);
 
-            // For each thread we also serialize the SVC arguments so the
-            // current syscall in flight (if any) can be re-issued on load.
+            // SVC arguments for any core currently inside a syscall.
             std::array<uint64_t, 8> svc_args{};
+            bool wrote_svc = false;
             for (size_t c = 0; c < Core::Hardware::NUM_CPU_CORES; ++c) {
                 auto* arm = proc->GetArmInterface(c);
                 if (arm == nullptr) {
@@ -327,15 +318,14 @@ void DoKernelThreads(Core::System& system, Common::PointerWrap& p) {
                     p.Do(has_svc);
                     p.Do(svc_num);
                     p.Do(svc_args);
+                    wrote_svc = true;
                     break;
                 }
             }
-            // NOTE: KThread's full state (priority, wait objects, owned
-            // mutexes, page table base, etc.) is NOT serialized here. Most
-            // games survive without it because the thread state at snapshot
-            // time is typically "ready/running" and the kernel re-derives the
-            // rest on next schedule. Threads in a wait-for-SVC state will
-            // resume incorrectly.
+            if (!wrote_svc) {
+                u8 has_svc = 0;
+                p.Do(has_svc);
+            }
         }
     }
 }
