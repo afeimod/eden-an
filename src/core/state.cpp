@@ -290,15 +290,10 @@ void DoKernelThreads(Core::System& system, Common::PointerWrap& p) {
         u32 num_threads = static_cast<u32>(proc->GetThreadList().size());
         p.Do(num_threads);
 
-        for (auto* thread : proc->GetThreadList()) {
-            if (thread == nullptr) {
-                u32 zero = 0;
-                p.Do(zero);
-                continue;
-            }
-            u32 tid = thread->GetThreadId();
-            u64 tls_ptr = thread->GetTpidrEl0();
-            u32 state = static_cast<u32>(thread->GetState());
+        for (auto& thread : proc->GetThreadList()) {
+            u32 tid = thread.GetThreadId();
+            u64 tls_ptr = thread.GetTpidrEl0();
+            u32 state = static_cast<u32>(thread.GetState());
             p.Do(tid);
             p.Do(tls_ptr);
             p.Do(state);
