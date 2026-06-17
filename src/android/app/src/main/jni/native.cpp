@@ -388,7 +388,7 @@ void EmulationSession::HaltEmulation() {
 }
 
 void EmulationSession::RequestSaveState(int slot) {
-    if (slot < 1 || slot > State::NUM_STATES) {
+    if (slot < 1 || slot > static_cast<int>(State::NUM_STATES)) {
         return;
     }
     m_state_request_done.store(false, std::memory_order_release);
@@ -404,7 +404,7 @@ void EmulationSession::RequestSaveState(int slot) {
 }
 
 void EmulationSession::RequestLoadState(int slot) {
-    if (slot < 1 || slot > State::NUM_STATES) {
+    if (slot < 1 || slot > static_cast<int>(State::NUM_STATES)) {
         return;
     }
     m_state_request_done.store(false, std::memory_order_release);
