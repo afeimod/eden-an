@@ -432,6 +432,26 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setOverlayControlData(
     }
 }
 
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_saveOverlayControlData(JNIEnv* env, jobject obj,
+                                                                       jboolean j_perGame) {
+    // Persist the in-memory overlay layout to either the currently-loaded
+    // per-game config or the global config. Callers should call
+    // [setOverlayControlData] first to push the new layout into memory, and
+    // pick the target via [NativeConfig.isPerGameConfigLoaded] — but we still
+    // take an explicit boolean so the Java side can force one or the other
+    // (e.g. to copy the global layout into a per-game config that doesn't
+    // have one yet, or to reset a per-game config to global defaults).
+    if (static_cast<bool>(j_perGame)) {
+        if (per_game_config) {
+            per_game_config->AndroidConfig::SaveAllValues();
+        }
+    } else {
+        if (global_config) {
+            global_config->AndroidConfig::SaveAllValues();
+        }
+    }
+}
+
 jobjectArray Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getInputSettings(JNIEnv* env, jobject obj,
                                                                          jboolean j_global) {
     Settings::values.players.SetGlobal(static_cast<bool>(j_global));

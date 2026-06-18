@@ -42,8 +42,13 @@ void AndroidConfig::ReadAndroidValues() {
             std::make_optional(
                 Settings::values.ext_content_from_game_dirs.GetDefault()));
         EndGroup();
-        ReadOverlayValues();
     }
+    // Overlay layouts are per-game: every config (global and per-game) reads its own
+    // control_data block. Per-game configs that haven't been customised yet will
+    // get an empty vector back; ReadOverlayValues() then copies the global layout
+    // into memory so the user keeps seeing the global layout until they edit
+    // anything, and the next save goes to the per-game config automatically.
+    ReadOverlayValues();
     ReadDriverValues();
     ReadAndroidControlValues();
 }
@@ -125,27 +130,38 @@ void AndroidConfig::ReadOverlayValues() {
 
     ReadCategory(Settings::Category::Overlay);
 
-    AndroidSettings::values.overlay_control_data.clear();
     const int control_data_size = BeginArray("control_data");
-    for (int i = 0; i < control_data_size; ++i) {
-        SetArrayIndex(i);
-        AndroidSettings::OverlayControlData control_data;
-        control_data.id = ReadStringSetting(std::string("id"));
-        control_data.enabled = ReadBooleanSetting(std::string("enabled"));
-        control_data.landscape_position.first =
-            ReadDoubleSetting(std::string("landscape\\x_position"));
-        control_data.landscape_position.second =
-            ReadDoubleSetting(std::string("landscape\\y_position"));
-        control_data.portrait_position.first =
-            ReadDoubleSetting(std::string("portrait\\x_position"));
-        control_data.portrait_position.second =
-            ReadDoubleSetting(std::string("portrait\\y_position"));
-        control_data.foldable_position.first =
-            ReadDoubleSetting(std::string("foldable\\x_position"));
-        control_data.foldable_position.second =
-            ReadDoubleSetting(std::string("foldable\\y_position"));
-        control_data.individual_scale = static_cast<float>(ReadDoubleSetting(std::string("individual_scale")));
-        AndroidSettings::values.overlay_control_data.push_back(control_data);
+    if (control_data_size > 0) {
+        // INI has a control_data block: replace whatever was in memory.
+        AndroidSettings::values.overlay_control_data.clear();
+        for (int i = 0; i < control_data_size; ++i) {
+            SetArrayIndex(i);
+            AndroidSettings::OverlayControlData control_data;
+            control_data.id = ReadStringSetting(std::string("id"));
+            control_data.enabled = ReadBooleanSetting(std::string("enabled"));
+            control_data.landscape_position.first =
+                ReadDoubleSetting(std::string("landscape\\x_position"));
+            control_data.landscape_position.second =
+                ReadDoubleSetting(std::string("landscape\\y_position"));
+            control_data.portrait_position.first =
+                ReadDoubleSetting(std::string("portrait\\x_position"));
+            control_data.portrait_position.second =
+                ReadDoubleSetting(std::string("portrait\\y_position"));
+            control_data.foldable_position.first =
+                ReadDoubleSetting(std::string("foldable\\x_position"));
+            control_data.foldable_position.second =
+                ReadDoubleSetting(std::string("foldable\\y_position"));
+            control_data.individual_scale = static_cast<float>(ReadDoubleSetting(std::string("individual_scale")));
+            AndroidSettings::values.overlay_control_data.push_back(control_data);
+        }
+    } else if (!IsCustomConfig()) {
+        // Global config with no control_data block: leave the in-memory vector
+        // alone (it's the default-initialised empty vector on first launch;
+        // the Java side detects that and calls populateDefaultConfig()).
+        // Per-game configs with no block deliberately keep the in-memory
+        // global layout that was loaded by the previous global config read,
+        // so the user keeps seeing the global layout for any game that
+        // hasn't been customised yet.
     }
     EndArray();
 
@@ -226,8 +242,11 @@ void AndroidConfig::SaveAndroidValues() {
     if (global) {
         SaveAndroidUIValues();
         SaveUIValues();
-        SaveOverlayValues();
     }
+    // Overlay layouts are per-game: every config writes its own control_data
+    // block. Global config keeps the "default" layout; per-game configs that
+    // were edited store the user-customised positions.
+    SaveOverlayValues();
     SaveDriverValues();
     SaveAndroidControlValues();
 

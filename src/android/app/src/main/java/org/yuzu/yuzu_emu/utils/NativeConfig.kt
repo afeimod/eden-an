@@ -174,6 +174,17 @@ object NativeConfig {
     @Synchronized
     external fun setOverlayControlData(overlayControlData: Array<OverlayControlData>)
 
+    /**
+     * Persists the in-memory overlay layout to disk.
+     *
+     * Overlay layouts are per-game: every game can have its own button
+     * positions, scales, and visibility. When [isPerGameConfigLoaded] is true
+     * the layout is written to the per-game INI; otherwise to the global INI.
+     * This pairs with [setOverlayControlData], which only updates memory.
+     */
+    @Synchronized
+    external fun saveOverlayControlData(perGame: Boolean)
+
     @Synchronized
     external fun getInputSettings(global: Boolean): Array<PlayerInput>
 

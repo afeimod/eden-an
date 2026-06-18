@@ -2347,7 +2347,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
                         }
                         .setPositiveButton(android.R.string.ok) { _, _ ->
                             NativeConfig.setOverlayControlData(overlayControlData)
-                            NativeConfig.saveGlobalConfig()
+                            NativeConfig.saveOverlayControlData(
+                                perGame = NativeConfig.isPerGameConfigLoaded()
+                            )
                             binding.surfaceInputOverlay.refreshControls()
                         }
                         .setNegativeButton(android.R.string.cancel, null)

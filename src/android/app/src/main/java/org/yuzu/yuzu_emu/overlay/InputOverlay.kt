@@ -1051,6 +1051,11 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         data?.individualScale = individuaScale
 
         NativeConfig.setOverlayControlData(overlayControlData)
+        // Persist to the per-game config if one is loaded (per-game overlay
+        // layout), otherwise to the global config (default layout). This used
+        // to be silently dropped on the floor after setOverlayControlData,
+        // which meant drag-to-position never actually saved between launches.
+        NativeConfig.saveOverlayControlData(perGame = NativeConfig.isPerGameConfigLoaded())
     }
 
     /** Persist a combo pad's new position back to [ComboStore]. */
@@ -1175,7 +1180,10 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
     private fun populateDefaultConfig() {
         val newConfig = OverlayControl.entries.map { it.toOverlayControlData() }
         NativeConfig.setOverlayControlData(newConfig.toTypedArray())
-        NativeConfig.saveGlobalConfig()
+        // First-run initialisation always lands in the global config, because
+        // this is called before any per-game config is loaded (the InputOverlay
+        // detects the empty layout in onLayout and runs populateDefaultConfig).
+        NativeConfig.saveOverlayControlData(perGame = false)
     }
 
     /**
@@ -1197,7 +1205,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             NativeConfig.setOverlayControlData(
                 arrayOf(*overlayControlData, *(missingControls.toTypedArray()))
             )
-            NativeConfig.saveGlobalConfig()
+            NativeConfig.saveOverlayControlData(perGame = false)
         }
     }
 
@@ -1210,6 +1218,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             it.individualScale = OverlayControl.from(it.id)?.defaultIndividualScaleResource!!
         }
         NativeConfig.setOverlayControlData(overlayControlData)
+        NativeConfig.saveOverlayControlData(perGame = NativeConfig.isPerGameConfigLoaded())
 
         // Reset combos: keep current presets but reset their layout positions.
         val combos = ComboStore.load(context)
@@ -1234,7 +1243,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             data.individualScale = defaultControlData.defaultIndividualScaleResource
         }
         NativeConfig.setOverlayControlData(overlayControlData)
-        NativeConfig.saveGlobalConfig()
+        NativeConfig.saveOverlayControlData(perGame = NativeConfig.isPerGameConfigLoaded())
         refreshControls()
     }
 
