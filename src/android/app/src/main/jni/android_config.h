@@ -13,6 +13,15 @@ public:
     void ReloadAllValues() override;
     void SaveAllValues() override;
 
+    /**
+     * Like [SaveAllValues] but forces the overlay control_data block to be
+     * written even for per-game configs that don't have one yet. Used by the
+     * explicit overlay save path on the Java side: the user has actually
+     * edited the layout, so this is the trigger to materialise the per-game
+     * overlay block.
+     */
+    void SaveAllValuesForcingOverlay();
+
     void ReadAndroidControlPlayerValues(std::size_t player_index);
     void SaveAndroidControlPlayerValues(std::size_t player_index);
 
@@ -37,7 +46,7 @@ protected:
     void SaveAndroidValues();
     void SaveAndroidUIValues();
     void SaveDriverValues();
-    void SaveOverlayValues();
+    void SaveOverlayValues(bool forceWriteControlData = false);
     void SaveHidbusValues() override {}
     void SaveDebugControlValues() override {}
     void SavePathValues() override;

@@ -59,6 +59,19 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_initializePerGameConfig(JNIEnv* 
     auto program_id = EmulationSession::GetProgramId(env, jprogramId);
     auto file_name = Common::Android::GetJString(env, jfileName);
     const auto config_file_name = program_id == 0 ? file_name : fmt::format("{:016X}", program_id);
+
+    // Overlay layouts fall back to the global layout when a per-game config
+    // doesn't have its own. To make that fallback work, restore the in-memory
+    // global overlay before the new per-game config is constructed — the new
+    // config's ReadOverlayValues() will see "no control_data block" and
+    // intentionally leave the in-memory vector alone, so it ends up showing
+    // the global layout. Without this reload, the in-memory vector would
+    // still hold the previous per-game's layout and the new game would
+    // appear to inherit the old one.
+    if (global_config) {
+        global_config->AndroidConfig::ReloadAllValues();
+    }
+
     per_game_config =
         std::make_unique<AndroidConfig>(config_file_name, Config::ConfigType::PerGameConfig);
 }
@@ -441,9 +454,16 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_saveOverlayControlData(JNIEnv* e
     // take an explicit boolean so the Java side can force one or the other
     // (e.g. to copy the global layout into a per-game config that doesn't
     // have one yet, or to reset a per-game config to global defaults).
+    //
+    // [SaveAllValuesForcingOverlay] is critical here: the per-game
+    // AndroidConfig::SaveAllValues path (constructor + savePerGameConfig)
+    // refuses to auto-create a control_data block in the per-game INI, to
+    // prevent copying the global layout into every newly-created per-game
+    // config. This explicit save call IS the user-edited trigger, so we
+    // override that and write the block.
     if (static_cast<bool>(j_perGame)) {
         if (per_game_config) {
-            per_game_config->AndroidConfig::SaveAllValues();
+            per_game_config->AndroidConfig::SaveAllValuesForcingOverlay();
         }
     } else {
         if (global_config) {

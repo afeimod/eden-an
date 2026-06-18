@@ -253,6 +253,25 @@ void AndroidConfig::SaveAndroidValues() {
     WriteToIni();
 }
 
+void AndroidConfig::SaveAllValuesForcingOverlay() {
+    // Like SaveAndroidValues(), but tells SaveOverlayValues to materialise
+    // the control_data block in per-game INI files that don't have one yet.
+    // Used by the explicit overlay save path on the Java side: the user has
+    // actually edited the layout, so this is the trigger to create the
+    // per-game overlay block in the INI file. (The default SaveAndroidValues
+    // path skips writing the block for untouched per-game configs, to avoid
+    // copying the global layout into every newly-created per-game INI.)
+    if (global) {
+        SaveAndroidUIValues();
+        SaveUIValues();
+    }
+    SaveOverlayValues(/*forceWriteControlData=*/true);
+    SaveDriverValues();
+    SaveAndroidControlValues();
+
+    WriteToIni();
+}
+
 void AndroidConfig::SaveAndroidUIValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Android));
 
@@ -321,32 +340,47 @@ void AndroidConfig::SaveDriverValues() {
     EndGroup();
 }
 
-void AndroidConfig::SaveOverlayValues() {
+void AndroidConfig::SaveOverlayValues(bool forceWriteControlData) {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Overlay));
 
     WriteCategory(Settings::Category::Overlay);
 
-    BeginArray("control_data");
-    for (size_t i = 0; i < AndroidSettings::values.overlay_control_data.size(); ++i) {
-        SetArrayIndex(i);
-        const auto& control_data = AndroidSettings::values.overlay_control_data[i];
-        WriteStringSetting(std::string("id"), control_data.id);
-        WriteBooleanSetting(std::string("enabled"), control_data.enabled);
-        WriteDoubleSetting(std::string("landscape\\x_position"),
-                           control_data.landscape_position.first);
-        WriteDoubleSetting(std::string("landscape\\y_position"),
-                           control_data.landscape_position.second);
-        WriteDoubleSetting(std::string("portrait\\x_position"),
-                           control_data.portrait_position.first);
-        WriteDoubleSetting(std::string("portrait\\y_position"),
-                           control_data.portrait_position.second);
-        WriteDoubleSetting(std::string("foldable\\x_position"),
-                           control_data.foldable_position.first);
-        WriteDoubleSetting(std::string("foldable\\y_position"),
-                           control_data.foldable_position.second);
-        WriteDoubleSetting(std::string("individual_scale"), static_cast<double>(control_data.individual_scale));
+    // Per-game configs must NOT auto-create a control_data block. Doing so
+    // would copy whatever happens to be in memory (typically the global
+    // layout) into every newly-created per-game INI, defeating the whole
+    // point of per-game layouts. The control_data block is created only when
+    // the user explicitly calls saveOverlayControlData() from the Java side
+    // after editing the overlay, which sets [forceWriteControlData] to true.
+    // (For the global config we always write — the global config IS the
+    // "default" layout that per-game configs fall back to.)
+    const auto overlay_section = Settings::TranslateCategory(Settings::Category::Overlay);
+    const bool shouldWriteArray =
+        !IsCustomConfig() || forceWriteControlData ||
+        Exists(overlay_section, std::string("control_data\\size"));
+
+    if (shouldWriteArray) {
+        BeginArray("control_data");
+        for (size_t i = 0; i < AndroidSettings::values.overlay_control_data.size(); ++i) {
+            SetArrayIndex(i);
+            const auto& control_data = AndroidSettings::values.overlay_control_data[i];
+            WriteStringSetting(std::string("id"), control_data.id);
+            WriteBooleanSetting(std::string("enabled"), control_data.enabled);
+            WriteDoubleSetting(std::string("landscape\\x_position"),
+                               control_data.landscape_position.first);
+            WriteDoubleSetting(std::string("landscape\\y_position"),
+                               control_data.landscape_position.second);
+            WriteDoubleSetting(std::string("portrait\\x_position"),
+                               control_data.portrait_position.first);
+            WriteDoubleSetting(std::string("portrait\\y_position"),
+                               control_data.portrait_position.second);
+            WriteDoubleSetting(std::string("foldable\\x_position"),
+                               control_data.foldable_position.first);
+            WriteDoubleSetting(std::string("foldable\\y_position"),
+                               control_data.foldable_position.second);
+            WriteDoubleSetting(std::string("individual_scale"), static_cast<double>(control_data.individual_scale));
+        }
+        EndArray();
     }
-    EndArray();
 
     EndGroup();
 }
