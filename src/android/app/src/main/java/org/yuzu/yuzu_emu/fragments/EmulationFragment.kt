@@ -90,6 +90,7 @@ import org.yuzu.yuzu_emu.overlay.model.OverlayControl
 import org.yuzu.yuzu_emu.overlay.model.OverlayLayout
 import org.yuzu.yuzu_emu.overlay.model.OverlayLayoutProfile
 import org.yuzu.yuzu_emu.overlay.model.OverlayLayoutProfileStore
+import org.yuzu.yuzu_emu.overlay.model.ComboStore
 import org.yuzu.yuzu_emu.overlay.model.FreeLayoutStorage
 import org.yuzu.yuzu_emu.overlay.ComboManagerDialogFragment
 import org.yuzu.yuzu_emu.overlay.ComboEditorDialogFragment
