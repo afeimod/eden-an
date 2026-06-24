@@ -691,6 +691,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
             return
         }
 
+        // Push the user's saved overlay profile (if any) into the native
+        // in-memory state BEFORE InputOverlay's first layout pass reads
+        // it. This is what makes "save profile per game" actually stick
+        // across launches on Eden, where the native overlay layout lives
+        // in the shared global INI vector and would otherwise show the
+        // default positions until the user manually re-loads the profile.
+        autoApplyOverlayProfileForGame()
+
         completeViewSetup()
     }
 
@@ -1129,6 +1137,50 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
         }
 
         driverViewModel.onLaunchGame()
+    }
+
+    /**
+     * Per-game overlay layout auto-loader.
+     *
+     * Eden's native config keeps overlay layouts in the global INI when a
+     * per-game config isn't loaded (the common launch path), so saving a
+     * profile to the per-game INI doesn't survive a normal launch. We
+     * side-step that by, on every game start, finding a saved profile
+     * tagged with the running game's programId (or a global one) and
+     * applying it to the in-memory native state *before* the InputOverlay
+     * reads it on its first layout pass. The native state then round-trips
+     * through the global INI when reloadGlobalConfig runs, so the user's
+     * per-game layout survives the launch and is visible immediately.
+     */
+    private fun autoApplyOverlayProfileForGame() {
+        val ctx = context ?: return
+        val currentGameId = game?.programId.orEmpty()
+        // 1. Game-specific profile wins.
+        val gameProfiles = OverlayLayoutProfileStore.listForGame(ctx, currentGameId)
+            .filter { it.gameId == currentGameId }
+            .sortedByDescending { it.createdAt }
+        val pick = gameProfiles.firstOrNull() ?: run {
+            // 2. Otherwise, fall back to the most recent global profile
+            //    tagged "apply to all games" — only if the user has
+            //    explicitly marked a profile as global. We don't silently
+            //    promote a non-global profile to global.
+            OverlayLayoutProfileStore.listForGame(ctx, currentGameId)
+                .firstOrNull { it.gameId == OverlayLayoutProfile.GLOBAL_GAME_ID }
+        } ?: return
+
+        // setOverlayControlData pushes the profile's positions into the
+        // shared in-memory vector that InputOverlay.onLayout reads from.
+        // We deliberately do NOT call saveOverlayControlData here: the
+        // next reloadGlobalConfig() that EmulationActivity runs will write
+        // these positions to disk via the normal SaveAllValues path, and
+        // if we wrote explicitly we'd race with that reload.
+        try {
+            NativeConfig.setOverlayControlData(pick.controls.toTypedArray())
+            ComboStore.save(ctx, pick.combos.toMutableList())
+            Log.info("[EmulationFragment] Auto-applied overlay profile \"${pick.name}\" for game $currentGameId")
+        } catch (e: Exception) {
+            Log.warning("[EmulationFragment] Auto-apply overlay profile failed: ${e.message}")
+        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -2622,11 +2674,15 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
      * Apply [profile] to the live overlay + combo store, then refresh the
      * on-screen controls so the change is visible immediately.
      *
-     * We deliberately do NOT call `saveGlobalConfig()` here: the profile
-     * store already routes the save to the correct INI via
-     * `saveOverlayControlData(perGame = isPerGameConfigLoaded())`, and an
-     * extra global save would copy the profile's data into the global
-     * INI and overwrite the user's default layout for every other game.
+     * We deliberately do NOT call `saveGlobalConfig()` or
+     * `reloadGlobalConfig()` here: both would clobber the per-game
+     * in-memory state when a per-game config is loaded (the native
+     * overlay_control_data vector is shared between global and per-game
+     * configs, so reloading global would overwrite the per-game data
+     * we just wrote). The profile store's apply() path is enough: it
+     * calls `saveOverlayControlData(perGame = isPerGameConfigLoaded())`
+     * which writes the right INI, and the next game launch reads it
+     * back via the normal ReadOverlayValues flow.
      */
     private fun applyOverlayProfile(profile: OverlayLayoutProfile) {
         val ctx = context ?: return

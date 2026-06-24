@@ -1086,6 +1086,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         // suspenders step, which had the side effect of copying the
         // per-game layout into the global INI and overwriting the user's
         // default layout. Don't add it back.
+        //
+        // We deliberately do NOT call reloadGlobalConfig() afterwards:
+        // the overlay_control_data vector is shared between the global
+        // and per-game configs, so reloading global would clobber a
+        // freshly-saved per-game layout. The next game launch will pick
+        // the right data up via its own ReadOverlayValues flow.
         NativeConfig.saveOverlayControlData(perGame = perGame)
     }
 
