@@ -63,7 +63,7 @@ object OverlayLayoutProfileStore {
             file.writeText(serialize(profile))
             true
         } catch (e: Exception) {
-            Log.error(TAG, "Failed to save profile ${profile.name}: ${e.message}")
+            Log.error("[$TAG] Failed to save profile ${profile.name}: ${e.message}")
             false
         }
     }
@@ -73,7 +73,7 @@ object OverlayLayoutProfileStore {
             val file = fileFor(context, name, gameId, create = false)
             if (file.exists()) file.delete() else false
         } catch (e: Exception) {
-            Log.error(TAG, "Failed to delete profile $name: ${e.message}")
+            Log.error("[$TAG] Failed to delete profile $name: ${e.message}")
             false
         }
     }
@@ -128,7 +128,7 @@ object OverlayLayoutProfileStore {
             ComboStore.save(context, profile.combos.toMutableList())
             true
         } catch (e: Exception) {
-            Log.error(TAG, "Failed to apply profile ${profile.name}: ${e.message}")
+            Log.error("[$TAG] Failed to apply profile ${profile.name}: ${e.message}")
             false
         }
     }
@@ -242,7 +242,7 @@ object OverlayLayoutProfileStore {
                     individualScale = obj.float("scale", 1.0f),
                 )
             } catch (e: Exception) {
-                Log.warning(TAG, "Skipping malformed control entry: ${e.message}")
+                Log.warning("[$TAG] Skipping malformed control entry: ${e.message}")
                 null
             }
         }
@@ -278,7 +278,7 @@ object OverlayLayoutProfileStore {
                     individualScale = obj.float("scale", 1.0f),
                 )
             } catch (e: Exception) {
-                Log.warning(TAG, "Skipping malformed combo entry: ${e.message}")
+                Log.warning("[$TAG] Skipping malformed combo entry: ${e.message}")
                 null
             }
         }
