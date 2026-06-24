@@ -1039,23 +1039,54 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         val max = windowSize.second
         val overlayControlData = NativeConfig.getOverlayControlData()
         val data = overlayControlData.firstOrNull { it.id == id }
-        val newPosition = Pair((x - min.x).toDouble() / max.x, (y - min.y).toDouble() / max.y)
+        val newPosition = Pair(
+            ((x - min.x).toDouble() / max.x).coerceIn(0.0, 1.0),
+            ((y - min.y).toDouble() / max.y).coerceIn(0.0, 1.0)
+        )
 
-        when (layout) {
-            OverlayLayout.Landscape -> data?.landscapePosition = newPosition
-            OverlayLayout.Portrait -> data?.portraitPosition = newPosition
-            OverlayLayout.Foldable -> data?.foldablePosition = newPosition
-
+        // Some legacy INIs miss controls; instead of silently dropping the
+        // edit (the original behaviour), append the missing control with the
+        // new position so the user's drag actually persists.
+        var workingData = overlayControlData
+        var target = data
+        if (target == null) {
+            val defaultControl = OverlayControl.from(id)
+            if (defaultControl != null) {
+                val created = defaultControl.toOverlayControlData().also {
+                    when (layout) {
+                        OverlayLayout.Landscape -> it.landscapePosition = newPosition
+                        OverlayLayout.Portrait -> it.portraitPosition = newPosition
+                        OverlayLayout.Foldable -> it.foldablePosition = newPosition
+                    }
+                    it.individualScale = individuaScale
+                }
+                workingData = overlayControlData.plus(created)
+                NativeConfig.setOverlayControlData(workingData)
+                target = created
+            }
         }
+        if (target == null) {
+            android.util.Log.w("InputOverlay", "saveControlPosition: unknown id $id")
+            return
+        }
+        when (layout) {
+            OverlayLayout.Landscape -> target.landscapePosition = newPosition
+            OverlayLayout.Portrait -> target.portraitPosition = newPosition
+            OverlayLayout.Foldable -> target.foldablePosition = newPosition
+        }
+        target.individualScale = individuaScale
 
-        data?.individualScale = individuaScale
-
-        NativeConfig.setOverlayControlData(overlayControlData)
-        // Persist to the per-game config if one is loaded (per-game overlay
-        // layout), otherwise to the global config (default layout). This used
-        // to be silently dropped on the floor after setOverlayControlData,
-        // which meant drag-to-position never actually saved between launches.
-        NativeConfig.saveOverlayControlData(perGame = NativeConfig.isPerGameConfigLoaded())
+        NativeConfig.setOverlayControlData(workingData)
+        val perGame = NativeConfig.isPerGameConfigLoaded()
+        // SaveAllValuesForcingOverlay() on the native side writes the
+        // control_data block into the correct INI (per-game if one is
+        // loaded, otherwise global). Doing it this way keeps the per-game
+        // edit from leaking into the global INI segment — a previous
+        // version of this code called saveGlobalConfig() as a belt-and-
+        // suspenders step, which had the side effect of copying the
+        // per-game layout into the global INI and overwriting the user's
+        // default layout. Don't add it back.
+        NativeConfig.saveOverlayControlData(perGame = perGame)
     }
 
     /** Persist a combo pad's new position back to [ComboStore]. */
@@ -1075,6 +1106,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             OverlayLayout.Portrait -> target.portraitPosition = newPosition
             OverlayLayout.Foldable -> target.foldablePosition = newPosition
         }
+        target.individualScale = combo.preset.individualScale
         ComboStore.save(context, presets)
         // Defer refresh so we don't mutate overlayCombos while still inside
         // the onTouch iteration that called us.

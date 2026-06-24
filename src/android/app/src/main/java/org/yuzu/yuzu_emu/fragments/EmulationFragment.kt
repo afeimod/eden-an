@@ -32,7 +32,9 @@ import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -58,6 +60,7 @@ import androidx.window.layout.WindowLayoutInfo
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.materialswitch.MaterialSwitch
+import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -85,6 +88,8 @@ import org.yuzu.yuzu_emu.model.EmulationViewModel
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.overlay.model.OverlayControl
 import org.yuzu.yuzu_emu.overlay.model.OverlayLayout
+import org.yuzu.yuzu_emu.overlay.model.OverlayLayoutProfile
+import org.yuzu.yuzu_emu.overlay.model.OverlayLayoutProfileStore
 import org.yuzu.yuzu_emu.overlay.model.FreeLayoutStorage
 import org.yuzu.yuzu_emu.overlay.ComboManagerDialogFragment
 import org.yuzu.yuzu_emu.overlay.ComboEditorDialogFragment
@@ -2405,6 +2410,18 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
                     true
                 }
 
+                R.id.menu_save_overlay_profile -> {
+                    binding.drawerLayout.close()
+                    showSaveOverlayProfileDialog()
+                    true
+                }
+
+                R.id.menu_load_overlay_profile -> {
+                    binding.drawerLayout.close()
+                    showLoadOverlayProfileDialog()
+                    true
+                }
+
                 R.id.menu_combos -> {
                     binding.drawerLayout.close()
                     ComboManagerDialogFragment().show(
@@ -2448,6 +2465,179 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
             }
         }
         NativeConfig.saveGlobalConfig()
+    }
+
+    // -----------------------------------------------------------------
+    //  Overlay layout profiles: save / load named snapshots
+    // -----------------------------------------------------------------
+
+    /**
+     * Show a dialog that lets the user name the current overlay layout and
+     * save it as a [OverlayLayoutProfile]. The dialog captures the live
+     * state (button positions, scales, visibility, and the combo list) so
+     * the user can rebuild it on any game later.
+     */
+    private fun showSaveOverlayProfileDialog() {
+        val ctx = requireContext()
+        val padding = (24 * resources.displayMetrics.density).toInt()
+
+        val container = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(padding, padding / 2, padding, 0)
+        }
+
+        val nameInput = EditText(ctx).apply {
+            hint = getString(R.string.emulation_overlay_profile_name_hint)
+            setSingleLine()
+            // Default to the game title or a timestamp so the user always
+            // gets a usable name without having to type.
+            val defaultName = game?.title?.takeIf { it.isNotBlank() }
+                ?: getString(R.string.emulation_overlay_profile_name_hint)
+            setText(defaultName)
+            setSelection(defaultName.length)
+        }
+        container.addView(nameInput)
+
+        val applyToAll = MaterialCheckBox(ctx).apply {
+            text = getString(R.string.emulation_overlay_profile_apply_to_all)
+            isChecked = false
+        }
+        container.addView(applyToAll)
+
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(R.string.emulation_overlay_profile_save_title)
+            .setMessage(R.string.emulation_overlay_profile_save_message)
+            .setView(container)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val rawName = nameInput.text.toString().trim()
+                val name = if (rawName.isEmpty()) "unnamed" else rawName
+                val gameId = if (applyToAll.isChecked) {
+                    OverlayLayoutProfile.GLOBAL_GAME_ID
+                } else {
+                    game?.programId.orEmpty()
+                        .ifEmpty { OverlayLayoutProfile.GLOBAL_GAME_ID }
+                }
+                captureAndSaveProfile(name, gameId)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun captureAndSaveProfile(name: String, gameId: String) {
+        val ctx = context ?: return
+        // Pull the live overlay data straight from native so the saved
+        // profile reflects whatever the user has staged (including any
+        // uncommitted edits done via menus / scale dialog / toggle).
+        val controls: Array<org.yuzu.yuzu_emu.overlay.model.OverlayControlData> =
+            try {
+                NativeConfig.getOverlayControlData()
+            } catch (e: UnsatisfiedLinkError) {
+                // Native config not loaded — very unusual, but we don't
+                // want to crash the dialog. Tell the user and bail.
+                Log.error("[EmulationFragment] native config not loaded: ${e.message}")
+                Toast.makeText(
+                    ctx,
+                    getString(R.string.emulation_overlay_profile_save_failed),
+                    Toast.LENGTH_SHORT
+                ).show()
+                emptyArray()
+            }
+        if (controls.isEmpty()) {
+            return
+        }
+        val profile = OverlayLayoutProfileStore.capture(ctx, name, gameId, controls)
+        val ok = OverlayLayoutProfileStore.save(ctx, profile)
+        val msg = if (ok) {
+            getString(R.string.emulation_overlay_profile_saved, name)
+        } else {
+            getString(R.string.emulation_overlay_profile_save_failed)
+        }
+        Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Show a list of all [OverlayLayoutProfile]s visible to the current
+     * game (per-game + global). Tapping an entry applies it; long-pressing
+     * opens a delete confirmation.
+     */
+    private fun showLoadOverlayProfileDialog() {
+        val ctx = requireContext()
+        val currentGameId = game?.programId.orEmpty()
+        val profiles = OverlayLayoutProfileStore.listForGame(ctx, currentGameId)
+        if (profiles.isEmpty()) {
+            MaterialAlertDialogBuilder(ctx)
+                .setTitle(R.string.emulation_overlay_profile_load_title)
+                .setMessage(R.string.emulation_overlay_profile_load_empty)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+            return
+        }
+
+        val labels = profiles.map { p ->
+            val scopeLabel = if (p.gameId == OverlayLayoutProfile.GLOBAL_GAME_ID) {
+                getString(R.string.emulation_overlay_profile_global)
+            } else {
+                getString(R.string.emulation_overlay_profile_current_game)
+            }
+            "${p.name}\n$scopeLabel"
+        }.toTypedArray()
+
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(R.string.emulation_overlay_profile_load_title)
+            .setItems(labels) { _, which ->
+                val picked = profiles[which]
+                applyOverlayProfile(picked)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .setNeutralButton(R.string.emulation_overlay_profile_delete) { _, _ ->
+                // Open the per-entry delete picker. We pass the already
+                // filtered list so the user only sees entries that are
+                // relevant to the current game.
+                showDeleteProfileDialog(profiles)
+            }
+            .show()
+    }
+
+    private fun showDeleteProfileDialog(profiles: List<OverlayLayoutProfile>) {
+        val ctx = requireContext()
+        val labels = profiles.map { p ->
+            val scopeLabel = if (p.gameId == OverlayLayoutProfile.GLOBAL_GAME_ID) {
+                getString(R.string.emulation_overlay_profile_global)
+            } else {
+                getString(R.string.emulation_overlay_profile_current_game)
+            }
+            "${p.name}\n$scopeLabel"
+        }.toTypedArray()
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(R.string.emulation_overlay_profile_delete)
+            .setItems(labels) { _, which ->
+                val picked = profiles[which]
+                OverlayLayoutProfileStore.delete(ctx, picked.name, picked.gameId)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /**
+     * Apply [profile] to the live overlay + combo store, then refresh the
+     * on-screen controls so the change is visible immediately.
+     *
+     * We deliberately do NOT call `saveGlobalConfig()` here: the profile
+     * store already routes the save to the correct INI via
+     * `saveOverlayControlData(perGame = isPerGameConfigLoaded())`, and an
+     * extra global save would copy the profile's data into the global
+     * INI and overwrite the user's default layout for every other game.
+     */
+    private fun applyOverlayProfile(profile: OverlayLayoutProfile) {
+        val ctx = context ?: return
+        val ok = OverlayLayoutProfileStore.apply(ctx, profile)
+        val msg = if (ok) {
+            getString(R.string.emulation_overlay_profile_loaded, profile.name)
+        } else {
+            getString(R.string.emulation_overlay_profile_load_failed)
+        }
+        Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show()
+        binding.surfaceInputOverlay.refreshControls()
     }
 
     @SuppressLint("SetTextI18n")

@@ -58,6 +58,14 @@
         android:title="@string/emulation_touch_overlay_reset" />
 
     <item
+        android:id="@+id/menu_save_overlay_profile"
+        android:title="@string/emulation_overlay_profile_save" />
+
+    <item
+        android:id="@+id/menu_load_overlay_profile"
+        android:title="@string/emulation_overlay_profile_load" />
+
+    <item
         android:id="@+id/menu_combos"
         android:title="@string/combo_menu_title" />
 
