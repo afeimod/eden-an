@@ -1229,7 +1229,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, ComboManagerDialog
     // -----------------------------------------------------------------------------------------
 
     /** Default inset shown on first launch so the four handles are visible. */
-    private val freeLayoutDefault = floatArrayOf(0.15f, 0.15f, 0.85f, 0.85f)
+    private val freeLayoutDefault = FreeLayoutStorage.DEFAULT
 
     /**
      * Wire the ScreenPositionEditor overlay: live listener pushes to native during drag,

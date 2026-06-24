@@ -129,7 +129,7 @@ object ComboStore {
 
         val id = map["id"]?.trim('"') ?: error("missing id")
         val name = map["name"]?.trim('"') ?: id
-        val enabled = map["enabled"]?.toBooleanStrictOrNull() ?: true
+        val enabled = map["enabled"]?.toBooleanStrictOrNull() ?: false
 
         // v2 schema uses "buttons"; v1 used "triggers". We accept both.
         val rawList = map["buttons"] ?: map["triggers"]

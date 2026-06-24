@@ -23,7 +23,12 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     RENDERER_SCALING_FILTER("scaling_filter"),
     RENDERER_ANTI_ALIASING("anti_aliasing"),
     RENDERER_SCREEN_LAYOUT("screen_layout"),
-    RENDERER_ASPECT_RATIO("aspect_ratio"),
+    RENDERER_ASPECT_RATIO("aspect_ratio") {
+        // Android 默认拉伸全屏（AspectRatio::Stretch = 4），
+        // 避免游戏画面在小屏上留黑边。原 native 默认为 R16_9 (=0)，
+        // 这里覆盖以贴合手机使用习惯；Qt 桌面端的默认行为不受影响。
+        override val defaultValue: Int = 4
+    },
 
     RENDERER_DYNA_STATE("dyna_state"),
     DMA_ACCURACY("dma_accuracy"),

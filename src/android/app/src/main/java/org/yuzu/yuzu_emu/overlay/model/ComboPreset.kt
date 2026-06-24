@@ -29,7 +29,7 @@ data class ComboPreset(
     val displayName: String,
     val buttons: List<NativeButton>,
     val kind: Kind = Kind.CHORD,
-    var enabled: Boolean = true,
+    var enabled: Boolean = false,
     var landscapePosition: Pair<Double, Double> = Pair(0.85, 0.7),
     var portraitPosition: Pair<Double, Double> = Pair(0.85, 0.7),
     var foldablePosition: Pair<Double, Double> = Pair(0.85, 0.7),

@@ -25,8 +25,8 @@ object FreeLayoutStorage {
     private const val KEY_X2 = "x2"
     private const val KEY_Y2 = "y2"
 
-    /** Default rectangle: a centered 70% window. */
-    val DEFAULT = floatArrayOf(0.15f, 0.15f, 0.85f, 0.85f)
+    /** Default rectangle: fullscreen. */
+    val DEFAULT = floatArrayOf(0f, 0f, 1f, 1f)
 
     private fun prefs(context: Context): SharedPreferences =
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
