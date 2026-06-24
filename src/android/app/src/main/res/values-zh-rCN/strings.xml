@@ -1200,4 +1200,81 @@
     <string name="combo_kind_chord">同时按下 —— 全部按键一起生效（如 A + B）</string>
     <string name="combo_kind_macro">顺序触发 —— 按顺序逐个按下，间隔一小段时间（如 ↓ + → + A）</string>
 
+    <!-- Overlay layout profile -->
+    <string name="emulation_overlay_profile_apply_to_all">应用于全部游戏</string>
+    <string name="emulation_overlay_profile_current_game">仅当前游戏</string>
+    <string name="emulation_overlay_profile_delete">删除</string>
+    <string name="emulation_overlay_profile_global">全部游戏</string>
+    <string name="emulation_overlay_profile_load">载入布局方案…</string>
+    <string name="emulation_overlay_profile_load_empty">还没有保存过的布局。先用“保存布局方案…”。</string>
+    <string name="emulation_overlay_profile_load_failed">载入布局失败。</string>
+    <string name="emulation_overlay_profile_load_title">载入覆盖层布局</string>
+    <string name="emulation_overlay_profile_loaded">已载入布局“%1$s”。</string>
+    <string name="emulation_overlay_profile_name_hint">布局名称</string>
+    <string name="emulation_overlay_profile_save">保存布局方案…</string>
+    <string name="emulation_overlay_profile_save_failed">保存布局失败，请检查存储权限。</string>
+    <string name="emulation_overlay_profile_save_message">为这个布局起个名字。勾选“应用于全部游戏”可在所有游戏中共用；不勾选则仅保存到当前游戏。</string>
+    <string name="emulation_overlay_profile_save_title">保存覆盖层布局</string>
+    <string name="emulation_overlay_profile_saved">已保存布局“%1$s”。</string>
+
+    <!-- Aspect ratio (settings drop-down labels) -->
+    <string name="ratio_default">16:9</string>
+    <string name="ratio_force_four_three">4:3</string>
+    <string name="ratio_force_sixteen_ten">16:10</string>
+    <string name="ratio_force_twenty_one_nine">21:9</string>
+
+    <!-- Resolution multiplier -->
+    <string name="multiplier_x2">x2</string>
+    <string name="multiplier_x4">x4</string>
+    <string name="multiplier_x8">x8</string>
+    <string name="multiplier_x16">x16</string>
+    <string name="multiplier_x32">x32</string>
+    <string name="multiplier_x64">x64</string>
+
+    <!-- Internal resolution presets -->
+    <string name="resolution_quarter">0.25X (180p/270p)</string>
+    <string name="resolution_half">0.5X (360p/540p)</string>
+    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
+    <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_five_quarter">1.25X (900p/1350p)</string>
+    <string name="resolution_three_half">1.5X (1080p/1620p)</string>
+    <string name="resolution_two">2X (1440p/2160p)（较慢）</string>
+    <string name="resolution_three">3X (2160p/3240p)（较慢）</string>
+    <string name="resolution_four">4X (2880p/4320p)（较慢）</string>
+
+    <!-- Renderer / decoding -->
+    <string name="renderer_vulkan">Vulkan</string>
+    <string name="nvdec_emulation_cpu">CPU</string>
+    <string name="nvdec_emulation_gpu">GPU</string>
+
+    <!-- Scaling filters -->
+    <string name="scaling_filter_nearest_neighbor">最近邻</string>
+    <string name="scaling_filter_bilinear">双线性</string>
+    <string name="scaling_filter_bicubic">双三次</string>
+    <string name="scaling_filter_gaussian">高斯</string>
+    <string name="scaling_filter_lanczos">Lanczos</string>
+    <string name="scaling_filter_fsr">AMD FidelityFX 超采样</string>
+    <string name="scaling_filter_sgsr">骁龙 GSR</string>
+    <string name="scaling_filter_sgsr_edge">骁龙 GSR EdgeDir</string>
+    <string name="scaling_filter_mitchell">Mitchell</string>
+    <string name="scaling_filter_bspline">B 样条</string>
+    <string name="scaling_filter_area">面积平均</string>
+    <string name="scaling_filter_mmpx">MMPX</string>
+    <string name="scaling_filter_scale_force">ScaleForce</string>
+    <string name="scaling_filter_spline1">Spline-1</string>
+    <string name="scaling_filter_zero_tangent">零切线</string>
+
+    <!-- ASTC decoding -->
+    <string name="accelerate_astc_async">CPU 异步</string>
+    <string name="accelerate_astc_cpu">CPU</string>
+    <string name="accelerate_astc_gpu">GPU</string>
+
+    <!-- Anti-aliasing -->
+    <string name="anti_aliasing_fxaa">FXAA</string>
+    <string name="anti_aliasing_smaa">SMAA</string>
+
+    <!-- CPU backends -->
+    <string name="cpu_backend_dynarmic">Dynarmic (JIT)</string>
+    <string name="cpu_backend_nce">NCE</string>
+
 </resources>
